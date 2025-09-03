@@ -1,0 +1,52 @@
+# Log e file di sistema
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Env e credenziali
+.env
+.env.*
+.env.backup
+.env.production
+auth.json
+
+# IDE / Editor
+/.fleet
+/.idea
+/.vscode
+/.zed
+.phpactor.json
+
+# PHPUnit / Tooling cache
+.phpunit.result.cache
+/.phpunit.cache
+/.php-cs-fixer.cache
+
+# Laravel
+/vendor
+/bootstrap/cache/*
+!bootstrap/cache/.gitignore
+
+/storage/*.key
+/storage/pail
+/storage/framework/*
+!storage/framework/.gitignore
+
+/storage/logs/*
+!storage/logs/.gitignore
+
+# Frontend
+/node_modules
+/public/build
+/public/hot
+/public/storage
+
+# Nova (se presente)
+/.nova
+
+# Homestead
+Homestead.json
+Homestead.yaml
