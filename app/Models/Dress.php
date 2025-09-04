@@ -63,4 +63,20 @@ class Dress extends Model
     {
         return $this->total_client_price - $this->total_purchase_cost;
     }
+
+    public function getCustomerInfoAttribute(): string
+    {
+        return "<strong>{$this->customer_name}</strong><br>
+                <small class='text-gray-500'>{$this->phone_number}</small>";
+    }
+
+    public function getCeremonyInfoAttribute(): string
+    {
+        $date = $this->ceremony_date?->format('d/m/Y') ?? '-';
+        $type = $this->ceremony_type ?? '-';
+
+        return "<strong>{$date}</strong><br>
+                <small class='text-gray-500'>{$type}</small>";
+    }
+
 }
