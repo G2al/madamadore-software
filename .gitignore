@@ -8,9 +8,9 @@ Thumbs.db
 
 # Env e credenziali
 .env
-.env.*
 .env.backup
 .env.production
+!.env.example
 auth.json
 
 # IDE / Editor
