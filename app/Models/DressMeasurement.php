@@ -10,8 +10,51 @@ class DressMeasurement extends Model
 {
     use HasFactory;
 
+    /**
+     * Mappa ordinata (come nella scheda fotografata):
+     * chiave = nome colonna DB, valore = etichetta umana.
+     */
+    public const ORDERED_MEASURES = [
+        'circonferenza_collo'         => 'Circonferenza collo',
+        'torace'                      => 'Torace',
+        'seno'                        => 'Seno',
+        'sotto_seno'                  => 'Sottoseno',
+        'vita'                        => 'Vita',
+        'bacino'                      => 'Bacino',
+        'lunghezza_bacino'           => 'Lunghezza bacino',
+        'lunghezza_seno'             => 'L. Seno',
+        'distanza_seni'              => 'Distanza Seno',
+        'precisapince'               => 'Precisapince',
+        'scollo'                     => 'Scollo',
+        'scollo_dietro'              => 'Scollo Dietro',
+        'lunghezza_vita'             => 'Lung. Vita',
+        'lunghezza_vita_dietro'      => 'L. Vita dietro',
+        'larghezza_schiena'          => 'Larghezza spalle dietro',
+        'inclinazione_spalle'        => 'Inclinazione spalle (max 22°)',
+        'larghezza_torace_interno'   => 'Larg. Torace Int.',
+        'lunghezza_taglio'           => 'Lung. Taglio',
+        'lunghezza_abito'            => 'Lung. Capo',
+        'lunghezza_gonna_avanti'     => 'Lung. Gonna Av.',
+        'lunghezza_gonna_dietro'     => 'Lung. Gonna D.',
+        'lunghezza_gomito'           => 'Lung. Gomito',
+        'lunghezza_manica'           => 'Lung. Manica',
+        'circonferenza_braccio'      => 'Circ. Braccio',
+        'livello_ascellare'          => 'Livello ascellare',
+        'lunghezza_pantalone_interno'=> 'L. Pant. Int.',
+        'lunghezza_pantalone_esterno'=> 'L. Pant. Est.',
+        'lunghezza_ginocchio'        => 'Lung. Ginocchio', // fallback su altezza_ginocchio
+        'lunghezza_cavallo'          => 'Cavallo',
+        'circonferenza_coscia'       => 'Circ. Coscia',
+        'circonferenza_ginocchio'    => 'Circ. Ginocchio',
+        'circonferenza_caviglia'     => 'Circ. Caviglia',
+        'circonferenza_polso'        => 'Circ. Polso',
+        'circonferenza_taglio'       => 'Circ. Taglio',
+    ];
+
     protected $fillable = [
         'dress_id',
+
+        // già esistenti
         'spalle',
         'torace',
         'sotto_seno',
@@ -32,9 +75,33 @@ class DressMeasurement extends Model
         'lunghezza_cavallo',
         'altezza_ginocchio',
         'circonferenza_caviglia',
+
+        // nuovi aggiunti dalla migration
+        'seno',
+        'bacino',
+        'lunghezza_bacino',
+        'lunghezza_seno',
+        'precisapince',
+        'scollo',
+        'scollo_dietro',
+        'lunghezza_vita',
+        'lunghezza_vita_dietro',
+        'inclinazione_spalle',
+        'larghezza_torace_interno',
+        'lunghezza_taglio',
+        'lunghezza_gonna_avanti',
+        'lunghezza_gonna_dietro',
+        'lunghezza_gomito',
+        'livello_ascellare',
+        'lunghezza_pantalone_interno',
+        'lunghezza_pantalone_esterno',
+        'lunghezza_ginocchio',
+        'circonferenza_ginocchio',
+        'circonferenza_taglio',
     ];
 
     protected $casts = [
+        // esistenti
         'spalle' => 'float',
         'torace' => 'float',
         'sotto_seno' => 'float',
@@ -55,38 +122,55 @@ class DressMeasurement extends Model
         'lunghezza_cavallo' => 'float',
         'altezza_ginocchio' => 'float',
         'circonferenza_caviglia' => 'float',
+
+        // nuovi
+        'seno' => 'float',
+        'bacino' => 'float',
+        'lunghezza_bacino' => 'float',
+        'lunghezza_seno' => 'float',
+        'precisapince' => 'float',
+        'scollo' => 'float',
+        'scollo_dietro' => 'float',
+        'lunghezza_vita' => 'float',
+        'lunghezza_vita_dietro' => 'float',
+        'inclinazione_spalle' => 'float',
+        'larghezza_torace_interno' => 'float',
+        'lunghezza_taglio' => 'float',
+        'lunghezza_gonna_avanti' => 'float',
+        'lunghezza_gonna_dietro' => 'float',
+        'lunghezza_gomito' => 'float',
+        'livello_ascellare' => 'float',
+        'lunghezza_pantalone_interno' => 'float',
+        'lunghezza_pantalone_esterno' => 'float',
+        'lunghezza_ginocchio' => 'float',
+        'circonferenza_ginocchio' => 'float',
+        'circonferenza_taglio' => 'float',
     ];
 
-    // Relationships
     public function dress(): BelongsTo
     {
         return $this->belongsTo(Dress::class);
     }
 
-    // Helper method per ottenere tutte le misure come array
+    /**
+     * Ritorna le 34 misure nell'ordine della scheda, con etichette umane.
+     * Usa fallback su 'altezza_ginocchio' se 'lunghezza_ginocchio' è null.
+     */
     public function getAllMeasurementsAttribute(): array
     {
-        return [
-            'Spalle' => $this->spalle,
-            'Torace' => $this->torace,
-            'Sotto Seno' => $this->sotto_seno,
-            'Vita' => $this->vita,
-            'Fianchi' => $this->fianchi,
-            'Lunghezza Busto' => $this->lunghezza_busto,
-            'Lunghezza Manica' => $this->lunghezza_manica,
-            'Circonferenza Braccio' => $this->circonferenza_braccio,
-            'Circonferenza Polso' => $this->circonferenza_polso,
-            'Altezza Totale' => $this->altezza_totale,
-            'Lunghezza Abito' => $this->lunghezza_abito,
-            'Lunghezza Gonna' => $this->lunghezza_gonna,
-            'Circonferenza Collo' => $this->circonferenza_collo,
-            'Larghezza Schiena' => $this->larghezza_schiena,
-            'Altezza Seno' => $this->altezza_seno,
-            'Distanza Seni' => $this->distanza_seni,
-            'Circonferenza Coscia' => $this->circonferenza_coscia,
-            'Lunghezza Cavallo' => $this->lunghezza_cavallo,
-            'Altezza Ginocchio' => $this->altezza_ginocchio,
-            'Circonferenza Caviglia' => $this->circonferenza_caviglia,
-        ];
+        $out = [];
+
+        foreach (self::ORDERED_MEASURES as $field => $label) {
+            $value = $this->{$field};
+
+            // fallback specifico ginocchio
+            if ($field === 'lunghezza_ginocchio' && is_null($value)) {
+                $value = $this->altezza_ginocchio;
+            }
+
+            $out[$label] = $value;
+        }
+
+        return $out;
     }
 }

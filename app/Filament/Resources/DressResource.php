@@ -204,41 +204,108 @@ class DressResource extends Resource
                     ])
                     ->columnSpanFull(),
 
-                // SEZIONE 3 - MISURE
-                Forms\Components\Section::make('Misure')
-                    ->schema([
-                        Forms\Components\Repeater::make('measurements')
-                            ->label('Misure Cliente')
-                            ->relationship('measurements')
+                    // SEZIONE 3 - MISURE (UX migliorata con Tabs)
+Forms\Components\Section::make('Misure')
+    ->schema([
+        Forms\Components\Repeater::make('measurements')
+            ->label('Misure Cliente')
+            ->relationship('measurements')
+            ->schema([
+                Forms\Components\Tabs::make('Misure (ordine ufficiale)')
+                    ->tabs([
+                        // 1) Collo & Busto
+                        Forms\Components\Tabs\Tab::make('1) Collo & Busto')
                             ->schema([
-                                Forms\Components\TextInput::make('spalle')->label('Spalle')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('circonferenza_collo')->label('Circonferenza Collo')->numeric()->step(0.1)->suffix('cm'),
                                 Forms\Components\TextInput::make('torace')->label('Torace')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('seno')->label('Seno')->numeric()->step(0.1)->suffix('cm'),
                                 Forms\Components\TextInput::make('sotto_seno')->label('Sotto Seno')->numeric()->step(0.1)->suffix('cm'),
                                 Forms\Components\TextInput::make('vita')->label('Vita')->numeric()->step(0.1)->suffix('cm'),
-                                Forms\Components\TextInput::make('fianchi')->label('Fianchi')->numeric()->step(0.1)->suffix('cm'),
-                                Forms\Components\TextInput::make('lunghezza_busto')->label('Lunghezza Busto')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('bacino')->label('Bacino')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('lunghezza_bacino')->label('Lunghezza Bacino')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('lunghezza_seno')->label('Lunghezza Seno')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('distanza_seni')->label('Distanza Seni')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('precisapince')->label('Precisapince')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('scollo')->label('Scollo')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('scollo_dietro')->label('Scollo Dietro')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('lunghezza_vita')->label('Lunghezza Vita')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('lunghezza_vita_dietro')->label('Lunghezza Vita Dietro')->numeric()->step(0.1)->suffix('cm'),
+                            ])
+                            ->columns(4),
+
+                        // 2) Spalle & Torace
+                        Forms\Components\Tabs\Tab::make('2) Spalle & Torace')
+                            ->schema([
+                                Forms\Components\TextInput::make('larghezza_schiena')->label('Larghezza Spalle Dietro')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('inclinazione_spalle')->label('Inclinazione Spalle (max 22°)')->numeric()->step(0.1)->suffix('°'),
+                                Forms\Components\TextInput::make('larghezza_torace_interno')->label('Larghezza Torace Interno')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('lunghezza_taglio')->label('Lunghezza Taglio')->numeric()->step(0.1)->suffix('cm'),
+                            ])
+                            ->columns(4),
+
+                        // 3) Capo & Gonna
+                        Forms\Components\Tabs\Tab::make('3) Capo & Gonna')
+                            ->schema([
+                                Forms\Components\TextInput::make('lunghezza_abito')->label('Lunghezza Capo')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('lunghezza_gonna_avanti')->label('Lunghezza Gonna Avanti')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('lunghezza_gonna_dietro')->label('Lunghezza Gonna Dietro')->numeric()->step(0.1)->suffix('cm'),
+                            ])
+                            ->columns(4),
+
+                        // 4) Maniche & Braccia
+                        Forms\Components\Tabs\Tab::make('4) Maniche & Braccia')
+                            ->schema([
+                                Forms\Components\TextInput::make('lunghezza_gomito')->label('Lunghezza Gomito')->numeric()->step(0.1)->suffix('cm'),
                                 Forms\Components\TextInput::make('lunghezza_manica')->label('Lunghezza Manica')->numeric()->step(0.1)->suffix('cm'),
                                 Forms\Components\TextInput::make('circonferenza_braccio')->label('Circonferenza Braccio')->numeric()->step(0.1)->suffix('cm'),
                                 Forms\Components\TextInput::make('circonferenza_polso')->label('Circonferenza Polso')->numeric()->step(0.1)->suffix('cm'),
-                                Forms\Components\TextInput::make('altezza_totale')->label('Altezza Totale')->numeric()->step(0.1)->suffix('cm'),
-                                Forms\Components\TextInput::make('lunghezza_abito')->label('Lunghezza Abito')->numeric()->step(0.1)->suffix('cm'),
-                                Forms\Components\TextInput::make('lunghezza_gonna')->label('Lunghezza Gonna')->numeric()->step(0.1)->suffix('cm'),
-                                Forms\Components\TextInput::make('circonferenza_collo')->label('Circonferenza Collo')->numeric()->step(0.1)->suffix('cm'),
-                                Forms\Components\TextInput::make('larghezza_schiena')->label('Larghezza Schiena')->numeric()->step(0.1)->suffix('cm'),
-                                Forms\Components\TextInput::make('altezza_seno')->label('Altezza Seno')->numeric()->step(0.1)->suffix('cm'),
-                                Forms\Components\TextInput::make('distanza_seni')->label('Distanza Seni')->numeric()->step(0.1)->suffix('cm'),
-                                Forms\Components\TextInput::make('circonferenza_coscia')->label('Circonferenza Coscia')->numeric()->step(0.1)->suffix('cm'),
-                                Forms\Components\TextInput::make('lunghezza_cavallo')->label('Lunghezza Cavallo')->numeric()->step(0.1)->suffix('cm'),
-                                Forms\Components\TextInput::make('altezza_ginocchio')->label('Altezza Ginocchio')->numeric()->step(0.1)->suffix('cm'),
-                                Forms\Components\TextInput::make('circonferenza_caviglia')->label('Circonferenza Caviglia')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('livello_ascellare')->label('Livello Ascellare')->numeric()->step(0.1)->suffix('cm'),
                             ])
-                            ->columns(4)
-                            ->itemLabel('Misure')
-                            ->maxItems(1)
-                            ->defaultItems(1)
-                            ->addActionLabel('Aggiungi Misure'),
+                            ->columns(4),
+
+                        // 5) Pantalone
+                        Forms\Components\Tabs\Tab::make('5) Pantalone')
+                            ->schema([
+                                Forms\Components\TextInput::make('lunghezza_pantalone_interno')->label('Lunghezza Pantalone Interno')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('lunghezza_pantalone_esterno')->label('Lunghezza Pantalone Esterno')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('lunghezza_ginocchio')->label('Lunghezza Ginocchio')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('lunghezza_cavallo')->label('Cavallo')->numeric()->step(0.1)->suffix('cm'),
+                            ])
+                            ->columns(4),
+
+                        // 6) Circonferenze Gambe
+                        Forms\Components\Tabs\Tab::make('6) Circonferenze Gambe')
+                            ->schema([
+                                Forms\Components\TextInput::make('circonferenza_coscia')->label('Circonferenza Coscia')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('circonferenza_ginocchio')->label('Circonferenza Ginocchio')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('circonferenza_caviglia')->label('Circonferenza Caviglia')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('circonferenza_taglio')->label('Circonferenza Taglio')->numeric()->step(0.1)->suffix('cm'),
+                            ])
+                            ->columns(4),
+
+                        // (Opzionale) Legacy
+                        Forms\Components\Tabs\Tab::make('Legacy (opz.)')
+                            ->schema([
+                                Forms\Components\TextInput::make('spalle')->label('Spalle (legacy)')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('fianchi')->label('Fianchi (legacy)')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('lunghezza_busto')->label('Lunghezza Busto (legacy)')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('altezza_totale')->label('Altezza Totale (legacy)')->numeric()->step(0.1)->suffix('cm'),
+                                Forms\Components\TextInput::make('lunghezza_gonna')->label('Lunghezza Gonna (legacy)')->numeric()->step(0.1)->suffix('cm'),
+                            ])
+                            ->columns(4),
                     ])
-                    ->columnSpanFull(),
+                    ->persistTabInQueryString()
+                    ->contained(false)
+                    ->lazy(),
+            ])
+            ->itemLabel('Misure')
+            ->maxItems(1)
+            ->defaultItems(1)
+            ->addActionLabel('Aggiungi Misure'),
+    ])
+    ->columnSpanFull(),
+
+
 
                 // SEZIONE FINALE - CALCOLI E STATO
                 Forms\Components\Section::make('Totali e Stato')
