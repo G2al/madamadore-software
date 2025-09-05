@@ -340,7 +340,6 @@ trait HasDressFormSections
             ->columnSpanFull();
     }
 
-    // --- Trigger calcoli all'apertura ---
     private static function bootCalcPlaceholder(): Forms\Components\Placeholder
     {
         return Forms\Components\Placeholder::make('_boot_calc')
@@ -348,6 +347,16 @@ trait HasDressFormSections
             ->content('')
             ->extraAttributes(['style' => 'display:none'])
             ->dehydrated(false)
-            ->afterStateHydrated(fn (Set $set, Get $get) => self::updateCalculations($set, $get));
+            ->afterStateHydrated(function (Set $set, Get $get) {
+                // 🚦 Early exit: evita loop e calcoli inutili
+                static $done = false;
+                if ($done) {
+                    return;
+                }
+                $done = true;
+
+                self::updateCalculations($set, $get);
+            });
     }
+
 }

@@ -4,22 +4,19 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\DressResource\Pages;
 use App\Models\Dress;
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Table;
 use App\Filament\Resources\DressResource\Concerns\HasDressFormSections;
+use App\Filament\Resources\DressResource\Concerns\HasDressTableDefinition;
 use App\Services\DressCalculator;
-use App\Filament\Filters\StatusFilter;
-use App\Filament\Filters\CeremonyTypeFilter;
-use App\Filament\Filters\DeliveryDateFilter;
 
 class DressResource extends Resource
 {
     use HasDressFormSections;
+    use HasDressTableDefinition;
 
     protected static ?string $model = Dress::class;
     protected static ?string $navigationIcon = 'heroicon-o-sparkles';
@@ -56,61 +53,32 @@ class DressResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('customer_info')
-                    ->label('Cliente')
-                    ->html()
-                    ->searchable(['customer_name', 'phone_number']),
-
-                Tables\Columns\TextColumn::make('ceremony_info')
-                    ->label('Cerimonia')
-                    ->html(),
-
-                Tables\Columns\TextColumn::make('status')
-                    ->label('Stato')
-                    ->badge()
-                    ->formatStateUsing(fn (?string $state) => self::getStatusLabels()[$state] ?? '-')
-                    ->color(fn (?string $state) => self::getStatusColors()[$state] ?? 'gray'),
-
-                Tables\Columns\TextColumn::make('delivery_date')
-                    ->label('Consegna')
-                    ->date('d/m/Y')
-                    ->color(fn ($record) => $record->delivery_date->isPast() ? 'danger' : 'success'),
-
-                Tables\Columns\TextColumn::make('deposit')
-                    ->label('Acconto')
-                    ->money('EUR'),
-            ])
-            ->filters([
-                StatusFilter::make(),
-                CeremonyTypeFilter::make(),
-                DeliveryDateFilter::make(),
-            ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ])
-            ->defaultSort('created_at', 'desc');
+        return self::buildTable($table);
     }
 
     protected static function updateCalculations(Set $set, Get $get): void
     {
-        $results = DressCalculator::calculate(
-            $get('fabrics') ?? [],
-            $get('extras') ?? [],
-            (float) ($get('deposit') ?? 0)
-        );
+        $fabrics = $get('fabrics') ?? [];
+        $extras = $get('extras') ?? [];
+        $deposit = (float) ($get('deposit') ?? 0);
+
+        // 🚦 Early exit: se non ci sono dati, non fare calcoli
+        if (empty($fabrics) && empty($extras) && $deposit === 0.0) {
+            return;
+        }
+
+        $results = DressCalculator::calculate($fabrics, $extras, $deposit);
 
         foreach ($results as $field => $value) {
-            $set($field, number_format($value, 2, '.', ''));
+            // ✅ Fail-fast: assicuriamoci che sia numerico
+            if (!is_numeric($value)) {
+                continue;
+            }
+
+            $set($field, number_format((float) $value, 2, '.', ''));
         }
     }
+
 
     public static function getRelations(): array
     {
