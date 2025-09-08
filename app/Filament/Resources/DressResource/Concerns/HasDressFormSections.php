@@ -47,12 +47,12 @@ trait HasDressFormSections
             ->schema([
                 Forms\Components\FileUpload::make('sketch_image')
                     ->label('Bozza')->image()->disk('public')->directory('dress-sketches')->visibility('public')
-                    ->acceptedFileTypes(['image/jpeg','image/png','image/gif'])
+                    ->acceptedFileTypes(['image/*'])
                     ->downloadable(),
 
                 Forms\Components\FileUpload::make('final_image')
                     ->label('Definitivo')->image()->disk('public')->directory('dress-finals')->visibility('public')
-                    ->acceptedFileTypes(['image/jpeg','image/png','image/gif'])
+                    ->acceptedFileTypes(['image/*'])
                     ->downloadable(),
             ])
             ->columns(2);
