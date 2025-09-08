@@ -16,32 +16,26 @@ trait HasDressFormSections
             ->schema([
                 Forms\Components\TextInput::make('customer_name')
                     ->label('Nome e Cognome Cliente')
-                    ->required()
                     ->maxLength(255),
 
                 Forms\Components\TextInput::make('phone_number')
                     ->label('Numero di Cellulare')
                     ->tel()
-                    ->required()
                     ->maxLength(255),
 
                 Forms\Components\DatePicker::make('ceremony_date')
-                    ->label('Data della Cerimonia')
-                    ->required(),
+                    ->label('Data della Cerimonia'),
 
                 Forms\Components\Select::make('ceremony_type')
                     ->label('Tipologia della Cerimonia')
-                    ->options(config('dress.ceremonies', []))
-                    ->required(),
+                    ->options(config('dress.ceremonies', [])),
 
                 Forms\Components\TextInput::make('ceremony_holder')
                     ->label('Intestatario della Cerimonia')
-                    ->required()
                     ->maxLength(255),
 
                 Forms\Components\DatePicker::make('delivery_date')
-                    ->label('Data di Consegna Prevista')
-                    ->required(),
+                    ->label('Data di Consegna Prevista'),
             ])
             ->columns(2);
     }
