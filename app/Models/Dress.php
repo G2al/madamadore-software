@@ -24,6 +24,8 @@ class Dress extends Model
         'estimated_time',
         'deposit',
         'status',
+        'manual_client_price', 
+        'use_manual_price',
     ];
 
     protected $casts = [

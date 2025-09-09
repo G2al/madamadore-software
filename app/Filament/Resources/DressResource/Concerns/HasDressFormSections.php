@@ -325,6 +325,21 @@ trait HasDressFormSections
                         ->live(debounce: 300)
                         ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get)),
 
+                Forms\Components\TextInput::make('manual_client_price')
+                    ->label('Prezzo Manuale (deciso da Madamadorè)')
+                    ->prefix('€')
+                    ->numeric()
+                    ->step(0.01)
+                    ->placeholder('Es: 600')
+                    ->helperText('Se impostato, sostituisce il Prezzo Cliente calcolato')
+                    ->default(null),
+
+                Forms\Components\Toggle::make('use_manual_price')
+                    ->label('Usa Prezzo Manuale')
+                    ->helperText('Se attivo, i calcoli useranno il Prezzo Manuale invece del calcolato')
+                    ->default(false),
+
+
                 Forms\Components\Select::make('status')
                     ->label('Stato')
                     ->options(self::getStatusLabels())

@@ -56,28 +56,36 @@ class DressResource extends Resource
         return self::buildTable($table);
     }
 
-    protected static function updateCalculations(Set $set, Get $get): void
+   protected static function updateCalculations(Set $set, Get $get): void
     {
         $fabrics = $get('fabrics') ?? [];
-        $extras = $get('extras') ?? [];
+        $extras  = $get('extras') ?? [];
         $deposit = (float) ($get('deposit') ?? 0);
+        $useManual = (bool) $get('use_manual_price');
+        $manualPrice = (float) ($get('manual_client_price') ?? 0);
 
-        // 🚦 Early exit: se non ci sono dati, non fare calcoli
-        if (empty($fabrics) && empty($extras) && $deposit === 0.0) {
+        // Se non ci sono dati e non è attivo manuale, esco
+        if (!$useManual && empty($fabrics) && empty($extras) && $deposit === 0.0) {
             return;
         }
 
-        $results = DressCalculator::calculate($fabrics, $extras, $deposit);
+        $results = \App\Services\DressCalculator::calculate($fabrics, $extras, $deposit);
+
+        if ($useManual && $manualPrice > 0) {
+            // Se usa prezzo manuale, ricalcolo profitto e rimanente basandomi su quello
+            $results['total_client_price'] = $manualPrice;
+            $results['total_profit'] = $manualPrice - $results['total_purchase_cost'];
+            $results['remaining_balance'] = $manualPrice - $deposit;
+        }
 
         foreach ($results as $field => $value) {
-            // ✅ Fail-fast: assicuriamoci che sia numerico
             if (!is_numeric($value)) {
                 continue;
             }
-
             $set($field, number_format((float) $value, 2, '.', ''));
         }
     }
+
 
 
     public static function getRelations(): array
