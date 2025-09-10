@@ -21,7 +21,7 @@ class FabricRequirementResource extends Resource
     protected static ?string $pluralModelLabel = 'Requisiti Tessuti';
     protected static ?int $navigationSort = 40;
 
-    /** Solo tessuti degli abiti "in_lavorazione" + calcolo Subtotale lato SQL */
+    /** Solo tessuti degli abiti "confermato" + calcolo Subtotale lato SQL */
     public static function getEloquentQuery(): Builder
     {
         return DressFabric::query()
@@ -32,7 +32,7 @@ class FabricRequirementResource extends Resource
                 'dress_fabrics.*',
                 DB::raw('(COALESCE(meters,0) * COALESCE(purchase_price,0)) as row_total'),
             ])
-            ->whereHas('dress', fn ($q) => $q->where('status', 'in_lavorazione'));
+            ->whereHas('dress', fn ($q) => $q->where('status', 'confermato'));
     }
 
     public static function table(Table $table): Table
@@ -94,7 +94,7 @@ class FabricRequirementResource extends Resource
                 Tables\Filters\SelectFilter::make('name')
                     ->label('Tessuto')
                     ->options(fn () => DressFabric::query()
-                        ->whereHas('dress', fn ($q) => $q->where('status', 'in_lavorazione'))
+                        ->whereHas('dress', fn ($q) => $q->where('status', 'confermato'))
                         ->orderBy('name')
                         ->pluck('name', 'name')
                         ->unique()
@@ -104,7 +104,7 @@ class FabricRequirementResource extends Resource
                 Tables\Filters\SelectFilter::make('supplier')
                     ->label('Fornitore')
                     ->options(fn () => DressFabric::query()
-                        ->whereHas('dress', fn ($q) => $q->where('status', 'in_lavorazione'))
+                        ->whereHas('dress', fn ($q) => $q->where('status', 'confermato'))
                         ->orderBy('supplier')
                         ->pluck('supplier', 'supplier')
                         ->unique()

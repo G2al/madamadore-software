@@ -16,13 +16,12 @@ class Adjustment extends Model
      */
     protected $fillable = [
         'name',
-        'customer_name',
-        'phone_number',
         'client_price',
         'deposit',
         'total',
         'remaining',
         'profit',
+        'delivery_date',
     ];
 
     /**
@@ -34,5 +33,19 @@ class Adjustment extends Model
         'total'        => 'decimal:2',
         'remaining'    => 'decimal:2',
         'profit'       => 'decimal:2',
+        'delivery_date'=> 'date',
     ];
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    protected static function booted()
+    {
+        static::deleted(function ($adjustment) {
+            \App\Models\Cashbox::where('source', 'Adjustment #' . $adjustment->id)->delete();
+        });
+    }
+
 }
