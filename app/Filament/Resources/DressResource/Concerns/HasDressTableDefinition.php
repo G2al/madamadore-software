@@ -83,29 +83,43 @@ trait HasDressTableDefinition
      *
      * @return array
      */
-    protected static function tableRowActions(): array
-    {
+protected static function tableRowActions(): array
+{
+    if (auth()->user()->role === 'staff') {
+        // Lo staff vede SOLO il modellino
         return [
-            Tables\Actions\EditAction::make(),
-            Tables\Actions\DeleteAction::make(),
-            self::getTogglePaidAction(),      // <- AGGIUNGI QUESTA RIGA
-            self::getDownloadReceiptAction(), // <- AGGIUNGI QUESTA RIGA
+            self::getDownloadReceiptAction(),
         ];
     }
+
+    // Admin vede tutto
+    return [
+        Tables\Actions\EditAction::make(),
+        Tables\Actions\DeleteAction::make(),
+        self::getTogglePaidAction(),
+        self::getDownloadReceiptAction(),
+    ];
+}
+
 
     /**
      * Definisce le bulk actions disponibili nella tabella Dress.
      *
      * @return array
      */
-    protected static function tableBulkActions(): array
-    {
-        return [
-            Tables\Actions\BulkActionGroup::make([
-                Tables\Actions\DeleteBulkAction::make(),
-            ]),
-        ];
+protected static function tableBulkActions(): array
+{
+    if (auth()->user()->role === 'staff') {
+        return []; // niente bulk actions per lo staff
     }
+
+    return [
+        Tables\Actions\BulkActionGroup::make([
+            Tables\Actions\DeleteBulkAction::make(),
+        ]),
+    ];
+}
+
 
     /**
      * Costruisce la tabella Dress completa.

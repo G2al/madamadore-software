@@ -58,6 +58,11 @@ class AdjustmentResource extends Resource
         $set('remaining', number_format($price - $deposit, 2, '.', ''));
         $set('profit', number_format($price, 2, '.', '')); // guadagno = prezzo
     }
+    
+    public static function canAccess(): bool
+{
+    return auth()->user()->role === 'admin';
+}
 
 
 
