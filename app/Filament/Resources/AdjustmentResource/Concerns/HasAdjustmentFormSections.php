@@ -21,15 +21,11 @@ trait HasAdjustmentFormSections
 {
     return Forms\Components\Section::make('Dati cliente')
         ->schema([
-            Forms\Components\TextInput::make('name')
-                ->label('Nome aggiusto')
-                ->required(),
-
             Forms\Components\Select::make('customer_id')
                 ->label('Cliente')
                 ->relationship('customer', 'name')
                 ->searchable()
-                ->required()
+                ->preload()
                 ->reactive()
                 ->afterStateUpdated(function ($state, Set $set) {
                     // Quando cambio cliente, aggiorno il telefono visualizzato
@@ -38,7 +34,7 @@ trait HasAdjustmentFormSections
                 ->createOptionForm([
                     Forms\Components\TextInput::make('name')
                         ->label('Nome cliente')
-                        ->required(),
+                        ->default(''),
                     Forms\Components\TextInput::make('phone_number')
                         ->label('Telefono')
                         ->tel(),
@@ -74,13 +70,34 @@ trait HasAdjustmentFormSections
 
             Forms\Components\DatePicker::make('delivery_date')
                 ->label('Data di consegna')
-                ->required()
                 ->native(false)
                 ->displayFormat('d/m/Y')
                 ->closeOnDateSelection(),
+
+            // Repeater per gli aggiusti
+            Forms\Components\Repeater::make('items')
+                ->label('Aggiusti')
+                ->relationship()
+                ->schema([
+                    Forms\Components\TextInput::make('name')
+                        ->label('Nome aggiusto')
+                        ->placeholder('es. Pantalone nero, Camicia bianca...')
+                        ->default('')
+                        ->columnSpan(1),
+                    
+                    Forms\Components\Textarea::make('description')
+                        ->label('Descrizione lavoro')
+                        ->placeholder('Descrivi cosa è stato fatto...')
+                        ->rows(3)
+                        ->columnSpan(2),
+                ])
+                ->columns(3)
+                ->addActionLabel('Aggiungi aggiusto')
+                ->defaultItems(1)
+                ->collapsible()
+                ->cloneable(),
         ]);
 }
-
 
     /**
      * Sezione: Pagamento
@@ -92,7 +109,7 @@ trait HasAdjustmentFormSections
                 Forms\Components\TextInput::make('client_price')
                     ->label('Prezzo cliente')
                     ->numeric()
-                    ->required()
+                    ->default(0)
                     ->rules(['gte:0'])
                     ->live()
                     ->afterStateUpdated(fn (Set $set, Get $get) => AdjustmentResource::updateCalculations($set, $get)),
@@ -108,16 +125,19 @@ trait HasAdjustmentFormSections
                 Forms\Components\TextInput::make('total')
                     ->label('Totale')
                     ->numeric()
+                    ->default(0)
                     ->readOnly(),
 
                 Forms\Components\TextInput::make('remaining')
                     ->label('Rimanente')
                     ->numeric()
+                    ->default(0)
                     ->readOnly(),
 
                 Forms\Components\TextInput::make('profit')
                     ->label('Guadagno')
                     ->numeric()
+                    ->default(0)
                     ->readOnly(),
             ]);
     }

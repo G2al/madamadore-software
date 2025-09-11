@@ -41,6 +41,11 @@ class Adjustment extends Model
         return $this->belongsTo(Customer::class);
     }
 
+    public function items()
+    {
+        return $this->hasMany(AdjustmentItem::class);
+    }
+
     protected static function booted()
     {
         static::deleted(function ($adjustment) {

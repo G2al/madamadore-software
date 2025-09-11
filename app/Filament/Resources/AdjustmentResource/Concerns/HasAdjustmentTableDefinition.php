@@ -54,16 +54,37 @@ trait HasAdjustmentTableDefinition
     /**
      * Colonna nome aggiusto
      */
-    private static function getAdjustmentNameColumn(): Tables\Columns\TextColumn
-    {
-        return Tables\Columns\TextColumn::make('name')
-            ->label('Nome aggiusto')
-            ->searchable()
-            ->sortable()
-            ->badge()
-            ->color('info');
-    }
-
+private static function getAdjustmentNameColumn(): Tables\Columns\TextColumn
+{
+    return Tables\Columns\TextColumn::make('items_display')
+        ->label('Aggiusti')
+        ->searchable(query: function ($query, $search) {
+            return $query->whereHas('items', function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%");
+            });
+        })
+        ->state(function ($record) {
+            $items = $record->items;
+            $count = $items->count();
+            
+            if ($count === 0) {
+                return 'Nessun aggiusto';
+            }
+            
+            $firstName = $items->first()->name;
+            
+            if ($count === 1) {
+                return $firstName;
+            }
+            
+            return $firstName . " + " . ($count - 1) . " altri";
+        })
+        ->badge()
+        ->color('info')
+        ->tooltip(function ($record) {
+            return $record->items->pluck('name')->join(', ');
+        });
+}
     /**
      * Colonna prezzo cliente
      */
@@ -215,7 +236,6 @@ trait HasAdjustmentTableDefinition
             ->label('Ricevuta')
             ->icon('heroicon-o-document-arrow-down')
             ->color('info')
-            ->visible(fn($record) => $record->remaining == 0)
             ->action(fn($record) => self::handleDownloadReceipt($record));
     }
 
