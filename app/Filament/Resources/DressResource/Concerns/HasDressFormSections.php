@@ -24,7 +24,10 @@ trait HasDressFormSections
                     ->maxLength(255),
 
                 Forms\Components\DatePicker::make('ceremony_date')
-                    ->label('Data della Cerimonia'),
+                    ->label('Data della Cerimonia')
+                    ->native(false)
+                    ->displayFormat('d/m/Y')
+                    ->closeOnDateSelection(),
 
                 Forms\Components\Select::make('ceremony_type')
                     ->label('Tipologia della Cerimonia')
@@ -33,11 +36,13 @@ trait HasDressFormSections
                 Forms\Components\TextInput::make('ceremony_holder')
                     ->label('Intestatario della Cerimonia')
                     ->maxLength(255),
-
-                Forms\Components\DatePicker::make('delivery_date')
-                    ->label('Data di Consegna Prevista'),
-            ])
-            ->columns(2);
+            Forms\Components\DatePicker::make('delivery_date')
+                ->label('Data di Consegna Prevista')
+                ->native(false) // flatpickr
+                ->displayFormat('d/m/Y')
+                ->closeOnDateSelection(),
+        ])
+        ->columns(2);
     }
 
     // --- SEZIONE 2: Immagini Abito ---
@@ -79,6 +84,15 @@ trait HasDressFormSections
                     ->label('Tempo Stimato Manifattura')
                     ->placeholder('es: 15 giorni oppure 120 ore')
                     ->maxLength(255),
+
+                Forms\Components\TextInput::make('manufacturing_price')  // <- NUOVO CAMPO
+                    ->label('Prezzo Manifattura')
+                    ->numeric()
+                    ->step(0.01)
+                    ->prefix('€')
+                    ->default(0)
+                    ->live(debounce: 300)
+                    ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get)),
 
                 // Tessuti
                 Forms\Components\Repeater::make('fabrics')
@@ -306,8 +320,8 @@ trait HasDressFormSections
                         ->prefix('€')
                         ->disabled()
                         ->dehydrated(false),
-
-                    Forms\Components\TextInput::make('remaining_balance')
+                        
+                    Forms\Components\TextInput::make('remaining')  // <- deve essere 'remaining'
                         ->label('Rimanente da Pagare')
                         ->prefix('€')
                         ->disabled()

@@ -88,6 +88,8 @@ trait HasDressTableDefinition
         return [
             Tables\Actions\EditAction::make(),
             Tables\Actions\DeleteAction::make(),
+            self::getTogglePaidAction(),      // <- AGGIUNGI QUESTA RIGA
+            self::getDownloadReceiptAction(), // <- AGGIUNGI QUESTA RIGA
         ];
     }
 
@@ -120,4 +122,87 @@ trait HasDressTableDefinition
             ->bulkActions(self::tableBulkActions())
             ->defaultSort('created_at', 'desc');
     }
+
+    private static function getTogglePaidAction(): Tables\Actions\Action
+    {
+        return Tables\Actions\Action::make('toggle_paid')
+            ->label(fn($record) => $record->remaining > 0 ? 'Salda' : 'Rimborso')
+            ->icon(fn($record) => $record->remaining > 0 ? 'heroicon-o-banknotes' : 'heroicon-o-x-circle')
+            ->color(fn($record) => $record->remaining > 0 ? 'success' : 'danger')
+            ->requiresConfirmation()
+            ->action(fn($record) => self::handleTogglePaid($record));
+    }
+
+    /**
+     * Azione per scaricare la ricevuta
+     */
+    private static function getDownloadReceiptAction(): Tables\Actions\Action
+    {
+        return Tables\Actions\Action::make('download_receipt')
+            ->label('Modellino')
+            ->icon('heroicon-o-document-arrow-down')
+            ->color('info')
+            ->visible(fn($record) => $record->remaining == 0)
+            ->action(fn($record) => self::handleDownloadReceipt($record));
+    }
+
+    /**
+ * Gestisce il toggle dello stato di pagamento
+ */
+private static function handleTogglePaid($record): void
+{
+    if ($record->remaining > 0) {
+        self::settleDress($record);
+    } else {
+        self::refundDress($record);
+    }
+}
+
+/**
+ * Salda il dress
+ */
+private static function settleDress($record): void
+{
+    $record->update(['remaining' => 0]);
+
+    \App\Models\Cashbox::create([
+        'type'   => 'income',
+        'source' => "Dress #{$record->id}",
+        'amount' => $record->total_client_price,
+        'note'   => 'Abito saldato',
+    ]);
+}
+
+/**
+ * Rimborsa il dress (torna non saldato)
+ */
+private static function refundDress($record): void
+{
+    $totalClientPrice = $record->total_client_price;
+    $deposit = $record->deposit;
+    $remaining = $totalClientPrice - $deposit;
+
+    $record->update(['remaining' => $remaining]);
+
+    \App\Models\Cashbox::create([
+        'type'   => 'expense',
+        'source' => "Dress #{$record->id}",
+        'amount' => $totalClientPrice,
+        'note'   => 'Storno abito - tornato NON saldato',
+    ]);
+}
+
+/**
+ * Gestisce il download della ricevuta
+ */
+private static function handleDownloadReceipt($record)
+{
+    $service = app(\App\Services\DressReceiptService::class);
+    $pdf = $service->generateReceipt($record);
+
+    return response()->streamDownload(
+        fn() => print($pdf->output()),
+        "ricevuta-abito-{$record->id}.pdf"
+    );
+}
 }

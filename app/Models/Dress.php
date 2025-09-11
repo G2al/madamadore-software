@@ -22,7 +22,9 @@ class Dress extends Model
         'final_image',
         'notes',
         'estimated_time',
+        'manufacturing_price',
         'deposit',
+        'remaining',
         'status',
         'manual_client_price', 
         'use_manual_price',
@@ -32,6 +34,7 @@ class Dress extends Model
         'ceremony_date' => 'date',
         'delivery_date' => 'date',
         'deposit' => 'decimal:2',
+        'manufacturing_price' => 'decimal:2',
     ];
 
     // Relationships
@@ -58,7 +61,9 @@ class Dress extends Model
 
     public function getTotalClientPriceAttribute(): float
     {
-        return $this->fabrics->sum('client_price') + $this->extras->sum('cost');
+        return $this->fabrics->sum('client_price') + 
+            $this->extras->sum('cost') + 
+            ($this->manufacturing_price ?? 0);  // <- AGGIUNGI QUESTA RIGA
     }
 
     public function getProfitAttribute(): float

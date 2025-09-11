@@ -56,26 +56,27 @@ class DressResource extends Resource
         return self::buildTable($table);
     }
 
-   protected static function updateCalculations(Set $set, Get $get): void
+    protected static function updateCalculations(Set $set, Get $get): void
     {
         $fabrics = $get('fabrics') ?? [];
         $extras  = $get('extras') ?? [];
         $deposit = (float) ($get('deposit') ?? 0);
+        $manufacturingPrice = (float) ($get('manufacturing_price') ?? 0);  // <- AGGIUNGI QUESTA RIGA
         $useManual = (bool) $get('use_manual_price');
         $manualPrice = (float) ($get('manual_client_price') ?? 0);
 
         // Se non ci sono dati e non è attivo manuale, esco
-        if (!$useManual && empty($fabrics) && empty($extras) && $deposit === 0.0) {
+        if (!$useManual && empty($fabrics) && empty($extras) && $deposit === 0.0 && $manufacturingPrice === 0.0) {
             return;
         }
 
-        $results = \App\Services\DressCalculator::calculate($fabrics, $extras, $deposit);
+        $results = \App\Services\DressCalculator::calculate($fabrics, $extras, $deposit, $manufacturingPrice);  // <- PASSA manufacturingPrice
 
         if ($useManual && $manualPrice > 0) {
             // Se usa prezzo manuale, ricalcolo profitto e rimanente basandomi su quello
             $results['total_client_price'] = $manualPrice;
             $results['total_profit'] = $manualPrice - $results['total_purchase_cost'];
-            $results['remaining_balance'] = $manualPrice - $deposit;
+            $results['remaining'] = $manualPrice - $deposit;
         }
 
         foreach ($results as $field => $value) {
@@ -85,8 +86,6 @@ class DressResource extends Resource
             $set($field, number_format((float) $value, 2, '.', ''));
         }
     }
-
-
 
     public static function getRelations(): array
     {
