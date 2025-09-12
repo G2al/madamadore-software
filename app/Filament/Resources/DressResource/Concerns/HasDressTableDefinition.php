@@ -98,6 +98,7 @@ protected static function tableRowActions(): array
         Tables\Actions\DeleteAction::make(),
         self::getTogglePaidAction(),
         self::getDownloadReceiptAction(),
+        self::getDownloadContractAction(),
     ];
 }
 
@@ -219,4 +220,29 @@ private static function handleDownloadReceipt($record)
         "ricevuta-abito-{$record->id}.pdf"
     );
 }
+
+private static function getDownloadContractAction(): Tables\Actions\Action
+{
+    return Tables\Actions\Action::make('download_contract')
+        ->label('Contratto')
+        ->icon('heroicon-o-document-text')
+        ->color('warning')
+        ->visible(fn($record) => $record->remaining == 0)
+        ->action(fn($record) => self::handleDownloadContract($record));
+}
+
+/**
+ * Gestisce il download del contratto
+ */
+private static function handleDownloadContract($record)
+{
+    $service = app(\App\Services\DressContractService::class);
+    $pdf = $service->generateContract($record);
+
+    return response()->streamDownload(
+        fn() => print($pdf->output()),
+        "contratto-abito-{$record->id}.pdf"
+    );
+}
+
 }
