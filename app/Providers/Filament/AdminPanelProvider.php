@@ -11,6 +11,7 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Widgets;
+use Filament\Facades\Filament;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -27,14 +28,13 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-->colors([
-    'primary' => Color::hex('#7678ED'),
-    'gray'    => Color::hex('#273043'),
-    'success' => Color::Emerald,
-    'warning' => Color::Amber,
-    'danger'  => Color::Rose,
-])
-
+            ->colors([
+                'primary' => Color::hex('#7678ED'),
+                'gray'    => Color::hex('#273043'),
+                'success' => Color::Emerald,
+                'warning' => Color::Amber,
+                'danger'  => Color::Rose,
+            ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
@@ -59,5 +59,31 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
+    }
+
+    public function boot(): void
+    {
+        Filament::serving(function () {
+            if (request()->routeIs('filament.admin.pages.dashboard')) {
+                $upcomingDeliveries = \App\Models\Dress::whereBetween('delivery_date', [
+                    now(),
+                    now()->addDays(3)
+                ])->get();
+
+                if ($upcomingDeliveries->isNotEmpty()) {
+                    \Filament\Notifications\Notification::make()
+                        ->title('Consegne in Scadenza')
+                        ->body("Hai {$upcomingDeliveries->count()} abiti da consegnare nei prossimi 3 giorni")
+                        ->warning()
+                        ->persistent()
+                        ->actions([
+                            \Filament\Notifications\Actions\Action::make('view')
+                                ->label('Visualizza')
+                                ->url(route('filament.admin.resources.dresses.index', ['tableFilters' => ['upcoming_deliveries' => ['value' => true]]]))
+                        ])
+                        ->send();
+                }
+            }
+        });
     }
 }

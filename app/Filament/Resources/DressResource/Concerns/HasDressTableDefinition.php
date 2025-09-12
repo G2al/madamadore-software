@@ -70,13 +70,31 @@ trait HasDressTableDefinition
      * @return array
      */
     protected static function tableFilters(): array
-    {
-        return [
-            StatusFilter::make(),
-            CeremonyTypeFilter::make(),
-            DeliveryDateFilter::make(),
-        ];
-    }
+{
+    return [
+        StatusFilter::make(),
+        CeremonyTypeFilter::make(),
+        DeliveryDateFilter::make(),
+        
+        // Nuovo filtro scadenze
+        Tables\Filters\TernaryFilter::make('upcoming_deliveries')
+            ->label('Scadenze')
+            ->placeholder('Tutti gli abiti')
+            ->trueLabel('In scadenza (3 giorni)')
+            ->falseLabel('Non in scadenza')
+            ->queries(
+                true: fn ($query) => $query->whereBetween('delivery_date', [
+                    now(),
+                    now()->addDays(3)
+                ]),
+                false: fn ($query) => $query->where(function ($q) {
+                    $q->where('delivery_date', '<', now())
+                      ->orWhere('delivery_date', '>', now()->addDays(3))
+                      ->orWhereNull('delivery_date');
+                }),
+            ),
+    ];
+}
 
     /**
      * Definisce le azioni disponibili per ogni riga.
