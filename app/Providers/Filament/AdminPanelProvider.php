@@ -51,6 +51,7 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Widgets\DressesOverview::class,
                 \App\Filament\Widgets\DressesEconomics::class,
                 \App\Filament\Widgets\DressesCalendar::class,
+                \App\Filament\Widgets\FabricSummaryWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
