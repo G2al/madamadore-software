@@ -11,6 +11,12 @@ class DressesCalendar extends FullCalendarWidget
     protected static ?string $heading = 'Calendario Consegne';
     protected static ?int $sort = 3;
 
+        public static function canView(): bool
+    {
+        return auth()->user()->role === 'admin';
+    }
+
+
     // Rimuovi questa riga per eliminare il bottone Nuovo
     // public Model|string|null $model = Dress::class;
 
@@ -18,6 +24,7 @@ class DressesCalendar extends FullCalendarWidget
     {
         return [];
     }
+
 
     public function fetchEvents(array $fetchInfo): array
     {

@@ -19,6 +19,13 @@ class FabricSummaryWidget extends BaseWidget
 
     protected static ?int $sort = 4;
 
+            public static function canView(): bool
+    {
+        return auth()->user()->role === 'admin';
+    }
+
+
+
     public function table(Table $table): Table
     {
         return $table

@@ -12,6 +12,13 @@ class DressesOverview extends BaseWidget
 
     protected static ?int $sort = 1;
 
+            public static function canView(): bool
+    {
+        return auth()->user()->role === 'admin';
+    }
+
+
+
     protected function getStats(): array
     {
         $row = Dress::query()
