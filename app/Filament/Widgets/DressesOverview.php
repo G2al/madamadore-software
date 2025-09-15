@@ -10,6 +10,8 @@ class DressesOverview extends BaseWidget
 {
     protected static ?string $pollingInterval = '30s';
 
+    protected static ?int $sort = 1;
+
     protected function getStats(): array
     {
         $row = Dress::query()

@@ -10,6 +10,8 @@ class DressesEconomics extends BaseWidget
 {
     protected static ?string $pollingInterval = '30s';
 
+    protected static ?int $sort = 2;
+
     protected function getStats(): array
     {
         $row = Dress::query()
