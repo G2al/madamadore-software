@@ -156,15 +156,26 @@ protected static function tableBulkActions(): array
             ->defaultSort('created_at', 'desc');
     }
 
-    private static function getTogglePaidAction(): Tables\Actions\Action
-    {
-        return Tables\Actions\Action::make('toggle_paid')
-            ->label(fn($record) => $record->remaining > 0 ? 'Salda' : 'Rimborso')
-            ->icon(fn($record) => $record->remaining > 0 ? 'heroicon-o-banknotes' : 'heroicon-o-x-circle')
-            ->color(fn($record) => $record->remaining > 0 ? 'success' : 'danger')
-            ->requiresConfirmation()
-            ->action(fn($record) => self::handleTogglePaid($record));
-    }
+    private static function isPaid($record): bool
+{
+    if (!$record) return false;
+
+    $remaining = $record->remaining;
+    $total     = (float) $record->total_client_price;
+
+    // Considero "pagato" solo se ho un totale > 0 e il restante è definito e <= 0
+    return isset($remaining) && (float) $remaining <= 0 && $total > 0;
+}
+
+private static function getTogglePaidAction(): Tables\Actions\Action
+{
+    return Tables\Actions\Action::make('toggle_paid')
+->label(fn($record) => self::isPaid($record) ? 'Rimborso' : 'Salda')
+->icon(fn($record) => self::isPaid($record) ? 'heroicon-o-x-circle' : 'heroicon-o-banknotes')
+->color(fn($record) => self::isPaid($record) ? 'danger' : 'success')
+->action(fn($record) => self::handleTogglePaid($record));
+
+}
 
     /**
      * Azione per scaricare la ricevuta
@@ -175,7 +186,7 @@ protected static function tableBulkActions(): array
             ->label('Modellino')
             ->icon('heroicon-o-document-arrow-down')
             ->color('info')
-            ->visible(fn($record) => $record->remaining == 0)
+            ->visible(fn($record) => self::isPaid($record))
             ->action(fn($record) => self::handleDownloadReceipt($record));
     }
 
@@ -184,7 +195,7 @@ protected static function tableBulkActions(): array
  */
 private static function handleTogglePaid($record): void
 {
-    if ($record->remaining > 0) {
+    if (! self::isPaid($record)) {
         self::settleDress($record);
     } else {
         self::refundDress($record);
@@ -245,7 +256,7 @@ private static function getDownloadContractAction(): Tables\Actions\Action
         ->label('Contratto')
         ->icon('heroicon-o-document-text')
         ->color('warning')
-        ->visible(fn($record) => $record->remaining == 0)
+        ->visible(fn($record) => self::isPaid($record))
         ->action(fn($record) => self::handleDownloadContract($record));
 }
 

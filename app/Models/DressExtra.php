@@ -25,4 +25,26 @@ class DressExtra extends Model
     {
         return $this->belongsTo(Dress::class);
     }
+
+    // Hooks: ricalcolo automatico dei totali dell'abito
+    protected static function booted(): void
+    {
+        // create & update
+        static::saved(function (self $extra) {
+            $dress = $extra->dress;
+            if ($dress) {
+                $dress->loadMissing('fabrics', 'extras');
+                $dress->recalcFinancials(true); // persiste total_purchase_cost, total_client_price, total_profit, remaining
+            }
+        });
+
+        // delete
+        static::deleted(function (self $extra) {
+            $dress = $extra->dress;
+            if ($dress) {
+                $dress->loadMissing('fabrics', 'extras');
+                $dress->recalcFinancials(true);
+            }
+        });
+    }
 }

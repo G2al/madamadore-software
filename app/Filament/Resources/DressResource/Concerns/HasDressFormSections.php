@@ -321,11 +321,11 @@ trait HasDressFormSections
                         ->disabled()
                         ->dehydrated(false),
                         
-                    Forms\Components\TextInput::make('remaining')  // <- deve essere 'remaining'
-                        ->label('Rimanente da Pagare')
-                        ->prefix('€')
-                        ->disabled()
-                        ->dehydrated(false),
+Forms\Components\TextInput::make('remaining')
+    ->label('Rimanente da Pagare')
+    ->prefix('€')
+    ->disabled()
+    ->dehydrated(true),   // <--- PRIMA era false
                 ]),
 
                 // Campi editabili
