@@ -59,11 +59,6 @@ class AdjustmentResource extends Resource
         $set('profit', number_format($price, 2, '.', '')); // guadagno = prezzo
     }
     
-    public static function canAccess(): bool
-{
-    return auth()->user()->role === 'admin';
-}
-
 
 
 
