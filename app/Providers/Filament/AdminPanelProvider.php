@@ -18,6 +18,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Saade\FilamentFullCalendar\FilamentFullCalendarPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -28,6 +29,9 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->plugins([
+                FilamentFullCalendarPlugin::make(), // 👈 Registriamo il plugin qui
+            ])
             ->colors([
                 'primary' => Color::hex('#7678ED'),
                 'gray'    => Color::hex('#273043'),
@@ -46,6 +50,7 @@ class AdminPanelProvider extends PanelProvider
                 Widgets\FilamentInfoWidget::class,
                 \App\Filament\Widgets\DressesOverview::class,
                 \App\Filament\Widgets\DressesEconomics::class,
+                \App\Filament\Widgets\DressesCalendar::class,
             ])
             ->middleware([
                 EncryptCookies::class,

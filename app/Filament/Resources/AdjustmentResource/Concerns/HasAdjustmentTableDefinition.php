@@ -287,7 +287,7 @@ private static function getAdjustmentNameColumn(): Tables\Columns\TextColumn
     private static function handleDownloadReceipt(Adjustment $record)
     {
         $service = app(AdjustmentReceiptService::class);
-        $pdf = $service->generateReceipt($record);
+        $pdf = $service->generateThermalReceipt($record);
 
         return response()->streamDownload(
             fn() => print($pdf->output()),
