@@ -236,8 +236,11 @@ private static function getAdjustmentNameColumn(): Tables\Columns\TextColumn
             ->label('Ricevuta')
             ->icon('heroicon-o-document-arrow-down')
             ->color('info')
-            ->action(fn($record) => self::handleDownloadReceipt($record));
+            ->url(fn($record) => route('adjustments.receipt', $record)) // usa la route definita
+            ->openUrlInNewTab(); // apre subito in scheda browser → da lì la stampi
     }
+
+
 
     /**
      * Gestisce il toggle dello stato di pagamento
