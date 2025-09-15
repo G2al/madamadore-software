@@ -17,7 +17,7 @@ class FabricSummaryWidget extends BaseWidget
     protected static ?string $heading = 'Tessuti (raggruppati per tipo)';
     protected int|string|array $columnSpan = 'full';
 
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 4;
 
     public function table(Table $table): Table
     {

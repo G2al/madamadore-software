@@ -9,7 +9,7 @@ use Saade\FilamentFullCalendar\Widgets\FullCalendarWidget;
 class DressesCalendar extends FullCalendarWidget
 {
     protected static ?string $heading = 'Calendario Consegne';
-    protected static ?int $sort = 4;
+    protected static ?int $sort = 3;
 
     // Rimuovi questa riga per eliminare il bottone Nuovo
     // public Model|string|null $model = Dress::class;
