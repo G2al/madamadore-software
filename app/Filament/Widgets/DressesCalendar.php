@@ -3,41 +3,36 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Dress;
-use Illuminate\Database\Eloquent\Model;
 use Saade\FilamentFullCalendar\Data\EventData;
 use Saade\FilamentFullCalendar\Widgets\FullCalendarWidget;
 
 class DressesCalendar extends FullCalendarWidget
 {
     protected static ?string $heading = 'Calendario Consegne';
+    protected static ?int $sort = 4;
 
-    protected static ?int $sort = 3;
+    // Rimuovi questa riga per eliminare il bottone Nuovo
+    // public Model|string|null $model = Dress::class;
 
-    // Deve avere la stessa firma del parent:
-    public Model|string|null $model = Dress::class;
+    protected function getHeaderActions(): array
+    {
+        return [];
+    }
 
-    /**
-     * Eventi mostrati nel calendario.
-     *
-     * @param  array  $fetchInfo  // contiene start/end visibili ecc. (se ti serve filtrare)
-     * @return array<int, EventData>
-     */
-public function fetchEvents(array $fetchInfo): array
-{
-    return Dress::query()
-        ->whereNotNull('delivery_date')
-        ->get()
-        ->map(fn (Dress $dress) => EventData::make()
-            ->id((string) $dress->getKey())
-            ->title($dress->customer_name)
-            ->start($dress->delivery_date->toDateString())
-            ->end($dress->delivery_date->toDateString()) // evento di 1 giorno
-            ->backgroundColor('#6366F1')
-            ->textColor('#ffffff')
-            // 👇 Aggiungiamo il link diretto
-            ->url(route('filament.admin.resources.dresses.edit', $dress))
-        )
-        ->toArray();
-}
-
+    public function fetchEvents(array $fetchInfo): array
+    {
+        return Dress::query()
+            ->whereNotNull('delivery_date')
+            ->get()
+            ->map(fn (Dress $dress) => EventData::make()
+                ->id((string) $dress->getKey())
+                ->title($dress->customer_name)
+                ->start($dress->delivery_date->toDateString())
+                ->end($dress->delivery_date->toDateString())
+                ->backgroundColor('#6366F1')
+                ->textColor('#ffffff')
+                ->url(route('filament.admin.resources.dresses.edit', $dress))
+            )
+            ->toArray();
+    }
 }
