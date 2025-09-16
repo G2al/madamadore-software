@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Filament\Widgets;
 
 use App\Models\Adjustment;
@@ -13,7 +14,11 @@ class AdjustmentCalendarWidget extends FullCalendarWidget
 
     public static function canView(): bool
     {
-        return auth()->user()->role === 'admin';
+        $user = auth()->user();
+
+        return ($user?->role === 'admin')
+            // visibile SOLO nelle pagine della resource "adjustments"
+            && request()->routeIs('filament.admin.resources.adjustments.*');
     }
 
     protected function getHeaderActions(): array
