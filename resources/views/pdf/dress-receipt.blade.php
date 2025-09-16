@@ -18,13 +18,13 @@
         .header { 
             text-align: center; 
             margin-bottom: 15px; 
-            border-bottom: 2px solid #914D76;
+            border-bottom: 2px solid #000000ff;
             padding-bottom: 10px;
         }
         .header h1 { 
             margin: 0; 
             font-size: 18px; 
-            color: #914D76; 
+            color: #000000ff; 
         }
         .customer-info {
             margin-bottom: 15px;
@@ -36,15 +36,15 @@
         .description-section {
             margin-bottom: 15px;
             padding: 8px;
-            border: 1px solid #914D76;
+            border: 1px solid #000000ff;
             border-radius: 3px;
         }
         .description-title {
-            color: #914D76;
+            color: #000000ff;
             font-weight: bold;
             font-size: 11px;
             margin-bottom: 5px;
-            border-bottom: 1px solid #914D76;
+            border-bottom: 1px solid #000000ff;
             padding-bottom: 3px;
         }
         .description-content {
@@ -70,7 +70,7 @@
         }
         .image-container {
             text-align: center;
-            border: 2px solid #914D76;
+            border: 2px solid #000000ff;
             border-radius: 5px;
             padding: 10px;
             background-color: #f9f9f9;
@@ -82,17 +82,17 @@
         }
         .no-image {
             padding: 80px 20px;
-            color: #914D76;
-            border: 2px dashed #914D76;
+            color: #000000ff;
+            border: 2px dashed #000000ff;
             border-radius: 5px;
             text-align: center;
         }
         .measurements-title {
-            color: #914D76;
+            color: #000000ff;
             font-weight: bold;
             margin-bottom: 10px;
             font-size: 12px;
-            border-bottom: 1px solid #914D76;
+            border-bottom: 1px solid #000000ff;
             padding-bottom: 3px;
         }
         .measurements-list {
@@ -109,7 +109,7 @@
         .measurement-label {
             display: table-cell;
             font-weight: bold;
-            color: #914D76;
+            color: #000000ff;
             width: 70%;
             padding-right: 5px;
         }
@@ -118,11 +118,18 @@
             text-align: right;
             width: 30%;
         }
+
+                          .header .logo {
+    height: 300px;
+    display: block;
+    margin: 5px auto; /* centrato come l'h1 */
+  }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Madamadorè - Scheda Abito #{{ $dress->id }}</h1>
+    <img src="{{ public_path('storage/branding/logo-madamadore.png') }}" alt="MadamaDorè di Dora Maione" class="logo">
+    <p>Via delle Acacie 06, 81031 Aversa – CE Tel. 392.244.86.34 – 081.2306277</p>
     </div>
 
     <div class="customer-info">

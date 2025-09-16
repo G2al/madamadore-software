@@ -55,14 +55,20 @@
         .page-break {
             page-break-before: always;
         }
+          .header .logo {
+    height: 300px;
+    display: block;
+    margin: 5px auto; /* centrato come l'h1 */
+  }
     </style>
 </head>
 <body>
     <!-- PAGINA 1: Scheda Cliente -->
     <div class="header">
-        <h1>MadamaDorè di Dora Maione</h1>
-        <p>Via delle Acacie 06, 81031 Aversa – CE Tel. 392.244.86.34 – 081.2306277</p>
+    <img src="{{ public_path('storage/branding/logo-madamadore.png') }}" alt="MadamaDorè di Dora Maione" class="logo">
+    <p>Via delle Acacie 06, 81031 Aversa – CE Tel. 392.244.86.34 – 081.2306277</p>
     </div>
+
 
     <div class="page-title">Scheda Cliente</div>
 
@@ -87,10 +93,6 @@
 
     <!-- PAGINA 2: Misure e Bozzetto -->
     <div class="page-break">
-        <div class="header">
-            <h1>MadamaDorè di Dora Maione</h1>
-            <p>Via delle Acacie 06, 81031 Aversa – CE Tel. 392.244.86.34 – 081.2306277</p>
-        </div>
 
         <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
             <tr>
@@ -143,10 +145,6 @@
 
     <!-- PAGINA 3: Condizioni Generali -->
     <div class="page-break">
-        <div class="header">
-            <h1>MadamaDorè di Dora Maione</h1>
-            <p>Via delle Acacie 06, 81031 Aversa – CE Tel. 392.244.86.34 – 081.2306277</p>
-        </div>
 
         <h2 style="text-align: center; font-size: 14px; margin: 15px 0;">CONDIZIONI GENERALI</h2>
         <p style="text-align: center; font-size: 10px; margin-bottom: 10px;">Atelier MadamaDorè di Dora Maione</p>
@@ -228,10 +226,6 @@
 
     <!-- PAGINA 4: Contratto di Vendita -->
     <div class="page-break">
-        <div class="header">
-            <h1>MadamaDorè di Dora Maione</h1>
-            <p>Via delle Acacie 06, 81031 Aversa – CE Tel. 392.244.86.34 – 081.2306277</p>
-        </div>
 
         <h2 style="text-align: center; font-size: 14px; margin: 15px 0;">CONTRATTO DI VENDITA</h2>
         <p style="text-align: center; font-size: 10px; margin-bottom: 10px;">Atelier MadamaDorè di Dora Maione</p>
