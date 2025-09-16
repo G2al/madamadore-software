@@ -5,6 +5,7 @@ namespace App\Filament\Resources\AdjustmentResource\Pages;
 use App\Filament\Resources\AdjustmentResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use App\Filament\Widgets\AdjustmentCalendarWidget;
 
 class ListAdjustments extends ListRecords
 {
@@ -16,4 +17,11 @@ class ListAdjustments extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
+
+    protected function getFooterWidgets(): array
+{
+    return [
+        AdjustmentCalendarWidget::class,
+    ];
+}
 }
