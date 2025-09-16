@@ -29,9 +29,19 @@ trait HasDressFormSections
                     ->displayFormat('d/m/Y')
                     ->closeOnDateSelection(),
 
-                Forms\Components\Select::make('ceremony_type')
+                Forms\Components\TextInput::make('ceremony_type')
                     ->label('Tipologia della Cerimonia')
-                    ->options(config('dress.ceremonies', [])),
+                    ->placeholder('es: Matrimonio, Battesimo, Comunione...')
+                    ->datalist([
+                        'Matrimonio',
+                        'Battesimo', 
+                        'Comunione',
+                        'Cresima',
+                        'Festa 18 Anni',
+                        'Laurea',
+                        'Altro'
+                    ])
+                    ->maxLength(255),
 
                 Forms\Components\TextInput::make('ceremony_holder')
                     ->label('Intestatario della Cerimonia')

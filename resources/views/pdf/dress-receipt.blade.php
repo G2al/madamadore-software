@@ -33,6 +33,25 @@
             border-radius: 3px;
             font-size: 10px;
         }
+        .description-section {
+            margin-bottom: 15px;
+            padding: 8px;
+            border: 1px solid #914D76;
+            border-radius: 3px;
+        }
+        .description-title {
+            color: #914D76;
+            font-weight: bold;
+            font-size: 11px;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #914D76;
+            padding-bottom: 3px;
+        }
+        .description-content {
+            font-size: 10px;
+            line-height: 1.4;
+            color: #555;
+        }
         .main-content {
             display: table;
             width: 100%;
@@ -111,6 +130,14 @@
         <strong>Tel:</strong> {{ $dress->phone_number }} | 
         <strong>Cerimonia:</strong> {{ $dress->ceremony_type }} ({{ $dress->ceremony_date?->format('d/m/Y') }})
     </div>
+
+    <!-- Sezione Descrizione/Note -->
+    @if($dress->notes)
+    <div class="description-section">
+        <div class="description-title">DESCRIZIONE ABITO</div>
+        <div class="description-content">{{ $dress->notes }}</div>
+    </div>
+    @endif
 
     <div class="main-content">
         <!-- Colonna Sinistra - Foto -->

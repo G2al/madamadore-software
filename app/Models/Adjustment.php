@@ -15,6 +15,8 @@ class Adjustment extends Model
      * Mass assignment protection
      */
     protected $fillable = [
+        'customer_id',
+        'status', // 👈 Aggiungi questo
         'name',
         'client_price',
         'deposit',
@@ -36,6 +38,25 @@ class Adjustment extends Model
         'delivery_date'=> 'date',
     ];
 
+    // 👈 Aggiungi questi metodi helper
+    public static function getStatusLabels(): array
+    {
+        return [
+            'confermato' => 'Confermato',
+            'in_lavorazione' => 'In Lavorazione',
+            'consegnato' => 'Consegnato',
+        ];
+    }
+
+    public static function getStatusColors(): array
+    {
+        return [
+            'confermato' => 'info',
+            'in_lavorazione' => 'warning',
+            'consegnato' => 'success',
+        ];
+    }
+
     public function customer()
     {
         return $this->belongsTo(Customer::class);
@@ -52,5 +73,4 @@ class Adjustment extends Model
             \App\Models\Cashbox::where('source', 'Adjustment #' . $adjustment->id)->delete();
         });
     }
-
 }

@@ -15,53 +15,58 @@ trait HasDressTableDefinition
      *
      * @return array
      */
-    protected static function tableColumns(): array
-    {
-        return [
-            Tables\Columns\TextColumn::make('customer_name')
-                ->label('Cliente')
-                ->description(fn ($record) => $record->phone_number)
-                ->searchable()
-                ->sortable()
-                ->icon('heroicon-o-user')
-                ->weight('bold'),
+protected static function tableColumns(): array
+{
+    $columns = [
+        Tables\Columns\TextColumn::make('customer_name')
+            ->label('Cliente')
+            ->description(fn ($record) => $record->phone_number)
+            ->searchable()
+            ->sortable()
+            ->icon('heroicon-o-user')
+            ->weight('bold'),
 
-            Tables\Columns\TextColumn::make('ceremony_type')
-                ->label('Cerimonia')
-                ->formatStateUsing(fn ($state) => ucfirst($state))
-                ->badge()
-                ->color('info')
-                ->sortable(),
+        Tables\Columns\TextColumn::make('ceremony_type')
+            ->label('Cerimonia')
+            ->formatStateUsing(fn ($state) => ucfirst($state))
+            ->badge()
+            ->color('info')
+            ->sortable(),
 
-            Tables\Columns\TextColumn::make('status')
-                ->label('Stato')
-                ->badge()
-                ->formatStateUsing(fn (?string $state) => self::getStatusLabels()[$state] ?? '-')
-                ->color(fn (?string $state) => self::getStatusColors()[$state] ?? 'gray')
-                ->sortable(),
+        Tables\Columns\TextColumn::make('status')
+            ->label('Stato')
+            ->badge()
+            ->formatStateUsing(fn (?string $state) => self::getStatusLabels()[$state] ?? '-')
+            ->color(fn (?string $state) => self::getStatusColors()[$state] ?? 'gray')
+            ->sortable(),
 
-            Tables\Columns\TextColumn::make('delivery_date')
-                ->label('Consegna')
-                ->date('d/m/Y')
-                ->sortable()
-                ->color(fn ($record) =>
-                    $record?->delivery_date?->isPast()
-                        ? 'danger'
-                        : 'success'
-                )
-                ->description(fn ($record) =>
-                    $record?->delivery_date?->isPast()
-                        ? 'Scaduta'
-                        : 'In tempo'
-                ),
+        Tables\Columns\TextColumn::make('delivery_date')
+            ->label('Consegna')
+            ->date('d/m/Y')
+            ->sortable()
+            ->color(fn ($record) =>
+                $record?->delivery_date?->isPast()
+                    ? 'danger'
+                    : 'success'
+            )
+            ->description(fn ($record) =>
+                $record?->delivery_date?->isPast()
+                    ? 'Scaduta'
+                    : 'In tempo'
+            ),
+    ];
 
-            Tables\Columns\TextColumn::make('deposit')
-                ->label('Acconto')
-                ->money('EUR')
-                ->color('info')
-                ->sortable(),
-        ];
+    // Solo gli admin vedono l'acconto
+    if (auth()->user()->role === 'admin') {
+        $columns[] = Tables\Columns\TextColumn::make('deposit')
+            ->label('Acconto')
+            ->money('EUR')
+            ->color('info')
+            ->sortable();
     }
+
+    return $columns;
+}
 
 
     /**

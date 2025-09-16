@@ -28,6 +28,7 @@ trait HasAdjustmentTableDefinition
     {
         return [
             self::getCustomerColumn(),
+            self::getStatusColumn(),
             self::getAdjustmentNameColumn(),
             self::getClientPriceColumn(),
             self::getDepositColumn(),
@@ -50,6 +51,19 @@ trait HasAdjustmentTableDefinition
             ->icon('heroicon-o-user')
             ->weight('bold');
     }
+
+    /**
+ * Colonna status con badge colorato
+ */
+private static function getStatusColumn(): Tables\Columns\TextColumn
+{
+    return Tables\Columns\TextColumn::make('status')
+        ->label('Stato')
+        ->badge()
+        ->formatStateUsing(fn(?string $state) => \App\Models\Adjustment::getStatusLabels()[$state] ?? '-')
+        ->color(fn(?string $state) => \App\Models\Adjustment::getStatusColors()[$state] ?? 'gray')
+        ->sortable();
+}
 
     /**
      * Colonna nome aggiusto
@@ -184,22 +198,30 @@ private static function getAdjustmentNameColumn(): Tables\Columns\TextColumn
     /**
      * Definisce i filtri della tabella
      */
-    private static function getTableFilters(): array
-    {
-        return [
-            Tables\Filters\Filter::make('saldato')
-                ->label('Saldato')
-                ->query(fn($query) => $query->where('remaining', '=', 0)),
+/**
+ * Definisce i filtri della tabella
+ */
+private static function getTableFilters(): array
+{
+    return [
+        // 👈 Aggiungi questo filtro per stato
+        Tables\Filters\SelectFilter::make('status')
+            ->label('Stato')
+            ->options(\App\Models\Adjustment::getStatusLabels()),
 
-            Tables\Filters\Filter::make('non_saldato')
-                ->label('Non saldato')
-                ->query(fn($query) => $query->where('remaining', '>', 0)),
+        Tables\Filters\Filter::make('saldato')
+            ->label('Saldato')
+            ->query(fn($query) => $query->where('remaining', '=', 0)),
 
-            Tables\Filters\SelectFilter::make('customer_id')
-                ->label('Cliente')
-                ->relationship('customer', 'name'),
-        ];
-    }
+        Tables\Filters\Filter::make('non_saldato')
+            ->label('Non saldato')
+            ->query(fn($query) => $query->where('remaining', '>', 0)),
+
+        Tables\Filters\SelectFilter::make('customer_id')
+            ->label('Cliente')
+            ->relationship('customer', 'name'),
+    ];
+}
 
     /**
      * Definisce le azioni della tabella

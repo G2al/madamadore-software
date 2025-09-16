@@ -17,7 +17,7 @@ trait HasAdjustmentFormSections
     /**
      * Sezione: Dati cliente
      */
-   protected static function clientSection(): Forms\Components\Section
+  protected static function clientSection(): Forms\Components\Section
 {
     return Forms\Components\Section::make('Dati cliente')
         ->schema([
@@ -40,23 +40,28 @@ trait HasAdjustmentFormSections
                         ->tel(),
                 ]),
 
+            // 👈 Aggiungi questo campo status
+            Forms\Components\Select::make('status')
+                ->label('Stato')
+                ->options(\App\Models\Adjustment::getStatusLabels())
+                ->default('confermato')
+                ->required(),
+
             // Telefono di sola lettura con icona WhatsApp nel suffix
             Forms\Components\TextInput::make('customer_phone')
                 ->label('Telefono cliente')
-                ->readOnly()              // (più leggibile di disabled)
-                ->dehydrated(false)       // non salvare in adjustments
+                ->readOnly()
+                ->dehydrated(false)
                 ->afterStateHydrated(function (
                     \Filament\Forms\Components\TextInput $component,
                     $state,
                     $record
                 ) {
-                    // All'apertura della pagina valorizzo dal record esistente
                     $component->state($record?->customer?->phone_number);
                 })
                 ->suffixIcon('heroicon-o-chat-bubble-left-right')
                 ->suffixIconColor('success')
                 ->extraAttributes(function (Get $get) {
-                    // Preparo link wa.me solo se ho un numero valido
                     $phone = \App\Models\Customer::find($get('customer_id'))?->phone_number;
                     if (! $phone) {
                         return ['class' => 'cursor-not-allowed opacity-60'];
@@ -98,7 +103,6 @@ trait HasAdjustmentFormSections
                 ->cloneable(),
         ]);
 }
-
     /**
      * Sezione: Pagamento
      */
