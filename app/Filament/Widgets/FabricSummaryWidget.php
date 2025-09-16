@@ -11,20 +11,19 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class FabricSummaryWidget extends BaseWidget
 {
-    protected static ?string $heading = 'Tessuti (raggruppati per tipo)';
+    protected static ?string $heading = 'Tessuti (raggruppati per codice colore)';
     protected int|string|array $columnSpan = 'full';
 
     protected static ?int $sort = 4;
 
-            public static function canView(): bool
+    public static function canView(): bool
     {
         return auth()->user()->role === 'admin';
     }
-
-
 
     public function table(Table $table): Table
     {
@@ -37,16 +36,16 @@ class FabricSummaryWidget extends BaseWidget
                         DB::raw('(COALESCE(meters,0) * COALESCE(purchase_price,0)) as row_total'),
                     ])
                     ->whereHas('dress', fn ($q) => $q->where('status', 'confermato'))
-                    ->orderBy('name', 'asc')
+                    ->orderBy('color_code', 'asc') // Ordinamento per codice colore
             )
-            ->defaultGroup('name')
+            ->defaultGroup('color_code') // Raggruppa per codice colore
             ->groups([
-                Group::make('name')
-                    ->label('Tessuto')
+                Group::make('color_code')
+                    ->label('Codice Colore')
                     ->collapsible()
                     ->getDescriptionFromRecordUsing(function (DressFabric $record): string {
                         $totals = DressFabric::query()
-                            ->where('name', $record->name)
+                            ->where('color_code', $record->color_code)
                             ->whereHas('dress', fn ($q) => $q->where('status', 'confermato'))
                             ->selectRaw('COALESCE(SUM(meters),0) as total_meters, COALESCE(SUM(meters * purchase_price),0) as total_cost')
                             ->first();
@@ -57,7 +56,7 @@ class FabricSummaryWidget extends BaseWidget
                         return "Metri: {$m} mt — Totale: € {$c}";
                     }),
             ])
-            ->groupingSettingsHidden() // 👈 Questa riga nasconde i controlli di raggruppamento
+            ->groupingSettingsHidden()
             ->columns([
                 Tables\Columns\TextColumn::make('dress.customer_name')
                     ->label('Cliente')
@@ -117,6 +116,12 @@ class FabricSummaryWidget extends BaseWidget
                     ->color('gray')
                     ->searchable(),
 
+                Tables\Columns\TextColumn::make('color_code')
+                    ->label('Codice Colore')
+                    ->badge()
+                    ->color('primary')
+                    ->searchable(),
+
                 Tables\Columns\TextColumn::make('meters')
                     ->label('Metri')
                     ->color('success')
@@ -136,6 +141,48 @@ class FabricSummaryWidget extends BaseWidget
                     ->alignRight(),
             ])
             ->filters([
+                // Filtro per cliente
+                SelectFilter::make('dress.customer_name')
+                    ->label('Cliente')
+                    ->options(fn () => DressFabric::query()
+                        ->with('dress:id,customer_name')
+                        ->whereHas('dress', fn ($q) => $q->where('status', 'confermato'))
+                        ->get()
+                        ->pluck('dress.customer_name', 'dress.customer_name')
+                        ->unique()
+                        ->sort()
+                        ->toArray()
+                    )
+                    ->query(function ($query, array $data) {
+                        if (!isset($data['value']) || $data['value'] === '') {
+                            return $query;
+                        }
+                        return $query->whereHas('dress', fn ($q) => $q->where('customer_name', $data['value']));
+                    }),
+
+                // Filtro per tessuto
+                SelectFilter::make('name')
+                    ->label('Tessuto')
+                    ->options(fn () => DressFabric::query()
+                        ->whereHas('dress', fn ($q) => $q->where('status', 'confermato'))
+                        ->orderBy('name')
+                        ->pluck('name', 'name')
+                        ->unique()
+                        ->toArray()
+                    ),
+
+                // Filtro per codice colore
+                SelectFilter::make('color_code')
+                    ->label('Codice Colore')
+                    ->options(fn () => DressFabric::query()
+                        ->whereHas('dress', fn ($q) => $q->where('status', 'confermato'))
+                        ->whereNotNull('color_code')
+                        ->orderBy('color_code')
+                        ->pluck('color_code', 'color_code')
+                        ->unique()
+                        ->toArray()
+                    ),
+
                 SelectFilter::make('urgenza')
                     ->label('Filtro Urgenza')
                     ->options([
@@ -210,6 +257,39 @@ class FabricSummaryWidget extends BaseWidget
                         });
                     }),
             ])
+
+            ->headerActions([
+            Tables\Actions\Action::make('scarica_pdf')
+                ->label('Scarica Lista Acquisti PDF')
+                ->icon('heroicon-o-document-arrow-down')
+                ->color('success')
+                ->action(function () {
+                    return $this->downloadPurchaseListPdf();
+                }),
+        ])
             ->paginated(false);
     }
+
+
+    protected function downloadPurchaseListPdf()
+{
+    $fabrics = DressFabric::query()
+        ->with(['dress:id,customer_name,status,delivery_date'])
+        ->whereHas('dress', fn ($q) => $q->where('status', 'confermato'))
+        ->orderBy('supplier', 'asc')
+        ->orderBy('color_code', 'asc')
+        ->get();
+
+    $totalCost = $fabrics->sum(fn($item) => $item->meters * $item->purchase_price);
+
+    $pdf = Pdf::loadView('pdf.fabric-requirements', [
+        'fabrics' => $fabrics,
+        'totalCost' => $totalCost,
+        'generatedAt' => now()->format('d/m/Y H:i')
+    ]);
+
+    return response()->streamDownload(function () use ($pdf) {
+        echo $pdf->output();
+    }, 'lista-acquisti-tessuti-' . now()->format('Y-m-d') . '.pdf');
+}
 }

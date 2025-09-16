@@ -18,3 +18,9 @@ Route::get('/adjustments/{adjustment}/receipt', function (Adjustment $adjustment
         'Content-Disposition' => 'inline; filename="ricevuta-aggiusto-' . $adjustment->id . '.pdf"',
     ]);
 })->name('adjustments.receipt');
+
+// Nuove route per i PDF degli abiti
+Route::middleware(['auth'])->group(function () {
+    Route::get('/pdf/modellino/{dress}', [App\Http\Controllers\PdfController::class, 'modellino'])->name('pdf.modellino');
+    Route::get('/pdf/preventivo/{dress}', [App\Http\Controllers\PdfController::class, 'preventivo'])->name('pdf.preventivo');
+});

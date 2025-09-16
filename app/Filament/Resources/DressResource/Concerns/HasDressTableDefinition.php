@@ -180,15 +180,15 @@ private static function getTogglePaidAction(): Tables\Actions\Action
     /**
      * Azione per scaricare la ricevuta
      */
-    private static function getDownloadReceiptAction(): Tables\Actions\Action
-    {
-        return Tables\Actions\Action::make('download_receipt')
-            ->label('Modellino')
-            ->icon('heroicon-o-document-arrow-down')
-            ->color('info')
-            ->visible(fn($record) => self::isPaid($record))
-            ->action(fn($record) => self::handleDownloadReceipt($record));
-    }
+private static function getDownloadReceiptAction(): Tables\Actions\Action
+{
+    return Tables\Actions\Action::make('download_receipt')
+        ->label('Modellino')
+        ->icon('heroicon-o-document-arrow-down')
+        ->color('info')
+        ->url(fn($record) => route('pdf.modellino', $record))
+        ->openUrlInNewTab();
+}
 
     /**
  * Gestisce il toggle dello stato di pagamento
@@ -236,42 +236,15 @@ private static function refundDress($record): void
     ]);
 }
 
-/**
- * Gestisce il download della ricevuta
- */
-private static function handleDownloadReceipt($record)
-{
-    $service = app(\App\Services\DressReceiptService::class);
-    $pdf = $service->generateReceipt($record);
-
-    return response()->streamDownload(
-        fn() => print($pdf->output()),
-        "ricevuta-abito-{$record->id}.pdf"
-    );
-}
 
 private static function getDownloadContractAction(): Tables\Actions\Action
 {
     return Tables\Actions\Action::make('download_contract')
-        ->label('Contratto')
+        ->label('Preventivo')
         ->icon('heroicon-o-document-text')
         ->color('warning')
-        ->visible(fn($record) => self::isPaid($record))
-        ->action(fn($record) => self::handleDownloadContract($record));
-}
-
-/**
- * Gestisce il download del contratto
- */
-private static function handleDownloadContract($record)
-{
-    $service = app(\App\Services\DressContractService::class);
-    $pdf = $service->generateContract($record);
-
-    return response()->streamDownload(
-        fn() => print($pdf->output()),
-        "contratto-abito-{$record->id}.pdf"
-    );
+        ->url(fn($record) => route('pdf.preventivo', $record))
+        ->openUrlInNewTab();
 }
 
 }
