@@ -77,11 +77,11 @@
         }
         .image-container img {
             max-width: 100%;
-            max-height: 350px;
+            max-height: 500px; 
             border-radius: 3px;
         }
         .no-image {
-            padding: 80px 20px;
+            padding: 120px 20px; 
             color: #000000ff;
             border: 2px dashed #000000ff;
             border-radius: 5px;
@@ -119,11 +119,12 @@
             width: 30%;
         }
 
-                          .header .logo {
-    height: 300px;
-    display: block;
-    margin: 5px auto; /* centrato come l'h1 */
-  }
+        .header .logo {
+            height: 150px; 
+            display: block;
+            margin: 5px auto;
+        }
+
     </style>
 </head>
 <body>
