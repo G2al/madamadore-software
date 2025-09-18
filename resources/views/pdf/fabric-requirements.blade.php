@@ -77,7 +77,11 @@
 </head>
 <body>
     <div class="header">
-        <h1>LISTA ACQUISTI TESSUTI</h1>
+        @if (!empty($colorCode))
+            <h1>LISTA ACQUISTI – CODICE COLORE {{ strtoupper($colorCode) }}</h1>
+        @else
+            <h1>LISTA ACQUISTI TESSUTI</h1>
+        @endif
         <p><strong>Generata il:</strong> {{ $generatedAt }}</p>
         <p class="price"><strong>TOTALE COMPLESSIVO: € {{ number_format($totalCost, 2, ',', '.') }}</strong></p>
     </div>

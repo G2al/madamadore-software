@@ -36,9 +36,9 @@ class FabricSummaryWidget extends BaseWidget
                         DB::raw('(COALESCE(meters,0) * COALESCE(purchase_price,0)) as row_total'),
                     ])
                     ->whereHas('dress', fn ($q) => $q->where('status', 'confermato'))
-                    ->orderBy('color_code', 'asc') // Ordinamento per codice colore
+                    ->orderBy('color_code', 'asc')
             )
-            ->defaultGroup('color_code') // Raggruppa per codice colore
+            ->defaultGroup('color_code')
             ->groups([
                 Group::make('color_code')
                     ->label('Codice Colore')
@@ -72,11 +72,11 @@ class FabricSummaryWidget extends BaseWidget
                         if (!$record->dress?->delivery_date) {
                             return 'gray';
                         }
-                        
+
                         $deliveryDate = Carbon::parse($record->dress->delivery_date);
                         $now = Carbon::now();
                         $daysUntilDelivery = $now->diffInDays($deliveryDate, false);
-                        
+
                         if ($daysUntilDelivery < 0) {
                             return 'danger';
                         } elseif ($daysUntilDelivery <= 7) {
@@ -91,13 +91,13 @@ class FabricSummaryWidget extends BaseWidget
                         if (!$record->dress?->delivery_date) {
                             return 'Non definita';
                         }
-                        
+
                         $deliveryDate = Carbon::parse($record->dress->delivery_date);
                         $now = Carbon::now();
                         $daysUntilDelivery = $now->diffInDays($deliveryDate, false);
-                        
+
                         $formatted = $deliveryDate->format('d/m/Y');
-                        
+
                         if ($daysUntilDelivery < 0) {
                             return $formatted . ' (SCADUTO)';
                         } elseif ($daysUntilDelivery <= 7) {
@@ -141,7 +141,6 @@ class FabricSummaryWidget extends BaseWidget
                     ->alignRight(),
             ])
             ->filters([
-                // Filtro per cliente
                 SelectFilter::make('dress.customer_name')
                     ->label('Cliente')
                     ->options(fn () => DressFabric::query()
@@ -160,7 +159,6 @@ class FabricSummaryWidget extends BaseWidget
                         return $query->whereHas('dress', fn ($q) => $q->where('customer_name', $data['value']));
                     }),
 
-                // Filtro per tessuto
                 SelectFilter::make('name')
                     ->label('Tessuto')
                     ->options(fn () => DressFabric::query()
@@ -171,7 +169,6 @@ class FabricSummaryWidget extends BaseWidget
                         ->toArray()
                     ),
 
-                // Filtro per codice colore
                 SelectFilter::make('color_code')
                     ->label('Codice Colore')
                     ->options(fn () => DressFabric::query()
@@ -198,31 +195,31 @@ class FabricSummaryWidget extends BaseWidget
                         }
 
                         $now = Carbon::now();
-                        
+
                         return $query->whereHas('dress', function ($q) use ($data, $now) {
                             switch ($data['value']) {
                                 case 'scaduto':
                                     return $q->whereNotNull('delivery_date')
                                              ->where('delivery_date', '<', $now->toDateString());
-                                
+
                                 case 'urgente':
                                     return $q->whereNotNull('delivery_date')
                                              ->whereBetween('delivery_date', [
                                                  $now->toDateString(),
                                                  $now->copy()->addDays(7)->toDateString()
                                              ]);
-                                
+
                                 case 'prossimo':
                                     return $q->whereNotNull('delivery_date')
                                              ->whereBetween('delivery_date', [
                                                  $now->copy()->addDays(8)->toDateString(),
                                                  $now->copy()->addDays(14)->toDateString()
                                              ]);
-                                
+
                                 case 'normale':
                                     return $q->whereNotNull('delivery_date')
                                              ->where('delivery_date', '>', $now->copy()->addDays(14)->toDateString());
-                                
+
                                 case 'senza_data':
                                     return $q->whereNull('delivery_date');
                             }
@@ -234,7 +231,7 @@ class FabricSummaryWidget extends BaseWidget
                     ->query(function ($query) {
                         $startOfWeek = Carbon::now()->startOfWeek();
                         $endOfWeek = Carbon::now()->endOfWeek();
-                        
+
                         return $query->whereHas('dress', function ($q) use ($startOfWeek, $endOfWeek) {
                             $q->whereBetween('delivery_date', [
                                 $startOfWeek->toDateString(),
@@ -248,7 +245,7 @@ class FabricSummaryWidget extends BaseWidget
                     ->query(function ($query) {
                         $startOfNextWeek = Carbon::now()->addWeek()->startOfWeek();
                         $endOfNextWeek = Carbon::now()->addWeek()->endOfWeek();
-                        
+
                         return $query->whereHas('dress', function ($q) use ($startOfNextWeek, $endOfNextWeek) {
                             $q->whereBetween('delivery_date', [
                                 $startOfNextWeek->toDateString(),
@@ -257,39 +254,53 @@ class FabricSummaryWidget extends BaseWidget
                         });
                     }),
             ])
-
+            ->actions([ // <-- ROW ACTIONS COMPATIBILI
+                Tables\Actions\Action::make('pdf_codice')
+                    ->label('PDF Gruppo')
+                    ->tooltip('Scarica PDF per questo codice colore')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('primary')
+                    ->action(fn (DressFabric $record) => $this->generateFabricPdf($record->color_code)),
+            ])
             ->headerActions([
-            Tables\Actions\Action::make('scarica_pdf')
-                ->label('Scarica Lista Acquisti PDF')
-                ->icon('heroicon-o-document-arrow-down')
-                ->color('success')
-                ->action(function () {
-                    return $this->downloadPurchaseListPdf();
-                }),
-        ])
+                Tables\Actions\Action::make('scarica_pdf')
+                    ->label('Scarica Lista Acquisti PDF')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('success')
+                    ->action(fn () => $this->generateFabricPdf(null)),
+            ])
             ->paginated(false);
     }
 
+    protected function generateFabricPdf(?string $colorCode = null)
+    {
+        $query = DressFabric::query()
+            ->with(['dress:id,customer_name,status,delivery_date'])
+            ->whereHas('dress', fn ($q) => $q->where('status', 'confermato'))
+            ->orderBy('supplier', 'asc')
+            ->orderBy('color_code', 'asc');
 
-    protected function downloadPurchaseListPdf()
-{
-    $fabrics = DressFabric::query()
-        ->with(['dress:id,customer_name,status,delivery_date'])
-        ->whereHas('dress', fn ($q) => $q->where('status', 'confermato'))
-        ->orderBy('supplier', 'asc')
-        ->orderBy('color_code', 'asc')
-        ->get();
+        if ($colorCode !== null) {
+            $query->where('color_code', $colorCode);
+        }
 
-    $totalCost = $fabrics->sum(fn($item) => $item->meters * $item->purchase_price);
+        $fabrics = $query->get();
 
-    $pdf = Pdf::loadView('pdf.fabric-requirements', [
-        'fabrics' => $fabrics,
-        'totalCost' => $totalCost,
-        'generatedAt' => now()->format('d/m/Y H:i')
-    ]);
+        $totalCost = $fabrics->sum(fn ($item) => (float) $item->meters * (float) $item->purchase_price);
 
-    return response()->streamDownload(function () use ($pdf) {
-        echo $pdf->output();
-    }, 'lista-acquisti-tessuti-' . now()->format('Y-m-d') . '.pdf');
-}
+        $pdf = Pdf::loadView('pdf.fabric-requirements', [
+            'fabrics'     => $fabrics,
+            'totalCost'   => $totalCost,
+            'generatedAt' => now()->format('d/m/Y H:i'),
+            'colorCode'   => $colorCode,
+        ]);
+
+        $filename = $colorCode
+            ? "lista-tessuti-{$colorCode}-" . now()->format('Y-m-d') . ".pdf"
+            : "lista-acquisti-tessuti-" . now()->format('Y-m-d') . ".pdf";
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $filename);
+    }
 }
