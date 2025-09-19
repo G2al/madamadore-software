@@ -13,6 +13,7 @@ class DressFabric extends Model
 
     protected $fillable = [
         'dress_id',
+        'fabric_id',       // 👈 aggiunto
         'name',
         'type',
         'meters',
@@ -34,6 +35,11 @@ class DressFabric extends Model
         return $this->belongsTo(Dress::class);
     }
 
+    public function fabric(): BelongsTo   // 👈 nuovo collegamento
+    {
+        return $this->belongsTo(Fabric::class);
+    }
+
     // --- Accessors utili (per singolo tessuto) ---
     public function getProfitAttribute(): float
     {
@@ -51,13 +57,11 @@ class DressFabric extends Model
     }
 
     // --- Scopes ---
-    /** Filtra i tessuti appartenenti ad abiti con un certo stato */
     public function scopeForDressStatus(Builder $query, string $status): Builder
     {
         return $query->whereHas('dress', fn ($q) => $q->where('status', $status));
     }
 
-    /** Comodo per il caso più usato: solo abiti "in_lavorazione" */
     public function scopeInLavorazione(Builder $query): Builder
     {
         return $query->forDressStatus('in_lavorazione');
@@ -66,16 +70,14 @@ class DressFabric extends Model
     // --- Hooks: ricalcolo automatico dei totali dell'abito ---
     protected static function booted(): void
     {
-        // create & update
         static::saved(function (self $fabric) {
             $dress = $fabric->dress;
             if ($dress) {
                 $dress->loadMissing('fabrics', 'extras');
-                $dress->recalcFinancials(true); // persiste total_purchase_cost, total_client_price, total_profit, remaining
+                $dress->recalcFinancials(true);
             }
         });
 
-        // delete
         static::deleted(function (self $fabric) {
             $dress = $fabric->dress;
             if ($dress) {
