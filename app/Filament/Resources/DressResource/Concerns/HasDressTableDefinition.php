@@ -175,9 +175,9 @@ protected static function tableBulkActions(): array
 private static function getTogglePaidAction(): Tables\Actions\Action
 {
     return Tables\Actions\Action::make('toggle_paid')
-->label(fn($record) => self::isPaid($record) ? 'Rimborso' : 'Salda')
-->icon(fn($record) => self::isPaid($record) ? 'heroicon-o-x-circle' : 'heroicon-o-banknotes')
-->color(fn($record) => self::isPaid($record) ? 'danger' : 'success')
+->label(fn($record) => self::isPaid($record) ? 'Completato' : 'In corso')
+->icon(fn($record) => self::isPaid($record) ? 'heroicon-o-check-circle' : 'heroicon-o-clock')
+->color(fn($record) => self::isPaid($record) ? 'success' : 'info')
 ->action(fn($record) => self::handleTogglePaid($record));
 
 }

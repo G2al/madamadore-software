@@ -242,9 +242,9 @@ private static function getTableFilters(): array
     private static function getTogglePaidAction(): Tables\Actions\Action
     {
         return Tables\Actions\Action::make('toggle_paid')
-            ->label(fn($record) => $record->remaining > 0 ? 'Salda' : 'Rimborso')
-            ->icon(fn($record) => $record->remaining > 0 ? 'heroicon-o-banknotes' : 'heroicon-o-x-circle')
-            ->color(fn($record) => $record->remaining > 0 ? 'success' : 'danger')
+            ->label(fn($record) => $record->remaining > 0 ? 'In corso' : 'Completato')
+            ->icon(fn($record) => $record->remaining > 0 ? 'heroicon-o-clock' : 'heroicon-o-check-circle')
+            ->color(fn($record) => $record->remaining > 0 ? 'info' : 'success')
             ->requiresConfirmation()
             ->action(fn($record) => self::handleTogglePaid($record));
     }
