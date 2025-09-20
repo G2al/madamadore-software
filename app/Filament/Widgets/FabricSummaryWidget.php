@@ -159,15 +159,17 @@ class FabricSummaryWidget extends BaseWidget
                         return $query->whereHas('dress', fn ($q) => $q->where('customer_name', $data['value']));
                     }),
 
-                SelectFilter::make('name')
-                    ->label('Tessuto')
-                    ->options(fn () => DressFabric::query()
-                        ->whereHas('dress', fn ($q) => $q->where('status', 'confermato'))
-                        ->orderBy('name')
-                        ->pluck('name', 'name')
-                        ->unique()
-                        ->toArray()
-                    ),
+SelectFilter::make('name')
+    ->label('Tessuto')
+    ->options(fn () => DressFabric::query()
+        ->whereHas('dress', fn ($q) => $q->where('status', 'confermato'))
+        ->whereNotNull('name')   // 👈 aggiungi questo
+        ->orderBy('name')
+        ->pluck('name', 'name')
+        ->unique()
+        ->toArray()
+    ),
+
 
                 SelectFilter::make('color_code')
                     ->label('Codice Colore')
