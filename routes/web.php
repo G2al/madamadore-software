@@ -23,4 +23,7 @@ Route::get('/adjustments/{adjustment}/receipt', function (Adjustment $adjustment
 Route::middleware(['auth'])->group(function () {
     Route::get('/pdf/modellino/{dress}', [App\Http\Controllers\PdfController::class, 'modellino'])->name('pdf.modellino');
     Route::get('/pdf/preventivo/{dress}', [App\Http\Controllers\PdfController::class, 'preventivo'])->name('pdf.preventivo');
+
+    // API per calendario consegne
+    Route::get('/api/delivery-calendar', [App\Http\Controllers\Api\DeliveryCalendarController::class, 'getDeliveryDates'])->name('api.delivery-calendar');
 });

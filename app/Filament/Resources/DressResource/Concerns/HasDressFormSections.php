@@ -50,7 +50,52 @@ trait HasDressFormSections
                 ->label('Data di Consegna Prevista')
                 ->native(false) // flatpickr
                 ->displayFormat('d/m/Y')
-                ->closeOnDateSelection(),
+                ->closeOnDateSelection()
+                ->live(debounce: 300)
+                ->afterStateUpdated(function ($state, Set $set, Get $get, $livewire) {
+    if ($state) {
+        $currentDressId = $livewire->record?->id ?? null;
+
+        $dressesOnDate = \App\Models\Dress::where('delivery_date', $state)
+            ->when($currentDressId, fn($q) => $q->where('id', '!=', $currentDressId))
+            ->get(['id', 'customer_name', 'ceremony_type']);
+
+        $count = $dressesOnDate->count();
+
+        if ($count === 0) {
+            $helper = '🟢 Giornata libera - Perfetto per la consegna!';
+        } elseif ($count <= 2) {
+            $customers = $dressesOnDate->pluck('customer_name')->take(2)->join(', ');
+            $helper = "🟡 {$count} abiti già previsti: {$customers}" . ($count > 2 ? ' e altri...' : '');
+        } elseif ($count <= 4) {
+            $customers = $dressesOnDate->pluck('customer_name')->take(2)->join(', ');
+            $helper = "🟠 GIORNATA IMPEGNATIVA - {$count} abiti: {$customers}" . ($count > 2 ? ' e altri...' : '');
+        } else {
+            $customers = $dressesOnDate->pluck('customer_name')->take(2)->join(', ');
+            $helper = "🔴 ATTENZIONE: GIORNATA SOVRACCARICA! {$count} abiti: {$customers} e altri...";
+        }
+
+        $set('delivery_date_helper', $helper);
+    } else {
+        $set('delivery_date_helper', '');
+    }
+})
+
+                ->extraInputAttributes([
+                    'data-load-delivery-calendar' => true,
+                ]),
+
+            // Helper dinamico per mostrare carico giornata
+Forms\Components\Placeholder::make('delivery_date_helper')
+    ->label('')
+    ->content(fn ($get) => $get('delivery_date_helper') ?: '')
+    ->visible(fn ($get) => !empty($get('delivery_date_helper')))
+    ->extraAttributes([
+        'class' => 'delivery-date-info',
+        'style' => 'background-color:#21242b !important;'
+    ])
+    ->dehydrated(false),
+
         ])
         ->columns(2);
     }

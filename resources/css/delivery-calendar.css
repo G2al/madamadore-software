@@ -1,0 +1,82 @@
+/* Stili per il calendario delle consegne */
+.delivery-date-info {
+    margin-top: 8px !important;
+    padding: 8px 12px !important;
+    border-left: 4px solid #6366f1 !important;
+    background-color: #21242b !important;
+    border-radius: 6px !important;
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+}
+
+/* Giorni nel DatePicker con consegne */
+.flatpickr-calendar .flatpickr-day.delivery-light {
+    background-color: #fef3c7 !important;
+    color: #92400e !important;
+    font-weight: 600 !important;
+}
+
+.flatpickr-calendar .flatpickr-day.delivery-light:hover {
+    background-color: #fde68a !important;
+    color: #78350f !important;
+}
+
+.flatpickr-calendar .flatpickr-day.delivery-medium {
+    background-color: #fed7aa !important;
+    color: #9a3412 !important;
+    font-weight: 600 !important;
+}
+
+.flatpickr-calendar .flatpickr-day.delivery-medium:hover {
+    background-color: #fdba74 !important;
+    color: #7c2d12 !important;
+}
+
+.flatpickr-calendar .flatpickr-day.delivery-critical {
+    background-color: #fecaca !important;
+    color: #991b1b !important;
+    font-weight: bold !important;
+}
+
+.flatpickr-calendar .flatpickr-day.delivery-critical:hover {
+    background-color: #fca5a5 !important;
+    color: #7f1d1d !important;
+}
+
+/* Indicatori numerici sui giorni */
+.flatpickr-calendar .flatpickr-day.delivery-light::after,
+.flatpickr-calendar .flatpickr-day.delivery-medium::after,
+.flatpickr-calendar .flatpickr-day.delivery-critical::after {
+    content: "●";
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    font-size: 8px;
+    line-height: 1;
+}
+
+.flatpickr-calendar .flatpickr-day.delivery-light::after {
+    color: #d97706;
+}
+
+.flatpickr-calendar .flatpickr-day.delivery-medium::after {
+    color: #ea580c;
+}
+
+.flatpickr-calendar .flatpickr-day.delivery-critical::after {
+    color: #dc2626;
+}
+
+/* Tooltip personalizzato */
+.flatpickr-calendar .flatpickr-day[title] {
+    position: relative;
+}
+
+/* Animazione per focus */
+.flatpickr-calendar .flatpickr-day.delivery-light:focus,
+.flatpickr-calendar .flatpickr-day.delivery-medium:focus,
+.flatpickr-calendar .flatpickr-day.delivery-critical:focus {
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5) !important;
+    transform: scale(1.05);
+    transition: all 0.2s ease;
+}
