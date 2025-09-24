@@ -181,6 +181,30 @@
             @else
                 <div style="color: #999; font-style: italic;">Nessuna misura disponibile</div>
             @endif
+
+            <!-- Misure Personalizzate -->
+            @if($dress->customMeasurements && $dress->customMeasurements->count() > 0)
+                <div class="measurements-title" style="margin-top: 15px;">MISURE PERSONALIZZATE</div>
+                <div class="measurements-list">
+                    @foreach($dress->customMeasurements as $customMeasurement)
+                        <div class="measurement-row">
+                            <div class="measurement-label">{{ $customMeasurement->label }}</div>
+                            <div class="measurement-value">
+                                @if($customMeasurement->value)
+                                    {{ $customMeasurement->value }} {{ $customMeasurement->unit }}
+                                @else
+                                    -
+                                @endif
+                            </div>
+                        </div>
+                        @if($customMeasurement->notes)
+                            <div style="font-size: 9px; color: #666; margin-left: 10px; margin-bottom: 5px;">
+                                <em>Note: {{ $customMeasurement->notes }}</em>
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+            @endif
         </div>
     </div>
 </body>

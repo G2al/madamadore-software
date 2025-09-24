@@ -33,9 +33,9 @@
         }
         .page-title {
             text-align: center;
-            font-size: 36px;
+            font-size: 28px;
             font-weight: bold;
-            margin: 20px 0;
+            margin: 15px 0;
         }
         .form-table {
             width: 100%;
@@ -55,11 +55,11 @@
         .page-break {
             page-break-before: always;
         }
-          .header .logo {
-    height: 300px;
-    display: block;
-    margin: 5px auto; /* centrato come l'h1 */
-  }
+        .header .logo {
+            height: 80px;
+            display: block;
+            margin: 5px auto;
+        }
     </style>
 </head>
 <body>
@@ -117,6 +117,34 @@
                             <tr>
                                 <td style="border: 1px solid #333; padding: 6px;" colspan="2">Nessuna misura disponibile</td>
                             </tr>
+                        @endif
+
+                        <!-- Misure Personalizzate -->
+                        @if($dress->customMeasurements && $dress->customMeasurements->count() > 0)
+                            <tr>
+                                <td style="border: 1px solid #333; padding: 6px; background-color: #f0f0f0; font-weight: bold; text-align: center;" colspan="2">
+                                    MISURE PERSONALIZZATE
+                                </td>
+                            </tr>
+                            @foreach($dress->customMeasurements as $customMeasurement)
+                                <tr>
+                                    <td style="border: 1px solid #333; padding: 3px; font-size: 10px;">{{ $customMeasurement->label }}</td>
+                                    <td style="border: 1px solid #333; padding: 3px; text-align: center; width: 50px; font-size: 10px;">
+                                        @if($customMeasurement->value)
+                                            {{ $customMeasurement->value }} {{ $customMeasurement->unit }}
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                </tr>
+                                @if($customMeasurement->notes)
+                                    <tr>
+                                        <td style="border: 1px solid #333; padding: 2px; font-size: 8px; font-style: italic; color: #666;" colspan="2">
+                                            Note: {{ $customMeasurement->notes }}
+                                        </td>
+                                    </tr>
+                                @endif
+                            @endforeach
                         @endif
                     </table>
                 </td>
@@ -230,7 +258,7 @@
         <h2 style="text-align: center; font-size: 14px; margin: 15px 0;">CONTRATTO DI VENDITA</h2>
         <p style="text-align: center; font-size: 10px; margin-bottom: 10px;">Atelier MadamaDorè di Dora Maione</p>
 
-        <div style="font-size: 10px; line-height: 1.2; text-align: justify;">
+        <div style="font-size: 9px; line-height: 1.1; text-align: justify;">
             <p><strong>Art. 1 – Oggetto</strong><br>
             Il presente contratto disciplina la realizzazione e vendita di capi su misura e/o accessori prodotti da MadamaDorè di Dora Maione (di seguito "Fornitore"), in favore del Cliente (di seguito "Acquirente"), sulla base del bozzetto/disegno e preventivo concordato e sottoscritto dalle parti.</p>
 
@@ -278,14 +306,11 @@
         </div>
 
         <!-- Firme -->
-        <div style="margin-top: 25px; font-size: 11px;">
+        <div style="margin-top: 15px; font-size: 10px;">
             <p>Letto, approvato e sottoscritto in ogni parte.</p>
-            <br>
-            <p>Luogo e data: ______________________________________</p>
-            <br>
-            <p>Firma dell'Acquirente _______________________________</p>
-            <br>
-            <p>Firma del Fornitore _________________________________</p>
+            <p style="margin-top: 10px;">Luogo e data: ______________________________________</p>
+            <p style="margin-top: 10px;">Firma dell'Acquirente _______________________________</p>
+            <p style="margin-top: 10px;">Firma del Fornitore _________________________________</p>
         </div>
     </div>
 

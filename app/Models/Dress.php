@@ -59,6 +59,11 @@ class Dress extends Model
         return $this->hasOne(DressMeasurement::class);
     }
 
+    public function customMeasurements(): HasMany
+    {
+        return $this->hasMany(DressCustomMeasurement::class);
+    }
+
     // Totali calcolati (usati per UI)
     public function getTotalPurchaseCostAttribute(): float
     {
