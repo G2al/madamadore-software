@@ -59,13 +59,13 @@
         }
         .left-column {
             display: table-cell;
-            width: 45%;
+            width: 70%;
             vertical-align: top;
             padding-right: 15px;
         }
         .right-column {
             display: table-cell;
-            width: 55%;
+            width: 30%;
             vertical-align: top;
         }
         .image-container {
@@ -77,11 +77,11 @@
         }
         .image-container img {
             max-width: 100%;
-            max-height: 500px; 
+            max-height: 700px;
             border-radius: 3px;
         }
         .no-image {
-            padding: 120px 20px; 
+            padding: 200px 20px;
             color: #000000ff;
             border: 2px dashed #000000ff;
             border-radius: 5px;
@@ -120,7 +120,7 @@
         }
 
         .header .logo {
-            height: 150px; 
+            height: 80px;
             display: block;
             margin: 5px auto;
         }
