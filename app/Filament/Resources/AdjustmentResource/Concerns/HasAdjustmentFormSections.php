@@ -40,12 +40,25 @@ trait HasAdjustmentFormSections
                         ->tel(),
                 ]),
 
-            // 👈 Aggiungi questo campo status
+            // Campo status con logica corretta
             Forms\Components\Select::make('status')
-                ->label('Stato')
+                ->label('Stato Lavoro')
                 ->options(\App\Models\Adjustment::getStatusLabels())
-                ->default('confermato')
-                ->required(),
+                ->default('in_lavorazione')
+                ->required()
+                ->live()
+                ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                    // Logica: quando passa da 'in_lavorazione' a 'confermato' (bottone completato)
+                    // Questa logica viene gestita dal bottone, non qui
+                }),
+
+            // Spunta ritirato (logica spostata nella table)
+            Forms\Components\Toggle::make('ritirato')
+                ->label('Ritirato dal Cliente')
+                ->default(false)
+                ->helperText('Attivare quando il cliente ha ritirato l\'aggiusto')
+                ->onColor('success')
+                ->offColor('danger'),
 
             // Telefono di sola lettura con icona WhatsApp nel suffix
             Forms\Components\TextInput::make('customer_phone')

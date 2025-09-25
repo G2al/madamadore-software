@@ -17,6 +17,7 @@ class Adjustment extends Model
     protected $fillable = [
         'customer_id',
         'status', // 👈 Aggiungi questo
+        'ritirato', // 👈 Nuovo campo ritirato
         'name',
         'client_price',
         'deposit',
@@ -36,6 +37,7 @@ class Adjustment extends Model
         'remaining'    => 'decimal:2',
         'profit'       => 'decimal:2',
         'delivery_date'=> 'date',
+        'ritirato'     => 'boolean',
     ];
 
     // 👈 Aggiungi questi metodi helper

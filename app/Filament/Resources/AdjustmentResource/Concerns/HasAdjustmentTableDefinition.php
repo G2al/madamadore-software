@@ -29,6 +29,7 @@ trait HasAdjustmentTableDefinition
         return [
             self::getCustomerColumn(),
             self::getStatusColumn(),
+            self::getRitiratoColumn(),
             self::getAdjustmentNameColumn(),
             self::getClientPriceColumn(),
             self::getDepositColumn(),
@@ -64,6 +65,20 @@ private static function getStatusColumn(): Tables\Columns\TextColumn
         ->color(fn(?string $state) => \App\Models\Adjustment::getStatusColors()[$state] ?? 'gray')
         ->sortable();
 }
+
+    /**
+     * Colonna ritirato con badge colorato
+     */
+    private static function getRitiratoColumn(): Tables\Columns\TextColumn
+    {
+        return Tables\Columns\TextColumn::make('ritirato')
+            ->label('Ritirato')
+            ->badge()
+            ->formatStateUsing(fn(bool $state) => $state ? 'SI' : 'NO')
+            ->color(fn(bool $state) => $state ? 'success' : 'danger')
+            ->icon(fn(bool $state) => $state ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
+            ->sortable();
+    }
 
     /**
      * Colonna nome aggiusto
@@ -204,10 +219,18 @@ private static function getAdjustmentNameColumn(): Tables\Columns\TextColumn
 private static function getTableFilters(): array
 {
     return [
-        // 👈 Aggiungi questo filtro per stato
+        // Filtro per stato
         Tables\Filters\SelectFilter::make('status')
             ->label('Stato')
             ->options(\App\Models\Adjustment::getStatusLabels()),
+
+        // Filtro per ritirato
+        Tables\Filters\SelectFilter::make('ritirato')
+            ->label('Ritirato')
+            ->options([
+                true => 'SI',
+                false => 'NO',
+            ]),
 
         Tables\Filters\Filter::make('saldato')
             ->label('Saldato')
@@ -231,22 +254,43 @@ private static function getTableFilters(): array
         return [
             Tables\Actions\EditAction::make(),
             Tables\Actions\DeleteAction::make(),
-            self::getTogglePaidAction(),
+            self::getCompleteWorkAction(),
+            self::getToggleRitiratoAction(),
             self::getDownloadReceiptAction(),
         ];
     }
 
     /**
-     * Azione per saldare/rimborsare l'aggiusto
+     * Azione per completare il lavoro (in_lavorazione → confermato)
      */
-    private static function getTogglePaidAction(): Tables\Actions\Action
+    private static function getCompleteWorkAction(): Tables\Actions\Action
     {
-        return Tables\Actions\Action::make('toggle_paid')
-            ->label(fn($record) => $record->remaining > 0 ? 'In corso' : 'Completato')
-            ->icon(fn($record) => $record->remaining > 0 ? 'heroicon-o-clock' : 'heroicon-o-check-circle')
-            ->color(fn($record) => $record->remaining > 0 ? 'info' : 'success')
+        return Tables\Actions\Action::make('complete_work')
+            ->label(fn($record) => $record->status === 'in_lavorazione' ? 'Completa Lavoro' : 'Completato')
+            ->icon(fn($record) => $record->status === 'in_lavorazione' ? 'heroicon-o-clock' : 'heroicon-o-check-circle')
+            ->color(fn($record) => $record->status === 'in_lavorazione' ? 'warning' : 'success')
+            ->disabled(fn($record) => $record->status !== 'in_lavorazione')
             ->requiresConfirmation()
-            ->action(fn($record) => self::handleTogglePaid($record));
+            ->modalHeading('Conferma Completamento Lavoro')
+            ->modalDescription('Sei sicuro di voler segnare questo aggiusto come completato?')
+            ->action(fn($record) => self::handleCompleteWork($record));
+    }
+
+    /**
+     * Azione per toggle ritirato (quando attivo → stato = consegnato)
+     */
+    private static function getToggleRitiratoAction(): Tables\Actions\Action
+    {
+        return Tables\Actions\Action::make('toggle_ritirato')
+            ->label(fn($record) => $record->ritirato ? 'Ritirato' : 'Segna Ritirato')
+            ->icon(fn($record) => $record->ritirato ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
+            ->color(fn($record) => $record->ritirato ? 'success' : 'danger')
+            ->requiresConfirmation()
+            ->modalHeading(fn($record) => $record->ritirato ? 'Annulla Ritiro' : 'Conferma Ritiro')
+            ->modalDescription(fn($record) => $record->ritirato
+                ? 'Vuoi annullare il ritiro di questo aggiusto?'
+                : 'Confermi che il cliente ha ritirato questo aggiusto? Lo stato diventerà automaticamente "consegnato".')
+            ->action(fn($record) => self::handleToggleRitirato($record));
     }
 
     /**
@@ -265,45 +309,30 @@ private static function getTableFilters(): array
 
 
     /**
-     * Gestisce il toggle dello stato di pagamento
+     * Gestisce il completamento del lavoro (in_lavorazione → confermato)
      */
-    private static function handleTogglePaid(Adjustment $record): void
+    private static function handleCompleteWork(Adjustment $record): void
     {
-        if ($record->remaining > 0) {
-            self::settleAdjustment($record);
-        } else {
-            self::refundAdjustment($record);
+        if ($record->status === 'in_lavorazione') {
+            $record->update(['status' => 'confermato']);
         }
     }
 
     /**
-     * Salda l'aggiusto
+     * Gestisce il toggle dello stato ritirato
      */
-    private static function settleAdjustment(Adjustment $record): void
+    private static function handleToggleRitirato(Adjustment $record): void
     {
-        $record->update(['remaining' => 0]);
+        $newRitiratoStatus = !$record->ritirato;
 
-        Cashbox::create([
-            'type'   => 'income',
-            'source' => "Adjustment #{$record->id}",
-            'amount' => $record->total,
-            'note'   => 'Aggiusto saldato',
-        ]);
-    }
+        $updateData = ['ritirato' => $newRitiratoStatus];
 
-    /**
-     * Rimborsa l'aggiusto (torna non saldato)
-     */
-    private static function refundAdjustment(Adjustment $record): void
-    {
-        $record->update(['remaining' => $record->total]);
+        // Se ritirato diventa TRUE, stato diventa automaticamente 'consegnato'
+        if ($newRitiratoStatus === true) {
+            $updateData['status'] = 'consegnato';
+        }
 
-        Cashbox::create([
-            'type'   => 'expense',
-            'source' => "Adjustment #{$record->id}",
-            'amount' => $record->total,
-            'note'   => 'Storno aggiusto - tornato NON saldato',
-        ]);
+        $record->update($updateData);
     }
 
     /**
