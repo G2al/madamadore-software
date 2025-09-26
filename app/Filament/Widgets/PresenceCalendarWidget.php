@@ -142,4 +142,12 @@ protected function modalActions(): array
                 ->displayFormat('d/m/Y'),
         ];
     }
+
+    public static function canView(): bool
+{
+    $user = auth()->user();
+
+    return ($user?->role === 'admin')
+        && request()->routeIs('filament.admin.resources.people.*'); // solo nella resource Persone
+}
 }

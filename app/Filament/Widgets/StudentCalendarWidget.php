@@ -138,4 +138,13 @@ class StudentCalendarWidget extends FullCalendarWidget
                 ->displayFormat('d/m/Y'),
         ];
     }
+
+    public static function canView(): bool
+{
+    $user = auth()->user();
+
+    return ($user?->role === 'admin')
+        && request()->routeIs('filament.admin.resources.students.*'); // solo nella resource Studenti
+}
+
 }
