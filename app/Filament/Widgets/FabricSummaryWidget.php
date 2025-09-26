@@ -35,7 +35,7 @@ class FabricSummaryWidget extends BaseWidget
                         'dress_fabrics.*',
                         DB::raw('(COALESCE(meters,0) * COALESCE(purchase_price,0)) as row_total'),
                     ])
-                    ->whereHas('dress', fn ($q) => $q->where('status', 'confermato'))
+                    ->whereHas('dress', fn ($q) => $q->whereIn('status', ['confermato', 'da_tagliare']))
                     ->orderBy('color_code', 'asc')
             )
             ->defaultGroup('color_code')
@@ -46,7 +46,7 @@ class FabricSummaryWidget extends BaseWidget
                     ->getDescriptionFromRecordUsing(function (DressFabric $record): string {
                         $totals = DressFabric::query()
                             ->where('color_code', $record->color_code)
-                            ->whereHas('dress', fn ($q) => $q->where('status', 'confermato'))
+                            ->whereHas('dress', fn ($q) => $q->whereIn('status', ['confermato', 'da_tagliare']))
                             ->selectRaw('COALESCE(SUM(meters),0) as total_meters, COALESCE(SUM(meters * purchase_price),0) as total_cost')
                             ->first();
 
@@ -139,13 +139,22 @@ class FabricSummaryWidget extends BaseWidget
                     ->color('danger')
                     ->formatStateUsing(fn ($state) => '€ ' . number_format((float) $state, 2, ',', '.'))
                     ->alignRight(),
+
+                Tables\Columns\IconColumn::make('dress.status')
+                    ->label('Acquistato')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-circle')   // ✅
+                    ->falseIcon('heroicon-o-clock')        // ⏳
+                    ->trueColor('success')
+                    ->falseColor('gray')
+                    ->state(fn ($record) => $record->dress?->status === 'da_tagliare'),
             ])
             ->filters([
                 SelectFilter::make('dress.customer_name')
                     ->label('Cliente')
                     ->options(fn () => DressFabric::query()
                         ->with('dress:id,customer_name')
-                        ->whereHas('dress', fn ($q) => $q->where('status', 'confermato'))
+                        ->whereHas('dress', fn ($q) => $q->whereIn('status', ['confermato', 'da_tagliare']))
                         ->get()
                         ->pluck('dress.customer_name', 'dress.customer_name')
                         ->unique()
@@ -162,7 +171,7 @@ class FabricSummaryWidget extends BaseWidget
 SelectFilter::make('name')
     ->label('Tessuto')
     ->options(fn () => DressFabric::query()
-        ->whereHas('dress', fn ($q) => $q->where('status', 'confermato'))
+        ->whereHas('dress', fn ($q) => $q->whereIn('status', ['confermato', 'da_tagliare']))
         ->whereNotNull('name')   // 👈 aggiungi questo
         ->orderBy('name')
         ->pluck('name', 'name')
@@ -174,7 +183,7 @@ SelectFilter::make('name')
                 SelectFilter::make('color_code')
                     ->label('Codice Colore')
                     ->options(fn () => DressFabric::query()
-                        ->whereHas('dress', fn ($q) => $q->where('status', 'confermato'))
+                        ->whereHas('dress', fn ($q) => $q->whereIn('status', ['confermato', 'da_tagliare']))
                         ->whereNotNull('color_code')
                         ->orderBy('color_code')
                         ->pluck('color_code', 'color_code')
@@ -278,7 +287,7 @@ SelectFilter::make('name')
     {
         $query = DressFabric::query()
             ->with(['dress:id,customer_name,status,delivery_date'])
-            ->whereHas('dress', fn ($q) => $q->where('status', 'confermato'))
+            ->whereHas('dress', fn ($q) => $q->whereIn('status', ['confermato', 'da_tagliare']))
             ->orderBy('supplier', 'asc')
             ->orderBy('color_code', 'asc');
 

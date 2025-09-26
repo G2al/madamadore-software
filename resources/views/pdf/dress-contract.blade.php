@@ -5,70 +5,70 @@
     <title>Contratto Abito #{{ $dress->id }}</title>
     <style>
         @page {
-            margin: 15mm;
+            margin: 10mm;
             size: A4;
         }
         body { 
             font-family: DejaVu Sans, sans-serif; 
-            font-size: 12px; 
+            font-size: 13px;   /* aumentato */
             color: #333; 
             margin: 0;
             padding: 0;
-            line-height: 1.2;
+            line-height: 1.4;  /* più leggibile */
         }
         .header { 
             text-align: center; 
-            margin-bottom: 15px; 
+            margin-bottom: 20px; 
             border-bottom: 2px solid #333;
-            padding-bottom: 8px;
+            padding-bottom: 10px;
         }
         .header h1 { 
             margin: 5px 0; 
-            font-size: 24px; 
+            font-size: 26px; 
             font-weight: bold;
         }
         .header p {
             margin: 2px 0;
-            font-size: 10px;
+            font-size: 12px;
         }
         .page-title {
             text-align: center;
             font-size: 28px;
             font-weight: bold;
-            margin: 15px 0;
+            margin: 25px 0;
         }
         .form-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 15px 0;
+            margin: 20px 0;
         }
         .form-table td {
             border: 1px solid #333;
-            padding: 8px;
+            padding: 12px;
+            font-size: 13px;
             vertical-align: top;
         }
         .form-table td:first-child {
             font-weight: bold;
             background-color: #f5f5f5;
-            width: 30%;
+            width: 35%;
         }
         .page-break {
             page-break-before: always;
         }
         .header .logo {
-            height: 80px;
+            height: 90px;
             display: block;
-            margin: 5px auto;
+            margin: 10px auto;
         }
     </style>
 </head>
 <body>
     <!-- PAGINA 1: Scheda Cliente -->
     <div class="header">
-    <img src="{{ public_path('storage/branding/logo-madamadore.png') }}" alt="MadamaDorè di Dora Maione" class="logo">
-    <p>Via delle Acacie 06, 81031 Aversa – CE Tel. 392.244.86.34 – 081.2306277</p>
+        <img src="{{ public_path('storage/branding/logo-madamadore.png') }}" alt="MadamaDorè di Dora Maione" class="logo">
+        <p>Via delle Acacie 06, 81031 Aversa – CE Tel. 392.244.86.34 – 081.2306277</p>
     </div>
-
 
     <div class="page-title">Scheda Cliente</div>
 
@@ -93,74 +93,67 @@
 
     <!-- PAGINA 2: Misure e Bozzetto -->
     <div class="page-break">
-
         <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
             <tr>
                 <!-- Colonna Sinistra - Misure (45%) -->
                 <td style="width: 45%; vertical-align: top; padding-right: 15px;">
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr>
-                            <td style="border: 1px solid #333; padding: 6px; background-color: #f5f5f5; font-weight: bold; text-align: center;" colspan="2">
+                            <td colspan="2" style="border: 1px solid #333; padding: 8px; background-color: #f5f5f5; font-weight: bold; text-align: center; font-size: 14px;">
                                 MISURE
                             </td>
                         </tr>
                         @if($dress->measurements)
-                            @foreach(\App\Models\DressMeasurement::ORDERED_MEASURES as $field => $label)
-                                <tr>
-                                    <td style="border: 1px solid #333; padding: 3px; font-size: 10px;">{{ $label }}</td>
-                                    <td style="border: 1px solid #333; padding: 3px; text-align: center; width: 50px; font-size: 10px;">
-                                        {{ $dress->measurements->$field ?? '' }}
-                                    </td>
-                                </tr>
-                            @endforeach
+@foreach(\App\Models\DressMeasurement::ORDERED_MEASURES as $field => $label)
+    <tr>
+        <td style="border: 1px solid #333; padding: 3px; font-size: 10px;">{{ $label }}</td>
+        <td style="border: 1px solid #333; padding: 3px; text-align: center; width: 50px; font-size: 10px;">
+            {{ $dress->measurements->$field ?? '' }}
+        </td>
+    </tr>
+@endforeach
+
                         @else
                             <tr>
-                                <td style="border: 1px solid #333; padding: 6px;" colspan="2">Nessuna misura disponibile</td>
+                                <td colspan="2" style="border: 1px solid #333; padding: 8px; font-size: 12px;">Nessuna misura disponibile</td>
                             </tr>
                         @endif
 
                         <!-- Misure Personalizzate -->
                         @if($dress->customMeasurements && $dress->customMeasurements->count() > 0)
                             <tr>
-                                <td style="border: 1px solid #333; padding: 6px; background-color: #f0f0f0; font-weight: bold; text-align: center;" colspan="2">
+                                <td colspan="2" style="border: 1px solid #333; padding: 8px; background-color: #f0f0f0; font-weight: bold; text-align: center; font-size: 13px;">
                                     MISURE PERSONALIZZATE
                                 </td>
                             </tr>
-                            @foreach($dress->customMeasurements as $customMeasurement)
-                                <tr>
-                                    <td style="border: 1px solid #333; padding: 3px; font-size: 10px;">{{ $customMeasurement->label }}</td>
-                                    <td style="border: 1px solid #333; padding: 3px; text-align: center; width: 50px; font-size: 10px;">
-                                        @if($customMeasurement->value)
-                                            {{ $customMeasurement->value }} {{ $customMeasurement->unit }}
-                                        @else
-                                            -
-                                        @endif
-                                    </td>
-                                </tr>
-                                @if($customMeasurement->notes)
-                                    <tr>
-                                        <td style="border: 1px solid #333; padding: 2px; font-size: 8px; font-style: italic; color: #666;" colspan="2">
-                                            Note: {{ $customMeasurement->notes }}
-                                        </td>
-                                    </tr>
-                                @endif
-                            @endforeach
+@foreach($dress->customMeasurements as $customMeasurement)
+    <tr>
+        <td style="border: 1px solid #333; padding: 3px; font-size: 10px;">{{ $customMeasurement->label }}</td>
+        <td style="border: 1px solid #333; padding: 3px; text-align: center; width: 50px; font-size: 10px;">
+            @if($customMeasurement->value)
+                {{ $customMeasurement->value }} {{ $customMeasurement->unit }}
+            @else
+                -
+            @endif
+        </td>
+    </tr>
+@endforeach
                         @endif
                     </table>
                 </td>
                 
                 <!-- Colonna Destra - Bozzetto/Disegno (55%) -->
                 <td style="width: 55%; vertical-align: top;">
-                    <div style="border: 1px solid #333; text-align: center; padding: 8px; height: 600px;">
-                        <div style="border-bottom: 1px solid #333; padding: 6px; margin-bottom: 8px; font-weight: bold; background-color: #f5f5f5;">
-                            Bozzetto / Disegno:
+                    <div style="border: 1px solid #333; text-align: center; padding: 12px; height: 650px;">
+                        <div style="border-bottom: 1px solid #333; padding: 8px; margin-bottom: 10px; font-weight: bold; background-color: #f5f5f5; font-size: 14px;">
+                            Bozzetto / Disegno
                         </div>
-                        <div style="padding-top: 200px;">
+                        <div style="padding-top: 150px;">
                             @if($dress->final_image)
                                 <img src="{{ storage_path('app/public/' . $dress->final_image) }}" alt="Abito Definitivo" 
-                                     style="max-width: 90%; max-height: 300px; border-radius: 3px;">
+                                     style="max-width: 95%; max-height: 450px; border-radius: 3px;">
                             @else
-                                <div style="color: #999; font-style: italic;">
+                                <div style="color: #999; font-style: italic; font-size: 12px;">
                                     Immagine non disponibile
                                 </div>
                             @endif
@@ -173,14 +166,13 @@
 
     <!-- PAGINA 3: Condizioni Generali -->
     <div class="page-break">
-
-        <h2 style="text-align: center; font-size: 14px; margin: 15px 0;">CONDIZIONI GENERALI</h2>
-        <p style="text-align: center; font-size: 10px; margin-bottom: 10px;">Atelier MadamaDorè di Dora Maione</p>
-        <p style="font-size: 10px; margin-bottom: 15px;">La sottoscrizione del presente costituisce parte integrante del contratto di vendita e delle complessive 4 pagine.</p>
+        <h2 style="text-align: center; font-size: 16px; margin: 20px 0;">CONDIZIONI GENERALI</h2>
+        <p style="text-align: center; font-size: 12px; margin-bottom: 15px;">Atelier MadamaDorè di Dora Maione</p>
+        <p style="font-size: 12px; margin-bottom: 20px;">La sottoscrizione del presente costituisce parte integrante del contratto di vendita e delle complessive 4 pagine.</p>
 
         <!-- Descrizione Capo, Stoffe e Accessori -->
-        <h3 style="font-size: 12px; margin: 10px 0 6px 0;">❖ Descrizione Capo, Stoffe e Accessori</h3>
-        <div style="font-size: 11px; line-height: 1.3; margin-bottom: 10px;">
+        <h3 style="font-size: 14px; margin: 12px 0 8px 0;">❖ Descrizione Capo, Stoffe e Accessori</h3>
+        <div style="font-size: 12px; line-height: 1.4; margin-bottom: 15px;">
             @if($dress->fabrics && $dress->fabrics->count() > 0)
                 <strong>TESSUTI:</strong><br>
                 @foreach($dress->fabrics as $fabric)
@@ -200,119 +192,97 @@
         </div>
 
         <!-- Annotazioni Generali -->
-        <h3 style="font-size: 12px; margin: 10px 0 6px 0;">❖ Annotazioni Generali</h3>
-        <div style="font-size: 11px; line-height: 1.3; margin-bottom: 15px;">
+        <h3 style="font-size: 14px; margin: 12px 0 8px 0;">❖ Annotazioni Generali</h3>
+        <div style="font-size: 12px; line-height: 1.4; margin-bottom: 20px;">
             {{ $dress->notes ?? 'Nessuna annotazione' }}
         </div>
 
         <!-- Riepilogo Economico -->
-        <div style="text-align: center; margin: 20px 0;">
-            <strong style="font-size: 13px;">Riepilogo Economico:</strong>
-            <table style="margin: 10px auto; border-collapse: collapse; width: 300px;">
+        <div style="text-align: center; margin: 25px 0;">
+            <strong style="font-size: 14px;">Riepilogo Economico:</strong>
+            <table style="margin: 15px auto; border-collapse: collapse; width: 350px; font-size: 12px;">
                 <tr>
-                    <td style="border: 1px solid #333; padding: 6px; background-color: #f5f5f5; font-weight: bold;">Costo Totale</td>
-                    <td style="border: 1px solid #333; padding: 6px; text-align: right;">€ {{ number_format($dress->total_client_price ?? 0, 2) }}</td>
+                    <td style="border: 1px solid #333; padding: 8px; background-color: #f5f5f5; font-weight: bold;">Costo Totale</td>
+                    <td style="border: 1px solid #333; padding: 8px; text-align: right;">€ {{ number_format($dress->total_client_price ?? 0, 2) }}</td>
                 </tr>
                 <tr>
-                    <td style="border: 1px solid #333; padding: 6px; background-color: #f5f5f5; font-weight: bold;">Acconto 30%</td>
-                    <td style="border: 1px solid #333; padding: 6px; text-align: right;">€ {{ number_format($dress->deposit ?? 0, 2) }}</td>
+                    <td style="border: 1px solid #333; padding: 8px; background-color: #f5f5f5; font-weight: bold;">Acconto 30%</td>
+                    <td style="border: 1px solid #333; padding: 8px; text-align: right;">€ {{ number_format($dress->deposit ?? 0, 2) }}</td>
                 </tr>
                 <tr>
-                    <td style="border: 1px solid #333; padding: 6px; background-color: #f5f5f5; font-weight: bold;">Saldo Finale</td>
-                    <td style="border: 1px solid #333; padding: 6px; text-align: right;">€ {{ number_format($dress->remaining ?? 0, 2) }}</td>
+                    <td style="border: 1px solid #333; padding: 8px; background-color: #f5f5f5; font-weight: bold;">Saldo Finale</td>
+                    <td style="border: 1px solid #333; padding: 8px; text-align: right;">€ {{ number_format($dress->remaining ?? 0, 2) }}</td>
                 </tr>
             </table>
         </div>
 
         <!-- Tabella Acconti -->
-        <div style="text-align: center; margin: 20px 0;">
-            <strong style="font-size: 13px;">Tabella Acconti:</strong>
-            <table style="margin: 10px auto; border-collapse: collapse; width: 250px;">
+        <div style="text-align: center; margin: 25px 0;">
+            <strong style="font-size: 14px;">Tabella Acconti:</strong>
+            <table style="margin: 15px auto; border-collapse: collapse; width: 300px; font-size: 12px;">
                 <tr>
-                    <th style="border: 1px solid #333; padding: 6px; background-color: #f5f5f5; font-weight: bold;">Acconto</th>
-                    <th style="border: 1px solid #333; padding: 6px; background-color: #f5f5f5; font-weight: bold;">Data</th>
+                    <th style="border: 1px solid #333; padding: 8px; background-color: #f5f5f5; font-weight: bold;">Acconto</th>
+                    <th style="border: 1px solid #333; padding: 8px; background-color: #f5f5f5; font-weight: bold;">Data</th>
                 </tr>
+                @for($i=0; $i<5; $i++)
                 <tr>
-                    <td style="border: 1px solid #333; padding: 12px; text-align: center;"></td>
-                    <td style="border: 1px solid #333; padding: 12px; text-align: center;"></td>
+                    <td style="border: 1px solid #333; padding: 14px; text-align: center;"></td>
+                    <td style="border: 1px solid #333; padding: 14px; text-align: center;"></td>
                 </tr>
-                <tr>
-                    <td style="border: 1px solid #333; padding: 12px; text-align: center;"></td>
-                    <td style="border: 1px solid #333; padding: 12px; text-align: center;"></td>
-                </tr>
-                <tr>
-                    <td style="border: 1px solid #333; padding: 12px; text-align: center;"></td>
-                    <td style="border: 1px solid #333; padding: 12px; text-align: center;"></td>
-                </tr>
-                <tr>
-                    <td style="border: 1px solid #333; padding: 12px; text-align: center;"></td>
-                    <td style="border: 1px solid #333; padding: 12px; text-align: center;"></td>
-                </tr>
+                @endfor
             </table>
         </div>
     </div>
 
     <!-- PAGINA 4: Contratto di Vendita -->
     <div class="page-break">
+        <h2 style="text-align: center; font-size: 16px; margin: 20px 0;">CONTRATTO DI VENDITA</h2>
+        <p style="text-align: center; font-size: 12px; margin-bottom: 15px;">Atelier MadamaDorè di Dora Maione</p>
 
-        <h2 style="text-align: center; font-size: 14px; margin: 15px 0;">CONTRATTO DI VENDITA</h2>
-        <p style="text-align: center; font-size: 10px; margin-bottom: 10px;">Atelier MadamaDorè di Dora Maione</p>
-
-        <div style="font-size: 9px; line-height: 1.1; text-align: justify;">
+        <div style="font-size: 12px; line-height: 1.4; text-align: justify;">
             <p><strong>Art. 1 – Oggetto</strong><br>
             Il presente contratto disciplina la realizzazione e vendita di capi su misura e/o accessori prodotti da MadamaDorè di Dora Maione (di seguito "Fornitore"), in favore del Cliente (di seguito "Acquirente"), sulla base del bozzetto/disegno e preventivo concordato e sottoscritto dalle parti.</p>
 
             <p><strong>Art. 2 – Collegamento con bozza di disegno/preventivo</strong><br>
-            1. Il presente contratto è inscindibilmente legato al Preventivo n. {{ $dress->id }} / anno {{ now()->year }} (di seguito "Preventivo"), contenente disegno, misure, materiali e annotazioni specifiche.<br>
-            2. Il Preventivo, debitamente firmato dall'Acquirente, costituisce parte integrante e sostanziale del presente contratto.<br>
-            3. Eventuali divergenze interpretative saranno risolte dando prevalenza a quanto indicato nel Preventivo e nel disegno approvato.</p>
+            1. Il presente contratto è inscindibilmente legato al Preventivo n. {{ $dress->id }} / anno {{ now()->year }}.<br>
+            2. Il Preventivo firmato costituisce parte integrante e sostanziale del contratto.<br>
+            3. In caso di divergenze prevale quanto indicato nel Preventivo e nel disegno approvato.</p>
 
             <p><strong>Art. 3 – Condizioni di pagamento</strong><br>
-            1. All'atto della sottoscrizione del presente contratto l'Acquirente si impegna a versare al Fornitore un acconto pari al 30% del prezzo concordato.<br>
-            2. I pagamenti successivi saranno effettuati in forma dilazionata, secondo le scadenze fissate in occasione degli incontri di misura e delle prove.<br>
-            3. Il saldo finale dovrà essere versato dall'Acquirente all'ultimo incontro di misura/consegna.<br>
-            4. In caso di mancato pagamento, il Fornitore si riserva la facoltà di sospendere la consegna e trattenere quanto già versato a titolo di caparra confirmatoria.</p>
+            1. All'atto della firma il Cliente versa un acconto pari al 30% del prezzo.<br>
+            2. I pagamenti successivi saranno dilazionati durante le prove.<br>
+            3. Il saldo finale è dovuto alla consegna.<br>
+            4. In caso di mancato pagamento il Fornitore può sospendere la consegna e trattenere quanto versato.</p>
 
             <p><strong>Art. 4 – Modifiche ed Extra</strong><br>
-            1. Qualsiasi modifica o aggiunta rispetto al bozzetto iniziale sottoscritto, che non sia di natura tecnica o di miglioria tecnica al capo, è da considerarsi extra e comporterà un costo aggiuntivo.<br>
-            2. Gli extra saranno eseguiti solo previo accordo scritto e firmato dall'Acquirente al momento della richiesta.<br>
-            3. Eventuali richieste tardive di modifiche estetiche, non riconducibili a difetti di conformità o esigenze tecniche, non sospendono i termini di pagamento.</p>
+            Qualsiasi modifica non tecnica è considerata extra e comporta costi aggiuntivi, solo previo accordo scritto firmato dal Cliente.</p>
 
             <p><strong>Art. 5 – Obblighi del Fornitore</strong><br>
-            Il Fornitore si impegna a realizzare il capo secondo le misure, i materiali e il disegno concordato, garantendo professionalità, qualità dei materiali e riservatezza nei confronti del Cliente.</p>
+            Realizzare il capo secondo misure, materiali e disegno concordati con professionalità e qualità.</p>
 
             <p><strong>Art. 6 – Obblighi dell'Acquirente</strong><br>
-            L'Acquirente si impegna a:<br>
-            - rispettare le scadenze di pagamento pattuite;<br>
-            - presentarsi puntualmente agli appuntamenti di misura e prova;<br>
-            - approvare con firma eventuali variazioni o extra richiesti;<br>
-            - fornire dati corretti e veritieri per la gestione amministrativa e contrattuale.</p>
+            Rispettare i pagamenti, presentarsi puntuale alle prove, firmare eventuali variazioni, fornire dati corretti.</p>
 
-            <p><strong>Art. 7 – Tutela del design e divieto di riproduzione</strong><br>
-            1. Tutti i bozzetti, disegni, modelli e capi realizzati da MadamaDorè sono opere di proprietà intellettuale del Fornitore.<br>
-            2. È fatto divieto all'Acquirente di riprodurre, copiare o far replicare da terzi i capi e i disegni forniti, pena l'azione legale per violazione dei diritti di proprietà intellettuale.<br>
-            3. Qualsiasi utilizzo diverso da quello personale (es. commerciale, promozionale, pubblicitario) deve essere previamente autorizzato per iscritto dal Fornitore.</p>
+            <p><strong>Art. 7 – Tutela del design</strong><br>
+            Tutti i disegni e capi realizzati sono proprietà intellettuale del Fornitore. Vietata la riproduzione senza autorizzazione.</p>
 
-            <p><strong>Art. 8 – Privacy e trattamento dei dati personali</strong><br>
-            1. I dati personali dell'Acquirente saranno trattati dal Fornitore esclusivamente per finalità contrattuali, amministrative e fiscali, in conformità al Regolamento UE 2016/679 (GDPR).<br>
-            2. L'Acquirente potrà in qualsiasi momento esercitare i diritti di accesso, rettifica e cancellazione dei propri dati contattando il Fornitore.</p>
+            <p><strong>Art. 8 – Privacy</strong><br>
+            I dati personali sono trattati solo per finalità contrattuali in conformità al GDPR.</p>
 
-            <p><strong>Art. 9 – Recesso e risoluzione</strong><br>
-            1. In caso di recesso dell'Acquirente successivo alla firma, gli importi versati resteranno acquisiti dal Fornitore a titolo di caparra confirmatoria e copertura spese già sostenute.<br>
-            2. In caso di inadempimento grave del Fornitore, l'Acquirente potrà recedere con diritto alla restituzione delle somme versate.</p>
+            <p><strong>Art. 9 – Recesso</strong><br>
+            In caso di recesso del Cliente dopo la firma, gli importi versati restano acquisiti. In caso di inadempimento grave del Fornitore, il Cliente ha diritto alla restituzione delle somme.</p>
 
             <p><strong>Art. 10 – Foro competente</strong><br>
-            Per ogni controversia relativa alla validità, interpretazione ed esecuzione del presente contratto sarà competente in via esclusiva il Foro del luogo in cui ha sede legale il Fornitore.</p>
+            Foro esclusivo del luogo di sede legale del Fornitore.</p>
         </div>
 
         <!-- Firme -->
-        <div style="margin-top: 15px; font-size: 10px;">
+        <div style="margin-top: 25px; font-size: 12px;">
             <p>Letto, approvato e sottoscritto in ogni parte.</p>
-            <p style="margin-top: 10px;">Luogo e data: ______________________________________</p>
-            <p style="margin-top: 10px;">Firma dell'Acquirente _______________________________</p>
-            <p style="margin-top: 10px;">Firma del Fornitore _________________________________</p>
+            <p style="margin-top: 15px;">Luogo e data: ______________________________________</p>
+            <p style="margin-top: 15px;">Firma dell'Acquirente _______________________________</p>
+            <p style="margin-top: 15px;">Firma del Fornitore _________________________________</p>
         </div>
     </div>
-
 </body>
 </html>

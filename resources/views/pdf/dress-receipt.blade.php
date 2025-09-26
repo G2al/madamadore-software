@@ -5,7 +5,7 @@
     <title>Scheda Abito #{{ $dress->id }}</title>
     <style>
         @page {
-            margin: 15mm;
+            margin: 10mm;
             size: A4;
         }
         body { 
@@ -15,27 +15,31 @@
             margin: 0;
             padding: 0;
         }
+
+        /* HEADER COMPATTO (senza logo e indirizzo) */
         .header { 
             text-align: center; 
-            margin-bottom: 15px; 
-            border-bottom: 2px solid #000000ff;
-            padding-bottom: 10px;
+            margin-bottom: 10px; 
+            border-bottom: 1px solid #000000ff;
+            padding-bottom: 5px;
         }
         .header h1 { 
             margin: 0; 
-            font-size: 18px; 
+            font-size: 16px; 
             color: #000000ff; 
         }
+
         .customer-info {
-            margin-bottom: 15px;
-            padding: 8px;
+            margin-bottom: 10px;
+            padding: 6px;
             background-color: #f5f5f5;
             border-radius: 3px;
             font-size: 10px;
         }
+
         .description-section {
-            margin-bottom: 15px;
-            padding: 8px;
+            margin-bottom: 10px;
+            padding: 6px;
             border: 1px solid #000000ff;
             border-radius: 3px;
         }
@@ -43,15 +47,16 @@
             color: #000000ff;
             font-weight: bold;
             font-size: 11px;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
             border-bottom: 1px solid #000000ff;
-            padding-bottom: 3px;
+            padding-bottom: 2px;
         }
         .description-content {
             font-size: 10px;
-            line-height: 1.4;
+            line-height: 1.3;
             color: #555;
         }
+
         .main-content {
             display: table;
             width: 100%;
@@ -59,78 +64,71 @@
         }
         .left-column {
             display: table-cell;
-            width: 70%;
+            width: 75%; /* PIÙ GRANDE per la foto */
             vertical-align: top;
-            padding-right: 15px;
+            padding-right: 10px;
         }
         .right-column {
             display: table-cell;
-            width: 30%;
+            width: 25%; /* PIÙ STRETTO per le misure */
             vertical-align: top;
         }
+
         .image-container {
             text-align: center;
             border: 2px solid #000000ff;
             border-radius: 5px;
-            padding: 10px;
+            padding: 5px;
             background-color: #f9f9f9;
         }
         .image-container img {
             max-width: 100%;
-            max-height: 700px;
+            max-height: 1000px; /* GIGANTE */
             border-radius: 3px;
         }
         .no-image {
-            padding: 200px 20px;
+            padding: 250px 20px;
             color: #000000ff;
             border: 2px dashed #000000ff;
             border-radius: 5px;
             text-align: center;
         }
+
         .measurements-title {
             color: #000000ff;
             font-weight: bold;
-            margin-bottom: 10px;
-            font-size: 12px;
+            margin-bottom: 5px;
+            font-size: 11px;
             border-bottom: 1px solid #000000ff;
-            padding-bottom: 3px;
+            padding-bottom: 2px;
         }
         .measurements-list {
-            font-size: 10px;
-            line-height: 1.4;
+            font-size: 9px;
+            line-height: 1.3;
         }
         .measurement-row {
             display: table;
             width: 100%;
-            margin-bottom: 3px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 2px;
+            margin-bottom: 2px;
         }
         .measurement-label {
             display: table-cell;
             font-weight: bold;
             color: #000000ff;
-            width: 70%;
-            padding-right: 5px;
+            width: 65%; /* STRINGE label */
+            padding-right: 3px;
         }
         .measurement-value {
             display: table-cell;
             text-align: right;
-            width: 30%;
-        }
-
-        .header .logo {
-            height: 80px;
-            display: block;
-            margin: 5px auto;
+            width: 35%; /* PIÙ VICINO al testo */
         }
 
     </style>
 </head>
 <body>
     <div class="header">
-    <img src="{{ public_path('storage/branding/logo-madamadore.png') }}" alt="MadamaDorè di Dora Maione" class="logo">
-    <p>Via delle Acacie 06, 81031 Aversa – CE Tel. 392.244.86.34 – 081.2306277</p>
+        <h1>Scheda Abito #{{ $dress->id }}</h1>
     </div>
 
     <div class="customer-info">
@@ -148,7 +146,7 @@
     @endif
 
     <div class="main-content">
-        <!-- Colonna Sinistra - Foto -->
+        <!-- Colonna Sinistra - Foto (GIGANTE) -->
         <div class="left-column">
             <div class="image-container">
                 @if($dress->final_image)
@@ -161,7 +159,7 @@
             </div>
         </div>
 
-        <!-- Colonna Destra - Misure -->
+        <!-- Colonna Destra - Misure (Compatta) -->
         <div class="right-column">
             <div class="measurements-title">MISURE CLIENTE</div>
             
@@ -184,7 +182,7 @@
 
             <!-- Misure Personalizzate -->
             @if($dress->customMeasurements && $dress->customMeasurements->count() > 0)
-                <div class="measurements-title" style="margin-top: 15px;">MISURE PERSONALIZZATE</div>
+                <div class="measurements-title" style="margin-top: 10px;">MISURE PERSONALIZZATE</div>
                 <div class="measurements-list">
                     @foreach($dress->customMeasurements as $customMeasurement)
                         <div class="measurement-row">
@@ -198,7 +196,7 @@
                             </div>
                         </div>
                         @if($customMeasurement->notes)
-                            <div style="font-size: 9px; color: #666; margin-left: 10px; margin-bottom: 5px;">
+                            <div style="font-size: 8px; color: #666; margin-left: 5px; margin-bottom: 3px;">
                                 <em>Note: {{ $customMeasurement->notes }}</em>
                             </div>
                         @endif
