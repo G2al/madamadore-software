@@ -70,7 +70,8 @@ class DressConfermatiResource extends Resource
                     ->label('Acconto')
                     ->money('EUR')
                     ->color('info')
-                    ->sortable(),
+                    ->sortable()
+                    ->visible(fn() => auth()->user()->role === 'admin'),
             ])
             
             // AZIONI SPECIFICHE PER QUESTO STATO
