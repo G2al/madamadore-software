@@ -88,6 +88,11 @@ class StudentResource extends Resource
         ];
     }
 
+    public static function canViewAny(): bool
+{
+    return auth()->user()?->role === 'admin';
+}
+
     public static function getPages(): array
     {
         return [
