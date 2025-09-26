@@ -19,10 +19,14 @@ class DressResource extends Resource
     use HasDressTableDefinition;
 
     protected static ?string $model = Dress::class;
+    
+    // Configurazione navigazione principale
+    protected static ?string $navigationGroup = 'Abiti';
     protected static ?string $navigationIcon = 'heroicon-o-sparkles';
-    protected static ?string $navigationLabel = 'Abiti';
+    protected static ?string $navigationLabel = 'Tutti gli Abiti';
     protected static ?string $modelLabel = 'Abito';
     protected static ?string $pluralModelLabel = 'Abiti';
+    protected static ?int $navigationSort = 1;
 
     public static function getStatusLabels(): array
     {
@@ -61,19 +65,17 @@ class DressResource extends Resource
         $fabrics = $get('fabrics') ?? [];
         $extras  = $get('extras') ?? [];
         $deposit = (float) ($get('deposit') ?? 0);
-        $manufacturingPrice = (float) ($get('manufacturing_price') ?? 0);  // <- AGGIUNGI QUESTA RIGA
+        $manufacturingPrice = (float) ($get('manufacturing_price') ?? 0);
         $useManual = (bool) $get('use_manual_price');
         $manualPrice = (float) ($get('manual_client_price') ?? 0);
 
-        // Se non ci sono dati e non è attivo manuale, esco
         if (!$useManual && empty($fabrics) && empty($extras) && $deposit === 0.0 && $manufacturingPrice === 0.0) {
             return;
         }
 
-        $results = \App\Services\DressCalculator::calculate($fabrics, $extras, $deposit, $manufacturingPrice);  // <- PASSA manufacturingPrice
+        $results = \App\Services\DressCalculator::calculate($fabrics, $extras, $deposit, $manufacturingPrice);
 
         if ($useManual && $manualPrice > 0) {
-            // Se usa prezzo manuale, ricalcolo profitto e rimanente basandomi su quello
             $results['total_client_price'] = $manualPrice;
             $results['total_profit'] = $manualPrice - $results['total_purchase_cost'];
             $results['remaining'] = $manualPrice - $deposit;
@@ -99,5 +101,23 @@ class DressResource extends Resource
             'create' => Pages\CreateDress::route('/create'),
             'edit'   => Pages\EditDress::route('/{record}/edit'),
         ];
+    }
+
+    // Badge con conteggio totale
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count() ?: null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        $count = static::getModel()::count();
+        
+        return match (true) {
+            $count > 20 => 'danger',
+            $count > 10 => 'warning',
+            $count > 0 => 'primary',
+            default => null
+        };
     }
 }

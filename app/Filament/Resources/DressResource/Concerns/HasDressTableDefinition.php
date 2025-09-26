@@ -116,13 +116,10 @@ protected static function tableRowActions(): array
     }
 
     // Admin vede tutto
-    return [
-        Tables\Actions\EditAction::make(),
-        Tables\Actions\DeleteAction::make(),
-        self::getTogglePaidAction(),
-        self::getDownloadReceiptAction(),
-        self::getDownloadContractAction(),
-    ];
+return [
+    self::getDownloadReceiptAction(),
+    self::getDownloadContractAction(),
+];
 }
 
 

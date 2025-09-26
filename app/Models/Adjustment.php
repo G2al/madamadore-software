@@ -16,6 +16,7 @@ class Adjustment extends Model
      */
     protected $fillable = [
         'customer_id',
+        'referente',
         'status', // 👈 Aggiungi questo
         'ritirato', // 👈 Nuovo campo ritirato
         'name',

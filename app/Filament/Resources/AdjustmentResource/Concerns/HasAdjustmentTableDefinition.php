@@ -28,6 +28,7 @@ trait HasAdjustmentTableDefinition
     {
         return [
             self::getCustomerColumn(),
+            self::getReferenteColumn(),
             self::getStatusColumn(),
             self::getRitiratoColumn(),
             self::getAdjustmentNameColumn(),
@@ -252,46 +253,27 @@ private static function getTableFilters(): array
     private static function getTableActions(): array
     {
         return [
-            Tables\Actions\EditAction::make(),
-            Tables\Actions\DeleteAction::make(),
-            self::getCompleteWorkAction(),
-            self::getToggleRitiratoAction(),
             self::getDownloadReceiptAction(),
         ];
-    }
-
-    /**
-     * Azione per completare il lavoro (in_lavorazione → confermato)
-     */
-    private static function getCompleteWorkAction(): Tables\Actions\Action
-    {
-        return Tables\Actions\Action::make('complete_work')
-            ->label(fn($record) => $record->status === 'in_lavorazione' ? 'Completa Lavoro' : 'Completato')
-            ->icon(fn($record) => $record->status === 'in_lavorazione' ? 'heroicon-o-clock' : 'heroicon-o-check-circle')
-            ->color(fn($record) => $record->status === 'in_lavorazione' ? 'warning' : 'success')
-            ->disabled(fn($record) => $record->status !== 'in_lavorazione')
-            ->requiresConfirmation()
-            ->modalHeading('Conferma Completamento Lavoro')
-            ->modalDescription('Sei sicuro di voler segnare questo aggiusto come completato?')
-            ->action(fn($record) => self::handleCompleteWork($record));
     }
 
     /**
      * Azione per toggle ritirato (quando attivo → stato = consegnato)
      */
     private static function getToggleRitiratoAction(): Tables\Actions\Action
-    {
-        return Tables\Actions\Action::make('toggle_ritirato')
-            ->label(fn($record) => $record->ritirato ? 'Ritirato' : 'Segna Ritirato')
-            ->icon(fn($record) => $record->ritirato ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
-            ->color(fn($record) => $record->ritirato ? 'success' : 'danger')
-            ->requiresConfirmation()
-            ->modalHeading(fn($record) => $record->ritirato ? 'Annulla Ritiro' : 'Conferma Ritiro')
-            ->modalDescription(fn($record) => $record->ritirato
-                ? 'Vuoi annullare il ritiro di questo aggiusto?'
-                : 'Confermi che il cliente ha ritirato questo aggiusto? Lo stato diventerà automaticamente "consegnato".')
-            ->action(fn($record) => self::handleToggleRitirato($record));
-    }
+{
+    return Tables\Actions\Action::make('toggle_ritirato')
+        ->label('')
+        ->icon(fn($record) => $record->ritirato ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')
+        ->color(fn($record) => $record->ritirato ? 'success' : 'danger')
+        ->tooltip(fn($record) => $record->ritirato ? 'Ritirato' : 'Segna come Ritirato')
+        ->requiresConfirmation()
+        ->modalHeading(fn($record) => $record->ritirato ? 'Annulla Ritiro' : 'Conferma Ritiro')
+        ->modalDescription(fn($record) => $record->ritirato
+            ? 'Vuoi annullare il ritiro di questo aggiusto?'
+            : 'Confermi che il cliente ha ritirato questo aggiusto? Lo stato diventerà automaticamente "consegnato".')
+        ->action(fn($record) => self::handleToggleRitirato($record));
+}
 
     /**
      * Azione per scaricare la ricevuta
@@ -358,4 +340,13 @@ private static function getTableFilters(): array
             Tables\Actions\DeleteBulkAction::make(),
         ];
     }
+
+    private static function getReferenteColumn(): Tables\Columns\TextColumn
+{
+    return Tables\Columns\TextColumn::make('referente')
+        ->label('Referente')
+        ->searchable()
+        ->toggleable()
+        ->placeholder('N/D');
+}
 }

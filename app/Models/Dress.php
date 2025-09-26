@@ -26,7 +26,11 @@ class Dress extends Model
         'deposit',
         'remaining',
         'status',
+        'fabric_bought_at',
+        'cut_completed_at',
+        'final_measurements_notes',
         'manual_client_price',
+        'pronta_misura_notes',
         'use_manual_price',
     ];
 

@@ -20,10 +20,13 @@ class AdjustmentResource extends Resource
 
     protected static ?string $model = Adjustment::class;
 
+    // Configurazione navigazione principale
+    protected static ?string $navigationGroup = 'Aggiusti';
     protected static ?string $navigationIcon = 'heroicon-o-wrench-screwdriver';
-    protected static ?string $navigationLabel = 'Aggiusti';
+    protected static ?string $navigationLabel = 'Tutti gli Aggiusti';
     protected static ?string $modelLabel = 'Aggiusto';
     protected static ?string $pluralModelLabel = 'Aggiusti';
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
@@ -58,9 +61,6 @@ class AdjustmentResource extends Resource
         $set('remaining', number_format($price - $deposit, 2, '.', ''));
         $set('profit', number_format($price, 2, '.', '')); // guadagno = prezzo
     }
-    
-
-
 
     public static function getPages(): array
     {
@@ -70,4 +70,22 @@ class AdjustmentResource extends Resource
             'edit'   => Pages\EditAdjustment::route('/{record}/edit'),
         ];
     }
+
+    // Badge con conteggio nel menu
+public static function getNavigationBadge(): ?string
+{
+    return static::getModel()::count() ?: null;
+}
+
+public static function getNavigationBadgeColor(): ?string
+{
+    $count = static::getModel()::count();
+    
+    return match (true) {
+        $count > 20 => 'danger',
+        $count > 10 => 'warning',
+        $count > 0 => 'primary',
+        default => null
+    };
+}
 }

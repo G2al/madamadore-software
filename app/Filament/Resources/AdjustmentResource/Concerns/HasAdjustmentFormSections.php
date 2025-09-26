@@ -40,6 +40,11 @@ trait HasAdjustmentFormSections
                         ->tel(),
                 ]),
 
+                Forms\Components\TextInput::make('referente')
+    ->label('Referente')
+    ->placeholder('Es. Marco, Giulia, Negozio Centro...')
+    ->maxLength(255),
+
             // Campo status con logica corretta
             Forms\Components\Select::make('status')
                 ->label('Stato Lavoro')
