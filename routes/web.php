@@ -26,4 +26,7 @@ Route::middleware(['auth'])->group(function () {
 
     // API per calendario consegne
     Route::get('/api/delivery-calendar', [App\Http\Controllers\Api\DeliveryCalendarController::class, 'getDeliveryDates'])->name('api.delivery-calendar');
+    
+    // NUOVA ROUTE: Route per calendario disponibilità abiti
+    Route::post('/admin/calendar/availability', [App\Http\Controllers\Admin\CalendarController::class, 'getAvailability'])->name('admin.calendar.availability');
 });

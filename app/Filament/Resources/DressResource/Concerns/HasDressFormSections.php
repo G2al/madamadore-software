@@ -6,6 +6,7 @@ use Filament\Forms;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
 use App\Models\DressMeasurement;
+use App\Forms\Components\AvailabilityDateTimePicker;
 
 trait HasDressFormSections
 {
@@ -46,46 +47,108 @@ trait HasDressFormSections
                 Forms\Components\TextInput::make('ceremony_holder')
                     ->label('Intestatario della Cerimonia')
                     ->maxLength(255),
-            Forms\Components\DatePicker::make('delivery_date')
-                ->label('Data di Consegna Prevista')
-                ->native(false) // flatpickr
-                ->displayFormat('d/m/Y')
-                ->closeOnDateSelection()
-                ->live(debounce: 300)
-                ->afterStateUpdated(function ($state, Set $set, Get $get, $livewire) {
-    if ($state) {
-        $currentDressId = $livewire->record?->id ?? null;
+ // SOSTITUISCI tutto il blocco DatePicker::make('delivery_date') con questo:
 
-        $dressesOnDate = \App\Models\Dress::where('delivery_date', $state)
-            ->when($currentDressId, fn($q) => $q->where('id', '!=', $currentDressId))
-            ->get(['id', 'customer_name', 'ceremony_type']);
+Forms\Components\DatePicker::make('delivery_date')
+    ->label('Data di Consegna Prevista')
+    ->native(false)
+    ->displayFormat('d/m/Y')
+    ->closeOnDateSelection()
+    ->live(debounce: 300)
+    ->afterStateUpdated(function ($state, Set $set, Get $get, $livewire) {
+        if ($state) {
+            $currentDressId = $livewire->record?->id ?? null;
 
-        $count = $dressesOnDate->count();
+            $dressesOnDate = \App\Models\Dress::where('delivery_date', $state)
+                ->when($currentDressId, fn($q) => $q->where('id', '!=', $currentDressId))
+                ->get(['id', 'customer_name', 'ceremony_type']);
 
-        if ($count === 0) {
-            $helper = '🟢 Giornata libera - Perfetto per la consegna!';
-        } elseif ($count <= 2) {
-            $customers = $dressesOnDate->pluck('customer_name')->take(2)->join(', ');
-            $helper = "🟡 {$count} abiti già previsti: {$customers}" . ($count > 2 ? ' e altri...' : '');
-        } elseif ($count <= 4) {
-            $customers = $dressesOnDate->pluck('customer_name')->take(2)->join(', ');
-            $helper = "🟠 GIORNATA IMPEGNATIVA - {$count} abiti: {$customers}" . ($count > 2 ? ' e altri...' : '');
+            $count = $dressesOnDate->count();
+
+            if ($count === 0) {
+                $helper = '🟢 Giornata libera - Perfetto per la consegna!';
+            } elseif ($count <= 2) {
+                $customers = $dressesOnDate->pluck('customer_name')->take(2)->join(', ');
+                $helper = "🟡 {$count} abiti già previsti: {$customers}" . ($count > 2 ? ' e altri...' : '');
+            } elseif ($count <= 4) {
+                $customers = $dressesOnDate->pluck('customer_name')->take(2)->join(', ');
+                $helper = "🟠 GIORNATA IMPEGNATIVA - {$count} abiti: {$customers}" . ($count > 2 ? ' e altri...' : '');
+            } else {
+                $customers = $dressesOnDate->pluck('customer_name')->take(2)->join(', ');
+                $helper = "🔴 ATTENZIONE: GIORNATA SOVRACCARICA! {$count} abiti: {$customers} e altri...";
+            }
+
+            $set('delivery_date_helper', $helper);
         } else {
-            $customers = $dressesOnDate->pluck('customer_name')->take(2)->join(', ');
-            $helper = "🔴 ATTENZIONE: GIORNATA SOVRACCARICA! {$count} abiti: {$customers} e altri...";
+            $set('delivery_date_helper', '');
         }
+    })
+    ->extraAttributes([
+        'x-data' => '{
+            init() {
+                this.enhanceDatePicker();
+            },
+            enhanceDatePicker() {
+                const observer = new MutationObserver(() => {
+                    const calendar = document.querySelector(".fi-fo-date-time-picker-panel[style*=\"display: block\"]");
+                    if (calendar) {
+                        this.colorCalendarDays(calendar);
+                    }
+                });
+                observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["style"] });
+            },
+            async colorCalendarDays(calendar) {
+                try {
+                    const response = await fetch("/admin/calendar/availability", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": document.querySelector("meta[name=\"csrf-token\"]").getAttribute("content")
+                        },
+                        body: JSON.stringify({
+                            model: "App\\\\Models\\\\Dress",
+                            date_column: "delivery_date",
+                            month: new Date().getMonth() + 1,
+                            year: new Date().getFullYear()
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    this.applyColors(calendar, data.data || {});
+                } catch (error) {
+                    console.error("Errore caricamento disponibilità:", error);
+                }
+            },
+            applyColors(calendar, availabilityData) {
+                const dayElements = calendar.querySelectorAll("div[x-text=\"day\"]");
+                dayElements.forEach((dayEl) => {
+                    const dayNumber = parseInt(dayEl.textContent);
+                    if (!isNaN(dayNumber)) {
+                        const currentDate = new Date();
+                        const dateKey = currentDate.getFullYear() + "-" + 
+                                       String(currentDate.getMonth() + 1).padStart(2, "0") + "-" + 
+                                       String(dayNumber).padStart(2, "0");
+                        
+                        const availability = availabilityData[dateKey];
+                        const count = availability ? availability.count : 0;
+                        
+                        dayEl.className = "";
+                        
+                        if (count === 0) {
+                            dayEl.style.cssText = "background-color: #22c55e; color: white; border-radius: 50%; padding: 6px; text-align: center;";
+                        } else if (count === 1) {
+                            dayEl.style.cssText = "background-color: #f59e0b; color: white; border-radius: 50%; padding: 6px; text-align: center;";
+                        } else {
+                            dayEl.style.cssText = "background-color: #ef4444; color: white; border-radius: 50%; padding: 6px; text-align: center;";
+                        }
+                    }
+                });
+            }
+        }'
+    ])
+    ->helperText('🟢 Verde = libera, 🟡 Arancione = 1 abito, 🔴 Rosso = 2+ abiti'),
 
-        $set('delivery_date_helper', $helper);
-    } else {
-        $set('delivery_date_helper', '');
-    }
-})
-
-                ->extraInputAttributes([
-                    'data-load-delivery-calendar' => true,
-                ]),
-
-            // Helper dinamico per mostrare carico giornata
+// Aggiungi il Placeholder helper dinamico subito dopo
 Forms\Components\Placeholder::make('delivery_date_helper')
     ->label('')
     ->content(fn ($get) => $get('delivery_date_helper') ?: '')
@@ -95,7 +158,6 @@ Forms\Components\Placeholder::make('delivery_date_helper')
         'style' => 'background-color:#21242b !important;'
     ])
     ->dehydrated(false),
-
         ])
         ->columns(2);
     }
