@@ -84,68 +84,82 @@ Forms\Components\DatePicker::make('delivery_date')
         }
     })
     ->extraAttributes([
-        'x-data' => '{
-            init() {
-                this.enhanceDatePicker();
-            },
-            enhanceDatePicker() {
-                const observer = new MutationObserver(() => {
-                    const calendar = document.querySelector(".fi-fo-date-time-picker-panel[style*=\"display: block\"]");
-                    if (calendar) {
-                        this.colorCalendarDays(calendar);
-                    }
-                });
-                observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["style"] });
-            },
-            async colorCalendarDays(calendar) {
-                try {
-                    const response = await fetch("/admin/calendar/availability", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRF-TOKEN": document.querySelector("meta[name=\"csrf-token\"]").getAttribute("content")
-                        },
-                        body: JSON.stringify({
-                            model: "App\\\\Models\\\\Dress",
-                            date_column: "delivery_date",
-                            month: new Date().getMonth() + 1,
-                            year: new Date().getFullYear()
-                        })
-                    });
-                    
-                    const data = await response.json();
-                    this.applyColors(calendar, data.data || {});
-                } catch (error) {
-                    console.error("Errore caricamento disponibilità:", error);
-                }
-            },
-            applyColors(calendar, availabilityData) {
-                const dayElements = calendar.querySelectorAll("div[x-text=\"day\"]");
-                dayElements.forEach((dayEl) => {
-                    const dayNumber = parseInt(dayEl.textContent);
-                    if (!isNaN(dayNumber)) {
-                        const currentDate = new Date();
-                        const dateKey = currentDate.getFullYear() + "-" + 
-                                       String(currentDate.getMonth() + 1).padStart(2, "0") + "-" + 
-                                       String(dayNumber).padStart(2, "0");
-                        
-                        const availability = availabilityData[dateKey];
-                        const count = availability ? availability.count : 0;
-                        
-                        dayEl.className = "";
-                        
-                        if (count === 0) {
-                            dayEl.style.cssText = "background-color: #22c55e; color: white; border-radius: 50%; padding: 6px; text-align: center;";
-                        } else if (count === 1) {
-                            dayEl.style.cssText = "background-color: #f59e0b; color: white; border-radius: 50%; padding: 6px; text-align: center;";
-                        } else {
-                            dayEl.style.cssText = "background-color: #ef4444; color: white; border-radius: 50%; padding: 6px; text-align: center;";
+    'x-data' => '{
+        init() {
+            this.$nextTick(() => {
+                const panel = this.$el.closest(".fi-fo-field-wrp").querySelector(".fi-fo-date-time-picker-panel");
+                if (panel) {
+                    // Observer per quando il calendario diventa visibile
+                    const observer = new MutationObserver(() => {
+                        if (panel.style.display !== "none") {
+                            this.colorCalendar();
                         }
-                    }
+                    });
+                    observer.observe(panel, { attributes: true, attributeFilter: ["style"] });
+                    
+                    // Listener per cambio mese/anno
+                    panel.addEventListener("change", () => {
+                        setTimeout(() => this.colorCalendar(), 100);
+                    });
+                }
+            });
+        },
+        async colorCalendar() {
+            const panel = this.$el.closest(".fi-fo-field-wrp").querySelector(".fi-fo-date-time-picker-panel");
+            if (!panel || panel.style.display === "none") return;
+            
+            // Leggi mese e anno dai select/input di Filament
+            const monthSelect = panel.querySelector("select");
+            const yearInput = panel.querySelector("input[type=number]");
+            
+            if (!monthSelect || !yearInput) return;
+            
+            const month = parseInt(monthSelect.value) + 1; // 0-based to 1-based
+            const year = parseInt(yearInput.value);
+            
+            try {
+                const response = await fetch("/admin/calendar/availability", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": document.querySelector("meta[name=\"csrf-token\"]").getAttribute("content")
+                    },
+                    body: JSON.stringify({
+                        model: "App\\\\Models\\\\Dress",
+                        date_column: "delivery_date",
+                        month: month,
+                        year: year
+                    })
                 });
+                
+                const data = await response.json();
+                this.applyColors(panel, data.data || {}, month, year);
+            } catch (error) {
+                console.error("Errore caricamento calendario:", error);
             }
-        }'
-    ])
+        },
+        applyColors(panel, availabilityData, month, year) {
+            const dayDivs = panel.querySelectorAll("div[role=option]");
+            
+            dayDivs.forEach(dayDiv => {
+                const dayNumber = parseInt(dayDiv.textContent);
+                if (isNaN(dayNumber)) return;
+                
+                const dateKey = year + "-" + String(month).padStart(2, "0") + "-" + String(dayNumber).padStart(2, "0");
+                const availability = availabilityData[dateKey];
+                const count = availability ? availability.count : 0;
+                
+                if (count === 0) {
+                    dayDiv.style.cssText = "background-color: #22c55e !important; color: white !important; border-radius: 50%;";
+                } else if (count === 1) {
+                    dayDiv.style.cssText = "background-color: #f59e0b !important; color: white !important; border-radius: 50%;";
+                } else {
+                    dayDiv.style.cssText = "background-color: #ef4444 !important; color: white !important; border-radius: 50%;";
+                }
+            });
+        }
+    }'
+])
     ->helperText('🟢 Verde = libera, 🟡 Arancione = 1 abito, 🔴 Rosso = 2+ abiti'),
 
 // Aggiungi il Placeholder helper dinamico subito dopo

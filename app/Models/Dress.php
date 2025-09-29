@@ -157,14 +157,28 @@ class Dress extends Model
      * Dopo ogni salvataggio del Dress, ricalcola e persiste i totali.
      * (Nessuna modifica alle pagine Create/Edit richiesta)
      */
-    protected static function booted(): void
-    {
-        static::saved(function (self $dress) {
-            // assicurati di avere le relazioni in memoria
-            $dress->loadMissing('fabrics', 'extras');
+   protected static function booted(): void
+{
+    static::saved(function (self $dress) {
+        // 1. Ricalcola i totali (codice esistente)
+        $dress->loadMissing('fabrics', 'extras');
+        $dress->recalcFinancials(true);
 
-            // calcola e PERSISTE (saveQuietly → non rilancia eventi)
-            $dress->recalcFinancials(true);
-        });
-    }
+        // 2. Invalida la cache del calendario per il mese della delivery_date
+        if ($dress->delivery_date) {
+            $date = \Carbon\Carbon::parse($dress->delivery_date);
+            $cacheKey = 'calendar_availability:' . self::class . ':delivery_date:' . $date->year . ':' . $date->month;
+            \Cache::forget($cacheKey);
+        }
+    });
+
+    // 3. Invalida la cache anche quando elimini un abito
+    static::deleted(function (self $dress) {
+        if ($dress->delivery_date) {
+            $date = \Carbon\Carbon::parse($dress->delivery_date);
+            $cacheKey = 'calendar_availability:' . self::class . ':delivery_date:' . $date->year . ':' . $date->month;
+            \Cache::forget($cacheKey);
+        }
+    });
+}
 }

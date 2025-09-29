@@ -36,8 +36,13 @@ trait HasAdjustmentFormSections
                         ->label('Nome cliente')
                         ->default(''),
                     Forms\Components\TextInput::make('phone_number')
-                        ->label('Telefono')
-                        ->tel(),
+                        ->label('Numero di Cellulare')
+                        ->tel()
+                        ->maxLength(255)
+                        ->unique(table: Customer::class, column: 'phone_number', ignoreRecord: true)
+                        ->validationMessages([
+                            'unique' => 'Questo numero di telefono è già stato registrato per un altro cliente.',
+                        ])
                 ]),
 
                 Forms\Components\TextInput::make('referente')
@@ -105,7 +110,10 @@ trait HasAdjustmentFormSections
                     Forms\Components\TextInput::make('name')
                         ->label('Nome aggiusto')
                         ->placeholder('es. Pantalone nero, Camicia bianca...')
-                        ->default('')
+                        ->required()
+                        ->validationMessages([
+                            'required' => 'Il nome dell\'aggiusto è obbligatorio. Inserisci cosa deve essere aggiustato.',
+                        ])
                         ->columnSpan(1),
                     
                     Forms\Components\Textarea::make('description')

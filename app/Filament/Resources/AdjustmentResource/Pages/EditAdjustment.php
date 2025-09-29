@@ -19,16 +19,9 @@ class EditAdjustment extends EditRecord
                 ->label('Ricevuta')
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('info')
-                ->visible(fn ($record) => $record->remaining == 0) // 👈 solo se saldato
-                ->action(function ($record) {
-                    $service = app(\App\Services\AdjustmentReceiptService::class);
-                    $pdf = $service->generateReceipt($record);
-
-                    return response()->streamDownload(
-                        fn () => print($pdf->output()),
-                        'ricevuta-aggiusto-' . $record->id . '.pdf'
-                    );
-                }),
+                ->visible(fn ($record) => $record->remaining == 0)
+                ->url(fn($record) => route('adjustments.receipt', $record))
+                ->openUrlInNewTab(),
         ];
     }
 }
