@@ -12,15 +12,6 @@ class AdjustmentCalendarWidget extends FullCalendarWidget
     protected static ?string $heading = 'Calendario Consegne Aggiusti';
     protected static ?int $sort = 3;
 
-    public static function canView(): bool
-    {
-        $user = auth()->user();
-
-        return ($user?->role === 'admin')
-            // visibile SOLO nelle pagine della resource "adjustments"
-            && request()->routeIs('filament.admin.resources.adjustments.*');
-    }
-
     protected function getHeaderActions(): array
     {
         return [];
