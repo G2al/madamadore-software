@@ -50,24 +50,30 @@
 
     <div class="hr"></div>
 
-    <table class="kv mb-2">
-        <tr>
-            <td>ID Aggiusto</td>
-            <td>#{{ $adjustment->id }}</td>
-        </tr>
-        <tr>
-            <td>Data</td>
-            <td>{{ $adjustment->created_at->format('d/m/Y') }}</td>
-        </tr>
-        <tr>
-            <td>Cliente</td>
-            <td>{{ $adjustment->customer->name ?? '-' }}</td>
-        </tr>
-        <tr>
-            <td>Telefono</td>
-            <td>{{ $adjustment->customer->phone_number ?? '-' }}</td>
-        </tr>
-    </table>
+<table class="kv mb-2">
+    <tr>
+        <td>ID Aggiusto</td>
+        <td>#{{ $adjustment->id }}</td>
+    </tr>
+    <tr>
+        <td>Data</td>
+        <td>{{ $adjustment->created_at->format('d/m/Y') }}</td>
+    </tr>
+    <tr>
+        <td>Cliente</td>
+        <td>{{ $adjustment->customer->name ?? '-' }}</td>
+    </tr>
+    <tr>
+        <td>Telefono</td>
+        <td>{{ $adjustment->customer->phone_number ?? '-' }}</td>
+    </tr>
+    @if($adjustment->referente)
+    <tr>
+        <td>Referente</td>
+        <td>{{ $adjustment->referente }}</td>
+    </tr>
+    @endif
+</table>
 
     @if($adjustment->items && $adjustment->items->count())
         <div class="hr"></div>
