@@ -10,56 +10,56 @@
         }
         body { 
             font-family: DejaVu Sans, sans-serif; 
-            font-size: 13px;   /* aumentato */
+            font-size: 13px;
             color: #333; 
             margin: 0;
             padding: 0;
-            line-height: 1.4;  /* più leggibile */
+            line-height: 1.4;
         }
         .header { 
             text-align: center; 
-            margin-bottom: 20px; 
-            border-bottom: 2px solid #333;
-            padding-bottom: 10px;
+            margin-bottom: 30px;
+            margin-top: 20px;
         }
-        .header h1 { 
-            margin: 5px 0; 
-            font-size: 26px; 
-            font-weight: bold;
-        }
-        .header p {
-            margin: 2px 0;
-            font-size: 12px;
+        .header .logo {
+            height: 350px;
+            display: block;
+            margin: 0 auto 20px auto;
         }
         .page-title {
             text-align: center;
-            font-size: 28px;
-            font-weight: bold;
-            margin: 25px 0;
+            font-size: 32px;
+            font-weight: normal;
+            margin: 40px 0 50px 0;
+            color: #333;
         }
         .form-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
+            margin: 30px 0;
         }
         .form-table td {
             border: 1px solid #333;
-            padding: 12px;
-            font-size: 13px;
+            padding: 15px;
+            font-size: 14px;
             vertical-align: top;
         }
         .form-table td:first-child {
-            font-weight: bold;
-            background-color: #f5f5f5;
-            width: 35%;
+            font-weight: normal;
+            background-color: white;
+            width: 40%;
+        }
+        .info-bar {
+            position: absolute;
+            bottom: 15mm;
+            left: 10mm;
+            right: 10mm;
+            text-align: center;
+            font-size: 10px;
+            color: #999;
         }
         .page-break {
             page-break-before: always;
-        }
-        .header .logo {
-            height: 90px;
-            display: block;
-            margin: 10px auto;
         }
     </style>
 </head>
@@ -67,7 +67,6 @@
     <!-- PAGINA 1: Scheda Cliente -->
     <div class="header">
         <img src="{{ public_path('storage/branding/logo-madamadore.png') }}" alt="MadamaDorè di Dora Maione" class="logo">
-        <p>Via delle Acacie 06, 81031 Aversa – CE Tel. 392.244.86.34 – 081.2306277</p>
     </div>
 
     <div class="page-title">Scheda Cliente</div>
@@ -86,28 +85,40 @@
             <td>{{ $dress->phone_number }}</td>
         </tr>
         <tr>
+            <td>Descrizione Abito</td>
+            <td>{{ $dress->description ?? '' }}</td>
+        </tr>
+        <tr>
             <td>Data Consegna</td>
             <td>{{ $dress->delivery_date?->format('d/m/Y') }}</td>
         </tr>
+        <tr>
+            <td>NOTE</td>
+            <td style="height: 80px;">{{ $dress->notes ?? '' }}</td>
+        </tr>
     </table>
+
+    <div class="info-bar">
+        MadamaDorè di Dora Maione - Via delle Acacie 06, 81031 Aversa – CE Tel. 392.244.86.34 – 081.2306277
+    </div>
 
     <!-- PAGINA 2: Misure e Bozzetto -->
     <div class="page-break">
         <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
             <tr>
-                <!-- Colonna Sinistra - Misure (45%) -->
-                <td style="width: 45%; vertical-align: top; padding-right: 15px;">
+                <!-- Colonna Sinistra - Misure (30%) -->
+                <td style="width: 30%; vertical-align: top; padding-right: 12px;">
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr>
-                            <td colspan="2" style="border: 1px solid #333; padding: 8px; background-color: #f5f5f5; font-weight: bold; text-align: center; font-size: 14px;">
+                            <td colspan="2" style="border: 1px solid #333; padding: 5px; background-color: #f5f5f5; font-weight: bold; text-align: center; font-size: 11px;">
                                 MISURE
                             </td>
                         </tr>
                         @if($dress->measurements)
 @foreach(\App\Models\DressMeasurement::ORDERED_MEASURES as $field => $label)
     <tr>
-        <td style="border: 1px solid #333; padding: 3px; font-size: 10px;">{{ $label }}</td>
-        <td style="border: 1px solid #333; padding: 3px; text-align: center; width: 50px; font-size: 10px;">
+        <td style="border: 1px solid #333; padding: 2px 4px; font-size: 8px;">{{ $label }}</td>
+        <td style="border: 1px solid #333; padding: 2px; text-align: center; width: 35px; font-size: 8px;">
             {{ $dress->measurements->$field ?? '' }}
         </td>
     </tr>
@@ -115,21 +126,21 @@
 
                         @else
                             <tr>
-                                <td colspan="2" style="border: 1px solid #333; padding: 8px; font-size: 12px;">Nessuna misura disponibile</td>
+                                <td colspan="2" style="border: 1px solid #333; padding: 6px; font-size: 9px;">Nessuna misura disponibile</td>
                             </tr>
                         @endif
 
                         <!-- Misure Personalizzate -->
                         @if($dress->customMeasurements && $dress->customMeasurements->count() > 0)
                             <tr>
-                                <td colspan="2" style="border: 1px solid #333; padding: 8px; background-color: #f0f0f0; font-weight: bold; text-align: center; font-size: 13px;">
+                                <td colspan="2" style="border: 1px solid #333; padding: 5px; background-color: #f0f0f0; font-weight: bold; text-align: center; font-size: 10px;">
                                     MISURE PERSONALIZZATE
                                 </td>
                             </tr>
 @foreach($dress->customMeasurements as $customMeasurement)
     <tr>
-        <td style="border: 1px solid #333; padding: 3px; font-size: 10px;">{{ $customMeasurement->label }}</td>
-        <td style="border: 1px solid #333; padding: 3px; text-align: center; width: 50px; font-size: 10px;">
+        <td style="border: 1px solid #333; padding: 2px 4px; font-size: 8px;">{{ $customMeasurement->label }}</td>
+        <td style="border: 1px solid #333; padding: 2px; text-align: center; width: 35px; font-size: 8px;">
             @if($customMeasurement->value)
                 {{ $customMeasurement->value }} {{ $customMeasurement->unit }}
             @else
@@ -142,16 +153,16 @@
                     </table>
                 </td>
                 
-                <!-- Colonna Destra - Bozzetto/Disegno (55%) -->
-                <td style="width: 55%; vertical-align: top;">
-                    <div style="border: 1px solid #333; text-align: center; padding: 12px; height: 650px;">
+                <!-- Colonna Destra - Bozzetto/Disegno (70%) -->
+                <td style="width: 70%; vertical-align: top;">
+                    <div style="border: 1px solid #333; text-align: center; padding: 12px; height: 950px;">
                         <div style="border-bottom: 1px solid #333; padding: 8px; margin-bottom: 10px; font-weight: bold; background-color: #f5f5f5; font-size: 14px;">
                             Bozzetto / Disegno
                         </div>
-                        <div style="padding-top: 150px;">
+                        <div style="padding-top: 20px;">
                             @if($dress->final_image)
                                 <img src="{{ storage_path('app/public/' . $dress->final_image) }}" alt="Abito Definitivo" 
-                                     style="max-width: 95%; max-height: 450px; border-radius: 3px;">
+                                     style="max-width: 98%; max-height: 620px; border-radius: 3px;">
                             @else
                                 <div style="color: #999; font-style: italic; font-size: 12px;">
                                     Immagine non disponibile
