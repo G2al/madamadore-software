@@ -72,38 +72,54 @@ class CalendarController extends Controller
         }
     }
 
-    protected function queryAvailabilityData(string $model, string $dateColumn, int $month, int $year): array
-    {
-        $cacheKey = "calendar_availability:{$model}:{$dateColumn}:{$year}:{$month}";
+   protected function queryAvailabilityData(string $model, string $dateColumn, int $month, int $year, ?int $excludeId = null): array
+{
+    $cacheKey = "calendar_availability:{$model}:{$dateColumn}:{$year}:{$month}:" . ($excludeId ?? 'all');
+    
+    return Cache::remember($cacheKey, 3600, function () use ($model, $dateColumn, $month, $year, $excludeId) {
+        $startDate = Carbon::createFromDate($year, $month, 1)->startOfDay();
+        $endDate = $startDate->copy()->endOfMonth()->endOfDay();
+
+        $table = (new $model)->getTable();
         
-        return Cache::remember($cacheKey, 3600, function () use ($model, $dateColumn, $month, $year) {
-            $startDate = Carbon::createFromDate($year, $month, 1)->startOfDay();
-            $endDate = $startDate->copy()->endOfMonth()->endOfDay();
+        $query = DB::table($table)
+            ->select(
+                DB::raw("DATE({$table}.{$dateColumn}) as date"),
+                DB::raw('COUNT(*) as count')
+            )
+            ->whereBetween("{$table}.{$dateColumn}", [$startDate, $endDate])
+            ->whereNotNull("{$table}.{$dateColumn}");
 
-            // Query che include anche i nomi clienti
-            $results = DB::table((new $model)->getTable())
-                ->select(
-                    DB::raw("DATE({$dateColumn}) as date"),
-                    DB::raw('COUNT(*) as count'),
-                    DB::raw('GROUP_CONCAT(customer_name SEPARATOR ", ") as customer_names')
-                )
-                ->whereBetween($dateColumn, [$startDate, $endDate])
-                ->whereNotNull($dateColumn)
-                ->groupBy(DB::raw("DATE({$dateColumn})"))
-                ->get();
+        // Se il model è Adjustment, aggiungi la JOIN per i nomi clienti
+        if ($model === 'App\Models\Adjustment') {
+            $query->leftJoin('customers', "{$table}.customer_id", '=', 'customers.id')
+                  ->addSelect(DB::raw('GROUP_CONCAT(customers.name SEPARATOR ", ") as customer_names'));
+        } 
+        // Se il model è Dress, usa customer_name diretto
+        elseif ($model === 'App\Models\Dress') {
+            $query->addSelect(DB::raw("GROUP_CONCAT({$table}.customer_name SEPARATOR ', ') as customer_names"));
+        }
 
-            $availability = [];
-            foreach ($results as $result) {
-                $availability[$result->date] = [
-                    'count' => (int) $result->count,
-                    'date' => $result->date,
-                    'customers' => $result->customer_names ? explode(', ', $result->customer_names) : []
-                ];
-            }
+        if ($excludeId) {
+            $query->where("{$table}.id", '!=', $excludeId);
+        }
 
-            return $availability;
-        });
-    }
+        $results = $query->groupBy(DB::raw("DATE({$table}.{$dateColumn})"))->get();
+
+        $availability = [];
+        foreach ($results as $result) {
+            $availability[$result->date] = [
+                'count' => (int) $result->count,
+                'date' => $result->date,
+                'customers' => isset($result->customer_names) && $result->customer_names 
+                    ? explode(', ', $result->customer_names) 
+                    : []
+            ];
+        }
+
+        return $availability;
+    });
+}
 
     /**
      * Pulisce la cache di disponibilità per un modello/data specifica

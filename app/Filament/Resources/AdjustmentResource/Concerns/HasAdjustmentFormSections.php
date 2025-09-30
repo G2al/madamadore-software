@@ -95,12 +95,130 @@ trait HasAdjustmentFormSections
                         'onclick' => "window.open('https://wa.me/{$digits}', '_blank');",
                     ];
                 }),
+Forms\Components\DatePicker::make('delivery_date')
+    ->label('Data di consegna')
+    ->native(false)
+    ->displayFormat('d/m/Y')
+    ->closeOnDateSelection()
+    ->live(debounce: 300)
+   ->afterStateUpdated(function ($state, Set $set, Get $get, $livewire) {
+    if ($state) {
+        $currentAdjustmentId = $livewire->record?->id ?? null;
 
-            Forms\Components\DatePicker::make('delivery_date')
-                ->label('Data di consegna')
-                ->native(false)
-                ->displayFormat('d/m/Y')
-                ->closeOnDateSelection(),
+        $adjustmentsOnDate = \App\Models\Adjustment::where('delivery_date', $state)
+            ->when($currentAdjustmentId, fn($q) => $q->where('id', '!=', $currentAdjustmentId))
+            ->get(['id', 'customer_id']);
+
+        $customerNames = $adjustmentsOnDate->load('customer')->pluck('customer.name')->filter();
+        $count = $adjustmentsOnDate->count();
+
+        if ($count === 0 || $count <= 2) {
+            $customers = $customerNames->take(2)->join(', ');
+            $helper = $count === 0 
+                ? '🟢 Giornata libera - Perfetto per la consegna!' 
+                : "🟢 {$count} aggiusti già previsti: {$customers}";
+        } elseif ($count <= 4) {
+            $customers = $customerNames->take(2)->join(', ');
+            $helper = "🟡 GIORNATA IMPEGNATIVA - {$count} aggiusti: {$customers}" . ($count > 2 ? ' e altri...' : '');
+        } else {
+            $customers = $customerNames->take(2)->join(', ');
+            $helper = "🔴 ATTENZIONE: GIORNATA SOVRACCARICA! {$count} aggiusti: {$customers} e altri...";
+        }
+
+        $set('delivery_date_helper', $helper);
+    } else {
+        $set('delivery_date_helper', '');
+    }
+})
+    ->extraAttributes([
+        'x-data' => '{
+            init() {
+                this.$nextTick(() => {
+                    const panel = this.$el.closest(".fi-fo-field-wrp").querySelector(".fi-fo-date-time-picker-panel");
+                    if (panel) {
+                        const observer = new MutationObserver(() => {
+                            if (panel.style.display !== "none") {
+                                this.colorCalendar();
+                            }
+                        });
+                        observer.observe(panel, { attributes: true, attributeFilter: ["style"] });
+                        
+                        panel.addEventListener("change", () => {
+                            setTimeout(() => this.colorCalendar(), 100);
+                        });
+                    }
+                });
+            },
+            async colorCalendar() {
+                const panel = this.$el.closest(".fi-fo-field-wrp").querySelector(".fi-fo-date-time-picker-panel");
+                if (!panel || panel.style.display === "none") return;
+                
+                const monthSelect = panel.querySelector("select");
+                const yearInput = panel.querySelector("input[type=number]");
+                
+                if (!monthSelect || !yearInput) return;
+                
+                const month = parseInt(monthSelect.value) + 1;
+                const year = parseInt(yearInput.value);
+                
+                try {
+                    const response = await fetch("/admin/calendar/availability", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": document.querySelector("meta[name=\"csrf-token\"]").getAttribute("content")
+                        },
+                        body: JSON.stringify({
+                            model: "App\\\\Models\\\\Adjustment",
+                            date_column: "delivery_date",
+                            month: month,
+                            year: year
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    this.applyColors(panel, data.data || {}, month, year);
+                } catch (error) {
+                    console.error("Errore caricamento calendario:", error);
+                }
+            },
+            applyColors(panel, availabilityData, month, year) {
+    const dayDivs = panel.querySelectorAll("div[role=option]");
+    
+    dayDivs.forEach(dayDiv => {
+        const dayNumber = parseInt(dayDiv.textContent);
+        if (isNaN(dayNumber)) return;
+        
+        const dateKey = year + "-" + String(month).padStart(2, "0") + "-" + String(dayNumber).padStart(2, "0");
+        const availability = availabilityData[dateKey];
+        const count = availability ? availability.count : 0;
+        
+        if (count <= 2) {
+            // Verde: 0-2 aggiusti
+            dayDiv.style.cssText = "background-color: #22c55e !important; color: white !important; border-radius: 50%;";
+        } else if (count <= 4) {
+            // Giallo: 3-4 aggiusti
+            dayDiv.style.cssText = "background-color: #f59e0b !important; color: white !important; border-radius: 50%;";
+        } else {
+            // Rosso: 5+ aggiusti
+            dayDiv.style.cssText = "background-color: #ef4444 !important; color: white !important; border-radius: 50%;";
+        }
+    });
+}
+        }'
+    ])
+    ->helperText('🟢 Verde = libera, 🟡 Arancione = 1-2 aggiusti, 🔴 Rosso = 3+ aggiusti'),
+
+// Placeholder helper dinamico
+Forms\Components\Placeholder::make('delivery_date_helper')
+    ->label('')
+    ->content(fn ($get) => $get('delivery_date_helper') ?: '')
+    ->visible(fn ($get) => !empty($get('delivery_date_helper')))
+    ->extraAttributes([
+        'class' => 'delivery-date-info',
+        'style' => 'background-color:#21242b !important;'
+    ])
+    ->dehydrated(false),
 
             // Repeater per gli aggiusti
             Forms\Components\Repeater::make('items')
