@@ -50,11 +50,11 @@ class CompletatiResource extends Resource
                     ->icon('heroicon-o-user')
                     ->weight('bold'),
 
-                    Tables\Columns\TextColumn::make('referente')
-        ->label('Referente')
-        ->searchable()
-        ->placeholder('N/D')
-        ->toggleable(),
+                Tables\Columns\TextColumn::make('referente')
+                    ->label('Referente')
+                    ->searchable()
+                    ->placeholder('N/D')
+                    ->toggleable(),
 
                 Tables\Columns\TextColumn::make('items_display')
                     ->label('Aggiusti')
@@ -102,11 +102,28 @@ class CompletatiResource extends Resource
                     ->query(fn($query) => $query->where('remaining', '>', 0)),
             ])
             ->actions([
+                // Azione per inviare WhatsApp al cliente
+Tables\Actions\Action::make('whatsapp')
+    ->label('WhatsApp')
+    ->icon('heroicon-o-chat-bubble-left-right')
+    ->color('success')
+    ->url(function ($record) {
+        $phone = $record->customer?->phone_number;
+        if (!$phone) return null;
+        
+        $digits = preg_replace('/\D+/', '', $phone);
+        $message = "Ciao {$record->customer->name}, il tuo aggiusto è pronto, passa a ritirarlo appena puoi e grazie per aver scelto Madamadorè";
+        
+        return "https://wa.me/{$digits}?text=" . urlencode($message);
+    })
+    ->openUrlInNewTab()
+    ->visible(fn($record) => $record->customer?->phone_number),
+
                 // Azione per consegnare l'aggiusto
                 Tables\Actions\Action::make('consegna')
                     ->label('Consegna Aggiusto')
                     ->icon('heroicon-o-truck')
-                    ->color('success')
+                    ->color('info')
                     ->requiresConfirmation()
                     ->modalHeading('Conferma Consegna')
                     ->modalDescription('L\'aggiusto sarà segnato come consegnato e apparirà nella sezione "Consegnati".')

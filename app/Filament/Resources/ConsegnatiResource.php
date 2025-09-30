@@ -50,11 +50,11 @@ class ConsegnatiResource extends Resource
                     ->icon('heroicon-o-user')
                     ->weight('bold'),
 
-                    Tables\Columns\TextColumn::make('referente')
-        ->label('Referente')
-        ->searchable()
-        ->placeholder('N/D')
-        ->toggleable(),
+                Tables\Columns\TextColumn::make('referente')
+                    ->label('Referente')
+                    ->searchable()
+                    ->placeholder('N/D')
+                    ->toggleable(),
 
                 Tables\Columns\TextColumn::make('items_display')
                     ->label('Aggiusti')
@@ -82,13 +82,17 @@ class ConsegnatiResource extends Resource
                     ->color(fn($state) => $state > 0 ? 'warning' : 'success')
                     ->icon(fn($state) => $state > 0 ? 'heroicon-o-exclamation-triangle' : 'heroicon-o-check-circle'),
 
-                Tables\Columns\IconColumn::make('ritirato')
+                Tables\Columns\ToggleColumn::make('ritirato')
                     ->label('Ritirato')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-check-circle')
-                    ->falseIcon('heroicon-o-x-circle')
-                    ->trueColor('success')
-                    ->falseColor('danger'),
+                    ->onColor('success')
+                    ->offColor('info')
+                    ->afterStateUpdated(function ($record, $state) {
+                        \Filament\Notifications\Notification::make()
+                            ->title('Stato aggiornato')
+                            ->body($state ? 'Aggiusto marcato come ritirato' : 'Aggiusto marcato come non ritirato')
+                            ->success()
+                            ->send();
+                    }),
 
                 Tables\Columns\TextColumn::make('delivery_date')
                     ->label('Data Consegna')
@@ -127,23 +131,6 @@ class ConsegnatiResource extends Resource
                     ->color('info')
                     ->url(fn($record) => route('adjustments.receipt', $record))
                     ->openUrlInNewTab(),
-
-                // Azione per inviare WhatsApp al cliente
-                Tables\Actions\Action::make('whatsapp')
-                    ->label('WhatsApp')
-                    ->icon('heroicon-o-chat-bubble-left-right')
-                    ->color('success')
-                    ->url(function ($record) {
-                        $phone = $record->customer?->phone_number;
-                        if (!$phone) return null;
-                        
-                        $digits = preg_replace('/\D+/', '', $phone);
-                        $message = "Ciao {$record->customer->name}, il tuo aggiusto è stato consegnato! Grazie per aver scelto il nostro servizio.";
-                        
-                        return "https://wa.me/{$digits}?text=" . urlencode($message);
-                    })
-                    ->openUrlInNewTab()
-                    ->visible(fn($record) => $record->customer?->phone_number),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

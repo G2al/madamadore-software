@@ -68,7 +68,7 @@ trait HasAdjustmentFormSections
                 ->default(false)
                 ->helperText('Attivare quando il cliente ha ritirato l\'aggiusto')
                 ->onColor('success')
-                ->offColor('danger'),
+                ->offColor('info'),
 
             // Telefono di sola lettura con icona WhatsApp nel suffix
             Forms\Components\TextInput::make('customer_phone')

@@ -85,58 +85,59 @@ class DressConfermatiResource extends Resource
                     ->action(fn (Dress $record) => $record->update(['status' => 'da_tagliare']))
                     ->successNotificationTitle('Tessuti acquistati! Abito pronto per il taglio.'),
                 
-               // Bottone per visualizzare i tessuti
-Action::make('vedi_tessuti')
-    ->label('Lista Tessuti')
-    ->icon('heroicon-o-list-bullet')
-    ->color('info')
-    ->modalHeading(fn($record) => "Tessuti per {$record->customer_name}")
-    ->infolist([
-        \Filament\Infolists\Components\Section::make('Tessuti Necessari')
-            ->schema([
-                \Filament\Infolists\Components\RepeatableEntry::make('fabrics')
-                    ->schema([
-                        \Filament\Infolists\Components\TextEntry::make('name')
-                            ->label('Tessuto')
-                            ->weight('bold')
-                            ->color('primary'),
-                        
-                        \Filament\Infolists\Components\TextEntry::make('color_code')
-                            ->label('Codice Colore')
-                            ->badge(),
-                        
-                        \Filament\Infolists\Components\TextEntry::make('meters')
-                            ->label('Metri')
-                            ->formatStateUsing(fn($state) => $state . ' mt')
-                            ->color('success'),
-                        
-                        \Filament\Infolists\Components\TextEntry::make('client_price')
-                            ->label('Prezzo/mt')
-                            ->money('EUR')
-                            ->color('warning'),
-                        
-                        \Filament\Infolists\Components\TextEntry::make('subtotal')
-                            ->label('Subtotale')
-                            ->state(fn($record) => $record->meters * $record->client_price)
-                            ->money('EUR')
-                            ->color('danger')
-                            ->weight('bold'),
+                // Bottone per visualizzare i tessuti (SOLO ADMIN)
+                Action::make('vedi_tessuti')
+                    ->label('Lista Tessuti')
+                    ->icon('heroicon-o-list-bullet')
+                    ->color('info')
+                    ->visible(fn() => auth()->user()->role === 'admin')
+                    ->modalHeading(fn($record) => "Tessuti per {$record->customer_name}")
+                    ->infolist([
+                        \Filament\Infolists\Components\Section::make('Tessuti Necessari')
+                            ->schema([
+                                \Filament\Infolists\Components\RepeatableEntry::make('fabrics')
+                                    ->schema([
+                                        \Filament\Infolists\Components\TextEntry::make('name')
+                                            ->label('Tessuto')
+                                            ->weight('bold')
+                                            ->color('primary'),
+                                        
+                                        \Filament\Infolists\Components\TextEntry::make('color_code')
+                                            ->label('Codice Colore')
+                                            ->badge(),
+                                        
+                                        \Filament\Infolists\Components\TextEntry::make('meters')
+                                            ->label('Metri')
+                                            ->formatStateUsing(fn($state) => $state . ' mt')
+                                            ->color('success'),
+                                        
+                                        \Filament\Infolists\Components\TextEntry::make('client_price')
+                                            ->label('Prezzo/mt')
+                                            ->money('EUR')
+                                            ->color('warning'),
+                                        
+                                        \Filament\Infolists\Components\TextEntry::make('subtotal')
+                                            ->label('Subtotale')
+                                            ->state(fn($record) => $record->meters * $record->client_price)
+                                            ->money('EUR')
+                                            ->color('danger')
+                                            ->weight('bold'),
+                                    ])
+                                    ->columns(3),
+                                
+                                \Filament\Infolists\Components\TextEntry::make('total_cost')
+                                    ->label('TOTALE TESSUTI')
+                                    ->state(fn($record) => $record->fabrics->sum(fn($f) => $f->meters * $f->client_price))
+                                    ->money('EUR')
+                                    ->size('lg')
+                                    ->weight('bold')
+                                    ->color('success')
+                                    ->columnSpanFull(),
+                            ])
                     ])
-                    ->columns(3),
-                
-                \Filament\Infolists\Components\TextEntry::make('total_cost')
-                    ->label('TOTALE TESSUTI')
-                    ->state(fn($record) => $record->fabrics->sum(fn($f) => $f->meters * $f->client_price))
-                    ->money('EUR')
-                    ->size('lg')
-                    ->weight('bold')
-                    ->color('success')
-                    ->columnSpanFull(),
-            ])
-    ])
-    ->modalSubmitAction(false)
-    ->modalCancelActionLabel('Chiudi')
-    ->slideOver(),
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Chiudi')
+                    ->slideOver(),
             ])
             
             // Bulk actions per selezione multipla
