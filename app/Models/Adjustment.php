@@ -17,8 +17,9 @@ class Adjustment extends Model
     protected $fillable = [
         'customer_id',
         'referente',
-        'status', // 👈 Aggiungi questo
-        'ritirato', // 👈 Nuovo campo ritirato
+        'status',
+        'ritirato',
+        'saldato', // 👈 Aggiungi questo
         'name',
         'client_price',
         'deposit',
@@ -39,9 +40,9 @@ class Adjustment extends Model
         'profit'       => 'decimal:2',
         'delivery_date'=> 'date',
         'ritirato'     => 'boolean',
+        'saldato'      => 'boolean', // 👈 Aggiungi questo
     ];
 
-    // 👈 Aggiungi questi metodi helper
     public static function getStatusLabels(): array
     {
         return [

@@ -94,6 +94,18 @@ class ConsegnatiResource extends Resource
                             ->send();
                     }),
 
+Tables\Columns\ToggleColumn::make('saldato')
+    ->label('Saldato')
+    ->onColor('success')
+    ->offColor('warning')
+    ->afterStateUpdated(function ($record, $state) {
+        \Filament\Notifications\Notification::make()
+            ->title('Stato aggiornato')
+            ->body($state ? 'Aggiusto marcato come saldato' : 'Aggiusto marcato come non saldato')
+            ->success()
+            ->send();
+    }),
+
                 Tables\Columns\TextColumn::make('delivery_date')
                     ->label('Data Consegna')
                     ->date('d/m/Y')
