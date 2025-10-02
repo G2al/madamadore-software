@@ -17,7 +17,6 @@ class ConsegnatiResource extends Resource
 
     protected static ?string $model = Adjustment::class;
 
-    // Configurazione navigazione
     protected static ?string $navigationGroup = 'Aggiusti';
     protected static ?string $navigationLabel = 'Consegnati';
     protected static ?string $navigationIcon = 'heroicon-o-truck';
@@ -94,17 +93,17 @@ class ConsegnatiResource extends Resource
                             ->send();
                     }),
 
-Tables\Columns\ToggleColumn::make('saldato')
-    ->label('Saldato')
-    ->onColor('success')
-    ->offColor('warning')
-    ->afterStateUpdated(function ($record, $state) {
-        \Filament\Notifications\Notification::make()
-            ->title('Stato aggiornato')
-            ->body($state ? 'Aggiusto marcato come saldato' : 'Aggiusto marcato come non saldato')
-            ->success()
-            ->send();
-    }),
+            Tables\Columns\ToggleColumn::make('saldato')
+                ->label('Saldato')
+                ->onColor('success')
+                ->offColor('warning')
+                ->afterStateUpdated(function ($record, $state) {
+                    \Filament\Notifications\Notification::make()
+                        ->title('Stato aggiornato')
+                        ->body($state ? 'Aggiusto marcato come saldato' : 'Aggiusto marcato come non saldato')
+                        ->success()
+                        ->send();
+                }),
 
                 Tables\Columns\TextColumn::make('delivery_date')
                     ->label('Data Consegna')
@@ -173,7 +172,6 @@ Tables\Columns\ToggleColumn::make('saldato')
         return [
             'index' => Pages\ListConsegnatis::route('/'),
             'view' => Pages\ViewConsegnati::route('/{record}'),
-            // Non serve edit per i consegnati - solo visualizzazione
         ];
     }
 
