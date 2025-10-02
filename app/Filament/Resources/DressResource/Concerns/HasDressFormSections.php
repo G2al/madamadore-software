@@ -7,6 +7,12 @@ use Filament\Forms\Get;
 use Filament\Forms\Set;
 use App\Models\DressMeasurement;
 use App\Forms\Components\AvailabilityDateTimePicker;
+use App\Services\MeasurementRecallService;
+use Filament\Forms\Components\Actions;
+use Filament\Forms\Components\Actions\Action;
+use Filament\Notifications\Notification;
+
+
 
 trait HasDressFormSections
 {
@@ -379,6 +385,73 @@ Forms\Components\Repeater::make('fabrics')
                     ->reorderableWithButtons()
                     ->addActionLabel('Aggiungi Misura Personalizzata')
                     ->defaultItems(0),
+
+                    Actions::make([
+    Action::make('recall_measurements')
+        ->label('Ricorda misure')
+        ->icon('heroicon-o-clipboard-document-list')
+        ->modalHeading('Ricorda misure da cliente')
+        ->modalSubmitActionLabel('Importa misure')
+        ->form([
+            Forms\Components\Select::make('customer_key')
+                ->label('Cliente')
+                ->options(fn () => MeasurementRecallService::distinctCustomersWithLastEvent())
+                ->searchable()
+                ->preload()
+                ->required()
+                ->helperText('Seleziona il cliente da cui importare le ultime misure.'),
+
+            Forms\Components\Radio::make('mode')
+                ->label('Modalità di import')
+                ->options([
+                    'replace' => 'Sostituisci tutto',
+                    'fill'    => 'Completa solo i campi vuoti',
+                ])
+                ->default('replace')
+                ->inline(),
+
+            Forms\Components\Toggle::make('include_custom')
+                ->label('Includi misure personalizzate')
+                ->default(true),
+
+            Forms\Components\Toggle::make('merge_custom_by_label')
+                ->label('Evita duplicati per etichetta (solo in "Completa")')
+                ->default(true)
+                ->visible(fn (Get $get) => $get('mode') === 'fill'),
+        ])
+        ->action(function (array $data, Set $set, Get $get, $livewire) {
+            $currentMeasurements = $get('measurements') ?? [];
+            $currentCustoms      = $get('customMeasurements') ?? [];
+            $excludeId           = $livewire->record->id ?? null;
+
+            $result = MeasurementRecallService::recallForCustomerKey(
+                $data['customer_key'],
+                $excludeId,
+                $currentMeasurements,
+                $currentCustoms,
+                $data['mode'] ?? 'replace',
+                (bool) ($data['include_custom'] ?? true),
+                (bool) ($data['merge_custom_by_label'] ?? true),
+            );
+
+            $set('measurements', $result['measurements']);
+            $set('customMeasurements', $result['customMeasurements']);
+
+            if (!empty($result['sourceDressId'])) {
+                Notification::make()
+                    ->title('Misure importate')
+                    ->body('Prese da Abito #'.$result['sourceDressId'])
+                    ->success()
+                    ->send();
+            } else {
+                Notification::make()
+                    ->title('Nessuna misura trovata per il cliente selezionato')
+                    ->warning()
+                    ->send();
+            }
+        }),
+]),
+
             ])
             ->columnSpanFull();
     }
