@@ -212,6 +212,42 @@ Forms\Components\Placeholder::make('delivery_date_helper')
             ->columnSpanFull();
     }
 
+    private static function expenseSection(): Forms\Components\Section
+{
+    return Forms\Components\Section::make('Lista della spesa')
+        ->description('Prodotti o materiali utilizzati per la realizzazione dell’abito (uso interno)')
+        ->schema([
+            Forms\Components\Repeater::make('expenses')
+                ->label('Articoli')
+                ->relationship('expenses')
+                ->schema([
+                    Forms\Components\TextInput::make('name')
+                        ->label('Nome articolo')
+                        ->placeholder('Es. Bottone, zip, decorazione...'),
+                    
+                    Forms\Components\FileUpload::make('photo_path')
+                        ->label('Foto')
+                        ->image()
+                        ->directory('dress-expenses')
+                        ->imageEditor()
+                        ->maxSize(1024),
+                    
+                    Forms\Components\TextInput::make('price')
+                        ->label('Costo interno (€)')
+                        ->numeric()
+                        ->prefix('€')
+                        ->default(0)
+                        ->helperText('Non influisce sul prezzo cliente.'),
+                ])
+                ->columns(3)
+                ->addActionLabel('Aggiungi articolo')
+                ->collapsible()
+                ->cloneable(),
+        ])
+        ->columnSpanFull();
+}
+
+
     // --- SEZIONE 4: Preventivo (Tessuti + Extra) ---
     private static function quoteSection(): Forms\Components\Section
     {

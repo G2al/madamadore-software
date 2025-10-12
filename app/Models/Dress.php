@@ -181,4 +181,9 @@ class Dress extends Model
         }
     });
 }
+
+public function expenses(): \Illuminate\Database\Eloquent\Relations\HasMany
+{
+    return $this->hasMany(DressExpense::class);
+}
 }
