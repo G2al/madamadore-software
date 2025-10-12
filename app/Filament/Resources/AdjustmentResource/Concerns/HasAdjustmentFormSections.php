@@ -304,6 +304,7 @@ Forms\Components\Placeholder::make('delivery_date_helper')
                     ->schema([
                         Forms\Components\TextInput::make('name')
                             ->label('Nome articolo')
+                            ->default('Articolo generico')
                             ->placeholder('Es. Bottone, filo, cerniera...'),
 
                         Forms\Components\FileUpload::make('photo_path')

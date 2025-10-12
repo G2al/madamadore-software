@@ -222,8 +222,9 @@ Forms\Components\Placeholder::make('delivery_date_helper')
                 ->relationship('expenses')
                 ->schema([
                     Forms\Components\TextInput::make('name')
-                        ->label('Nome articolo')
-                        ->placeholder('Es. Bottone, zip, decorazione...'),
+    ->label('Nome articolo')
+    ->default('Articolo generico')
+    ->placeholder('Es. Bottone, zip, decorazione...'),
                     
                     Forms\Components\FileUpload::make('photo_path')
                         ->label('Foto')
