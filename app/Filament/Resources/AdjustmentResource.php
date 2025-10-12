@@ -33,6 +33,7 @@ class AdjustmentResource extends Resource
         return $form->schema([
             self::clientSection(),
             self::paymentSection(),
+            self::expenseSection(),
         ]);
     }
 

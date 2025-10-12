@@ -289,4 +289,42 @@ Forms\Components\Placeholder::make('delivery_date_helper')
                     ->readOnly(),
             ]);
     }
+
+        /**
+     * Sezione: Lista della spesa
+     */
+    protected static function expenseSection(): Forms\Components\Section
+    {
+        return Forms\Components\Section::make('Lista della spesa')
+            ->description('Prodotti o materiali utilizzati per l’aggiusto (uso interno, non visibili al cliente)')
+            ->schema([
+                Forms\Components\Repeater::make('expenses')
+                    ->label('Articoli')
+                    ->relationship() // usa la relazione hasMany(AdjustmentExpense)
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->label('Nome articolo')
+                            ->placeholder('Es. Bottone, filo, cerniera...'),
+
+                        Forms\Components\FileUpload::make('photo_path')
+                            ->label('Foto')
+                            ->image()
+                            ->directory('expenses')
+                            ->imageEditor()
+                            ->maxSize(1024),
+
+                        Forms\Components\TextInput::make('price')
+                            ->label('Costo interno (€)')
+                            ->numeric()
+                            ->prefix('€')
+                            ->default(0)
+                            ->helperText('Non influisce sul prezzo cliente.'),
+                    ])
+                    ->columns(3)
+                    ->addActionLabel('Aggiungi articolo')
+                    ->collapsible()
+                    ->cloneable(),
+            ]);
+    }
+
 }

@@ -19,7 +19,7 @@ class Adjustment extends Model
         'referente',
         'status',
         'ritirato',
-        'saldato', // 👈 Aggiungi questo
+        'saldato',
         'name',
         'client_price',
         'deposit',
@@ -33,34 +33,43 @@ class Adjustment extends Model
      * Casts for numeric fields
      */
     protected $casts = [
-        'client_price' => 'decimal:2',
-        'deposit'      => 'decimal:2',
-        'total'        => 'decimal:2',
-        'remaining'    => 'decimal:2',
-        'profit'       => 'decimal:2',
-        'delivery_date'=> 'date',
-        'ritirato'     => 'boolean',
-        'saldato'      => 'boolean', // 👈 Aggiungi questo
+        'client_price'  => 'decimal:2',
+        'deposit'       => 'decimal:2',
+        'total'         => 'decimal:2',
+        'remaining'     => 'decimal:2',
+        'profit'        => 'decimal:2',
+        'delivery_date' => 'date',
+        'ritirato'      => 'boolean',
+        'saldato'       => 'boolean',
     ];
 
+    /**
+     * 🔹 Etichette leggibili per lo stato
+     */
     public static function getStatusLabels(): array
     {
         return [
-            'confermato' => 'Completato',
+            'confermato'     => 'Completato',
             'in_lavorazione' => 'In Lavorazione',
-            'consegnato' => 'Consegnato',
+            'consegnato'     => 'Consegnato',
         ];
     }
 
+    /**
+     * 🔹 Colori badge per lo stato
+     */
     public static function getStatusColors(): array
     {
         return [
-            'confermato' => 'info',
+            'confermato'     => 'info',
             'in_lavorazione' => 'warning',
-            'consegnato' => 'success',
+            'consegnato'     => 'success',
         ];
     }
 
+    /**
+     * 🔹 Relazioni
+     */
     public function customer()
     {
         return $this->belongsTo(Customer::class);
@@ -71,6 +80,17 @@ class Adjustment extends Model
         return $this->hasMany(AdjustmentItem::class);
     }
 
+    /**
+     * 🧾 Nuova relazione: spese associate all’aggiusto
+     */
+    public function expenses()
+    {
+        return $this->hasMany(AdjustmentExpense::class);
+    }
+
+    /**
+     * 🔹 Elimina movimenti di cassa collegati quando l'aggiusto viene eliminato
+     */
     protected static function booted()
     {
         static::deleted(function ($adjustment) {
