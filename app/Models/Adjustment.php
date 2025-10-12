@@ -46,7 +46,7 @@ class Adjustment extends Model
     public static function getStatusLabels(): array
     {
         return [
-            'confermato' => 'Confermato',
+            'confermato' => 'Completato',
             'in_lavorazione' => 'In Lavorazione',
             'consegnato' => 'Consegnato',
         ];
