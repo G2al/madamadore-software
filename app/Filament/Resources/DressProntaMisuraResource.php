@@ -97,6 +97,14 @@ class DressProntaMisuraResource extends Resource
                     ->action(fn (Dress $record) => $record->update(['status' => 'consegnato']))
                     ->successNotificationTitle('Abito consegnato con successo!'),
                 
+                    Action::make('whatsapp')
+    ->label('WhatsApp')
+    ->icon('heroicon-o-chat-bubble-left-ellipsis')
+    ->color('success')
+    ->tooltip(fn($record) => "Contatta {$record->customer_name} su WhatsApp")
+    ->url(fn($record) => 'https://wa.me/' . preg_replace('/\D/', '', $record->phone_number))
+    ->openUrlInNewTab(),
+                
                 // Bottone per gestire le note specifiche di questa fase
                 Action::make('gestisci_note')
                     ->label('Note Finali')
