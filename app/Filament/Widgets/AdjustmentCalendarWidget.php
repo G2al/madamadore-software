@@ -17,21 +17,35 @@ class AdjustmentCalendarWidget extends FullCalendarWidget
         return [];
     }
 
-    public function fetchEvents(array $fetchInfo): array
-    {
-        return Adjustment::query()
-            ->with('customer')
-            ->whereNotNull('delivery_date')
-            ->get()
-            ->map(fn (Adjustment $adjustment) => EventData::make()
+   public function fetchEvents(array $fetchInfo): array
+{
+    return Adjustment::query()
+        ->with('customer')
+        ->whereNotNull('delivery_date')
+        ->get()
+        ->map(function (Adjustment $adjustment) {
+            // Colori in base allo stato
+            $statusColors = [
+                'in_lavorazione' => '#a98a0cff', // giallo
+                'confermato'     => '#3b82f6', // blu
+                'completato'     => '#3b82f6', // blu
+                'consegnato'     => '#22c55e', // verde
+                'default'        => '#9ca3af', // grigio
+            ];
+
+            // Scegli colore in base allo stato
+            $color = $statusColors[$adjustment->status] ?? $statusColors['default'];
+
+            return EventData::make()
                 ->id((string) $adjustment->getKey())
-                ->title($adjustment->customer?->name ?? 'Cliente sconosciuto')
+                ->title(($adjustment->customer?->name ?? 'Cliente sconosciuto') . ' (' . ucfirst(str_replace('_', ' ', $adjustment->status)) . ')')
                 ->start($adjustment->delivery_date->toDateString())
                 ->end($adjustment->delivery_date->toDateString())
-                ->backgroundColor('#6366F1')
+                ->backgroundColor($color)
                 ->textColor('#ffffff')
-                ->url(route('filament.admin.resources.adjustments.edit', $adjustment))
-            )
-            ->toArray();
-    }
+                ->url(route('filament.admin.resources.adjustments.edit', $adjustment));
+        })
+        ->toArray();
+}
+
 }
