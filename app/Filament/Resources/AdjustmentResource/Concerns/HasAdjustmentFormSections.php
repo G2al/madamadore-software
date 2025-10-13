@@ -101,35 +101,52 @@ Forms\Components\DatePicker::make('delivery_date')
     ->displayFormat('d/m/Y')
     ->closeOnDateSelection()
     ->live(debounce: 300)
-   ->afterStateUpdated(function ($state, Set $set, Get $get, $livewire) {
-    if ($state) {
-        $currentAdjustmentId = $livewire->record?->id ?? null;
+    ->afterStateUpdated(function ($state, Set $set, Get $get, $livewire) {
+        if ($state) {
+            $currentAdjustmentId = $livewire->record?->id ?? null;
 
-        $adjustmentsOnDate = \App\Models\Adjustment::where('delivery_date', $state)
-            ->when($currentAdjustmentId, fn($q) => $q->where('id', '!=', $currentAdjustmentId))
-            ->get(['id', 'customer_id']);
+            // Conta TUTTI gli aggiusti (normali + aziendali) per quella data
+            $normalAdjustments = \App\Models\Adjustment::where('delivery_date', $state)
+                ->when($currentAdjustmentId, fn($q) => $q->where('id', '!=', $currentAdjustmentId))
+                ->count();
+            $companyAdjustments = \App\Models\CompanyAdjustment::where('delivery_date', $state)->count();
 
-        $customerNames = $adjustmentsOnDate->load('customer')->pluck('customer.name')->filter();
-        $count = $adjustmentsOnDate->count();
+            $count = $normalAdjustments + $companyAdjustments;
 
-        if ($count === 0 || $count <= 2) {
-            $customers = $customerNames->take(2)->join(', ');
-            $helper = $count === 0 
-                ? '🟢 Giornata libera - Perfetto per la consegna!' 
-                : "🟢 {$count} aggiusti già previsti: {$customers}";
-        } elseif ($count <= 4) {
-            $customers = $customerNames->take(2)->join(', ');
-            $helper = "🟡 GIORNATA IMPEGNATIVA - {$count} aggiusti: {$customers}" . ($count > 2 ? ' e altri...' : '');
+            // Recupera nomi clienti (sia da adjustments normali che aziendali)
+            $normalCustomers = \App\Models\Adjustment::where('delivery_date', $state)
+                ->when($currentAdjustmentId, fn($q) => $q->where('id', '!=', $currentAdjustmentId))
+                ->with('customer')
+                ->get()
+                ->pluck('customer.name')
+                ->filter();
+
+            $companyCustomers = \App\Models\CompanyAdjustment::where('delivery_date', $state)
+                ->with('customer')
+                ->get()
+                ->pluck('customer.name')
+                ->filter();
+
+            $allCustomers = $normalCustomers->concat($companyCustomers);
+
+            if ($count === 0 || $count <= 2) {
+                $customers = $allCustomers->take(2)->join(', ');
+                $helper = $count === 0 
+                    ? '🟢 Giornata libera - Perfetto per la consegna!' 
+                    : "🟢 {$count} aggiusti già previsti: {$customers}";
+            } elseif ($count <= 4) {
+                $customers = $allCustomers->take(2)->join(', ');
+                $helper = "🟡 GIORNATA IMPEGNATIVA - {$count} aggiusti: {$customers}" . ($count > 2 ? ' e altri...' : '');
+            } else {
+                $customers = $allCustomers->take(2)->join(', ');
+                $helper = "🔴 ATTENZIONE: GIORNATA SOVRACCARICA! {$count} aggiusti: {$customers} e altri...";
+            }
+
+            $set('delivery_date_helper', $helper);
         } else {
-            $customers = $customerNames->take(2)->join(', ');
-            $helper = "🔴 ATTENZIONE: GIORNATA SOVRACCARICA! {$count} aggiusti: {$customers} e altri...";
+            $set('delivery_date_helper', '');
         }
-
-        $set('delivery_date_helper', $helper);
-    } else {
-        $set('delivery_date_helper', '');
-    }
-})
+    })
     ->extraAttributes([
         'x-data' => '{
             init() {
@@ -169,7 +186,7 @@ Forms\Components\DatePicker::make('delivery_date')
                             "X-CSRF-TOKEN": document.querySelector("meta[name=\"csrf-token\"]").getAttribute("content")
                         },
                         body: JSON.stringify({
-                            model: "App\\\\Models\\\\Adjustment",
+                            models: ["App\\\\Models\\\\Adjustment", "App\\\\Models\\\\CompanyAdjustment"],
                             date_column: "delivery_date",
                             month: month,
                             year: year
@@ -183,28 +200,28 @@ Forms\Components\DatePicker::make('delivery_date')
                 }
             },
             applyColors(panel, availabilityData, month, year) {
-    const dayDivs = panel.querySelectorAll("div[role=option]");
-    
-    dayDivs.forEach(dayDiv => {
-        const dayNumber = parseInt(dayDiv.textContent);
-        if (isNaN(dayNumber)) return;
-        
-        const dateKey = year + "-" + String(month).padStart(2, "0") + "-" + String(dayNumber).padStart(2, "0");
-        const availability = availabilityData[dateKey];
-        const count = availability ? availability.count : 0;
-        
-        if (count <= 2) {
-            // Verde: 0-2 aggiusti
-            dayDiv.style.cssText = "background-color: #22c55e !important; color: white !important; border-radius: 50%;";
-        } else if (count <= 4) {
-            // Giallo: 3-4 aggiusti
-            dayDiv.style.cssText = "background-color: #f59e0b !important; color: white !important; border-radius: 50%;";
-        } else {
-            // Rosso: 5+ aggiusti
-            dayDiv.style.cssText = "background-color: #ef4444 !important; color: white !important; border-radius: 50%;";
-        }
-    });
-}
+                const dayDivs = panel.querySelectorAll("div[role=option]");
+                
+                dayDivs.forEach(dayDiv => {
+                    const dayNumber = parseInt(dayDiv.textContent);
+                    if (isNaN(dayNumber)) return;
+                    
+                    const dateKey = year + "-" + String(month).padStart(2, "0") + "-" + String(dayNumber).padStart(2, "0");
+                    const availability = availabilityData[dateKey];
+                    const count = availability ? availability.count : 0;
+                    
+                    if (count <= 2) {
+                        // Verde: 0-2 aggiusti
+                        dayDiv.style.cssText = "background-color: #22c55e !important; color: white !important; border-radius: 50%;";
+                    } else if (count <= 4) {
+                        // Giallo: 3-4 aggiusti
+                        dayDiv.style.cssText = "background-color: #f59e0b !important; color: white !important; border-radius: 50%;";
+                    } else {
+                        // Rosso: 5+ aggiusti
+                        dayDiv.style.cssText = "background-color: #ef4444 !important; color: white !important; border-radius: 50%;";
+                    }
+                });
+            }
         }'
     ])
     ->helperText('🟢 Verde = libera, 🟡 Arancione = 1-2 aggiusti, 🔴 Rosso = 3+ aggiusti'),

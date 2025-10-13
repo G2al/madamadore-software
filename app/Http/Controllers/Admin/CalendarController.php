@@ -15,7 +15,8 @@ class CalendarController extends Controller
     public function getAvailability(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'model' => 'required|string',
+            'models' => 'sometimes|array', // Supporta array di modelli
+            'model' => 'sometimes|string', // Oppure singolo modello (retrocompatibilità)
             'date_column' => 'required|string',
             'month' => 'required|integer|between:1,12',
             'year' => 'required|integer|between:2020,2030',
@@ -29,20 +30,23 @@ class CalendarController extends Controller
         }
 
         try {
-            $model = $request->input('model');
+            // Supporta sia 'models' (array) che 'model' (singolo)
+            $models = $request->input('models', [$request->input('model')]);
             $dateColumn = $request->input('date_column');
             $month = $request->input('month');
             $year = $request->input('year');
 
-            // Valida che il modello esista
-            if (!class_exists($model)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Modello non valido'
-                ], 400);
+            // Valida che tutti i modelli esistano
+            foreach ($models as $model) {
+                if (!class_exists($model)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Modello non valido: {$model}"
+                    ], 400);
+                }
             }
 
-            $availability = $this->queryAvailabilityData($model, $dateColumn, $month, $year);
+            $availability = $this->queryMultipleModelsAvailability($models, $dateColumn, $month, $year);
 
             return response()->json([
                 'success' => true,
@@ -50,7 +54,7 @@ class CalendarController extends Controller
                 'meta' => [
                     'month' => $month,
                     'year' => $year,
-                    'model' => $model,
+                    'models' => $models,
                     'date_column' => $dateColumn,
                     'cached_at' => now()->toISOString()
                 ]
@@ -58,7 +62,7 @@ class CalendarController extends Controller
 
         } catch (\Exception $e) {
             \Log::error('Errore query disponibilità calendario', [
-                'model' => $request->input('model'),
+                'models' => $request->input('models') ?? $request->input('model'),
                 'date_column' => $request->input('date_column'), 
                 'month' => $request->input('month'),
                 'year' => $request->input('year'),
@@ -72,54 +76,84 @@ class CalendarController extends Controller
         }
     }
 
-   protected function queryAvailabilityData(string $model, string $dateColumn, int $month, int $year, ?int $excludeId = null): array
-{
-    $cacheKey = "calendar_availability:{$model}:{$dateColumn}:{$year}:{$month}:" . ($excludeId ?? 'all');
-    
-    return Cache::remember($cacheKey, 3600, function () use ($model, $dateColumn, $month, $year, $excludeId) {
-        $startDate = Carbon::createFromDate($year, $month, 1)->startOfDay();
-        $endDate = $startDate->copy()->endOfMonth()->endOfDay();
-
-        $table = (new $model)->getTable();
+    /**
+     * Query per recuperare disponibilità da MULTIPLI modelli
+     * Combina i risultati di Adjustment e CompanyAdjustment
+     */
+    protected function queryMultipleModelsAvailability(array $models, string $dateColumn, int $month, int $year, ?int $excludeId = null): array
+    {
+        $modelsKey = implode('_', array_map(fn($m) => class_basename($m), $models));
+        $cacheKey = "calendar_availability:{$modelsKey}:{$dateColumn}:{$year}:{$month}:" . ($excludeId ?? 'all');
         
-        $query = DB::table($table)
-            ->select(
-                DB::raw("DATE({$table}.{$dateColumn}) as date"),
-                DB::raw('COUNT(*) as count')
-            )
-            ->whereBetween("{$table}.{$dateColumn}", [$startDate, $endDate])
-            ->whereNotNull("{$table}.{$dateColumn}");
+        return Cache::remember($cacheKey, 3600, function () use ($models, $dateColumn, $month, $year, $excludeId) {
+            $startDate = Carbon::createFromDate($year, $month, 1)->startOfDay();
+            $endDate = $startDate->copy()->endOfMonth()->endOfDay();
 
-        // Se il model è Adjustment, aggiungi la JOIN per i nomi clienti
-        if ($model === 'App\Models\Adjustment') {
-            $query->leftJoin('customers', "{$table}.customer_id", '=', 'customers.id')
-                  ->addSelect(DB::raw('GROUP_CONCAT(customers.name SEPARATOR ", ") as customer_names'));
-        } 
-        // Se il model è Dress, usa customer_name diretto
-        elseif ($model === 'App\Models\Dress') {
-            $query->addSelect(DB::raw("GROUP_CONCAT({$table}.customer_name SEPARATOR ', ') as customer_names"));
-        }
+            $availability = [];
 
-        if ($excludeId) {
-            $query->where("{$table}.id", '!=', $excludeId);
-        }
+            // Itera su ogni modello e combina i risultati
+            foreach ($models as $model) {
+                $table = (new $model)->getTable();
+                
+                $query = DB::table($table)
+                    ->select(
+                        DB::raw("DATE({$table}.{$dateColumn}) as date"),
+                        DB::raw('COUNT(*) as count')
+                    )
+                    ->whereBetween("{$table}.{$dateColumn}", [$startDate, $endDate])
+                    ->whereNotNull("{$table}.{$dateColumn}");
 
-        $results = $query->groupBy(DB::raw("DATE({$table}.{$dateColumn})"))->get();
+                // Se il model è Adjustment o CompanyAdjustment, aggiungi la JOIN per i nomi clienti
+                if ($model === 'App\Models\Adjustment' || $model === 'App\Models\CompanyAdjustment') {
+                    $query->leftJoin('customers', "{$table}.customer_id", '=', 'customers.id')
+                          ->addSelect(DB::raw('GROUP_CONCAT(customers.name SEPARATOR ", ") as customer_names'));
+                } 
+                // Se il model è Dress, usa customer_name diretto
+                elseif ($model === 'App\Models\Dress') {
+                    $query->addSelect(DB::raw("GROUP_CONCAT({$table}.customer_name SEPARATOR ', ') as customer_names"));
+                }
 
-        $availability = [];
-        foreach ($results as $result) {
-            $availability[$result->date] = [
-                'count' => (int) $result->count,
-                'date' => $result->date,
-                'customers' => isset($result->customer_names) && $result->customer_names 
-                    ? explode(', ', $result->customer_names) 
-                    : []
-            ];
-        }
+                if ($excludeId) {
+                    $query->where("{$table}.id", '!=', $excludeId);
+                }
 
-        return $availability;
-    });
-}
+                $results = $query->groupBy(DB::raw("DATE({$table}.{$dateColumn})"))->get();
+
+                // Combina i risultati nel array $availability
+                foreach ($results as $result) {
+                    $date = $result->date;
+                    
+                    if (!isset($availability[$date])) {
+                        $availability[$date] = [
+                            'count' => 0,
+                            'date' => $date,
+                            'customers' => []
+                        ];
+                    }
+
+                    $availability[$date]['count'] += (int) $result->count;
+
+                    // Aggiungi i nomi clienti (evitando duplicati)
+                    if (isset($result->customer_names) && $result->customer_names) {
+                        $newCustomers = explode(', ', $result->customer_names);
+                        $availability[$date]['customers'] = array_unique(
+                            array_merge($availability[$date]['customers'], $newCustomers)
+                        );
+                    }
+                }
+            }
+
+            return $availability;
+        });
+    }
+
+    /**
+     * Metodo legacy per retrocompatibilità (singolo modello)
+     */
+    protected function queryAvailabilityData(string $model, string $dateColumn, int $month, int $year, ?int $excludeId = null): array
+    {
+        return $this->queryMultipleModelsAvailability([$model], $dateColumn, $month, $year, $excludeId);
+    }
 
     /**
      * Pulisce la cache di disponibilità per un modello/data specifica
