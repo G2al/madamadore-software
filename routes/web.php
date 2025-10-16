@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Services\AdjustmentReceiptService;
 use App\Models\Adjustment;
 use App\Models\CompanyAdjustment;
+use App\Http\Controllers\ShoppingItemPrintController;
 
 // Redirect alla dashboard admin
 Route::get('/', function () {
@@ -30,10 +31,18 @@ Route::get('/company-adjustments/{companyAdjustment}/receipt', function (Company
     ]);
 })->name('company-adjustments.receipt');
 
-// Nuove route per i PDF degli abiti
+// Nuove route per i PDF degli abiti e la lista della spesa
 Route::middleware(['auth'])->group(function () {
+    // PDF abiti
     Route::get('/pdf/modellino/{dress}', [App\Http\Controllers\PdfController::class, 'modellino'])->name('pdf.modellino');
     Route::get('/pdf/preventivo/{dress}', [App\Http\Controllers\PdfController::class, 'preventivo'])->name('pdf.preventivo');
+
+    // 📦 Lista della Spesa - Stampa PDF
+    Route::get('/shopping-items/{shoppingItem}/print', [ShoppingItemPrintController::class, 'printSingle'])
+        ->name('shopping-items.print.single');
+
+    Route::get('/shopping-items/print/all', [ShoppingItemPrintController::class, 'printAll'])
+        ->name('shopping-items.print.all');
 
     // API per calendario consegne
     Route::get('/api/delivery-calendar', [App\Http\Controllers\Api\DeliveryCalendarController::class, 'getDeliveryDates'])->name('api.delivery-calendar');
