@@ -201,23 +201,37 @@ class DressConsegnatoResource extends Resource
                 
             ])
             
-            // Bulk actions per selezione multipla
-            ->bulkActions([
-                \Filament\Tables\Actions\BulkActionGroup::make([
-                    // Rimozione delete per sicurezza - gli abiti consegnati non dovrebbero essere eliminati
-                    \Filament\Tables\Actions\BulkAction::make('export_summary')
-                        ->label('Esporta Riepilogo')
-                        ->icon('heroicon-o-document-arrow-down')
-                        ->color('info')
-                        ->action(function ($records) {
-                            // Placeholder per eventuale export in futuro
-                            \Filament\Notifications\Notification::make()
-                                ->title('Funzione Export in sviluppo')
-                                ->warning()
-                                ->send();
-                        }),
-                ]),
-            ])
+->bulkActions([
+    \Filament\Tables\Actions\BulkActionGroup::make([
+        \Filament\Tables\Actions\BulkAction::make('archive')
+            ->label('Sposta nel Cestino')
+            ->icon('heroicon-o-archive-box')
+            ->color('warning')
+            ->requiresConfirmation()
+            ->modalHeading('Sposta nel Cestino')
+            ->modalDescription('Gli abiti selezionati verranno rimossi visivamente dal pannello ma resteranno conservati nel database per eventuali consultazioni future.')
+            ->modalSubmitActionLabel('Archivia')
+            ->action(function ($records): void {
+                $count = 0;
+
+                foreach ($records as $record) {
+                    // Ricarica il record senza global scopes
+                    $fresh = \App\Models\Dress::withoutGlobalScopes()->find($record->id);
+                    if ($fresh) {
+                        $fresh->archive();
+                        $count++;
+                    }
+                }
+
+                \Filament\Notifications\Notification::make()
+                    ->title('Archiviazione completata')
+                    ->body("{$count} abiti spostati nel cestino.")
+                    ->success()
+                    ->send();
+            }),
+    ]),
+])
+
             ->defaultSort('updated_at', 'desc') // Ordina per data di consegna più recente
             ->emptyStateHeading('Nessun abito consegnato')
             ->emptyStateDescription('Non ci sono ancora abiti consegnati.')

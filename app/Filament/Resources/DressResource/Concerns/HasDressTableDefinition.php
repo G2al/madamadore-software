@@ -134,12 +134,39 @@ protected static function tableBulkActions(): array
         return []; // niente bulk actions per lo staff
     }
 
-    return [
-        Tables\Actions\BulkActionGroup::make([
-            Tables\Actions\DeleteBulkAction::make(),
-        ]),
-    ];
+return [
+    Tables\Actions\BulkActionGroup::make([
+        Tables\Actions\BulkAction::make('archive')
+            ->label('Sposta nel Cestino')
+            ->icon('heroicon-o-archive-box')
+            ->color('warning')
+            ->requiresConfirmation()
+            ->modalHeading('Sposta nel Cestino')
+            ->modalDescription('Gli abiti selezionati verranno rimossi visivamente dal pannello ma resteranno conservati nel database per il richiamo delle misure.')
+            ->modalSubmitActionLabel('Archivia')
+            ->action(function ($records): void {
+                $count = 0;
+
+                foreach ($records as $record) {
+                    // ✅ ricarica il record senza global scopes prima di archiviarlo
+                    $fresh = \App\Models\Dress::withoutGlobalScopes()->find($record->id);
+                    if ($fresh) {
+                        $fresh->archive();
+                        $count++;
+                    }
+                }
+
+                \Filament\Notifications\Notification::make()
+                    ->title('Archiviazione completata')
+                    ->body("{$count} abiti spostati nel cestino.")
+                    ->success()
+                    ->send();
+            }),
+    ]),
+];
+
 }
+
 
 
     /**

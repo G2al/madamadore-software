@@ -43,7 +43,8 @@ class MeasurementRecallService
 {
     $ceremonyMap = config('dress.ceremonies', []);
 
-    $rows = \App\Models\Dress::query()
+    $rows = \App\Models\Dress::withoutGlobalScope('notArchived') // 👈 include anche gli archiviati
+
         ->select(['customer_name', 'phone_number', 'ceremony_type', 'ceremony_date', 'created_at'])
         ->whereNotNull('customer_name')
         ->orderByDesc('created_at') // così unique() tiene l'ULTIMO abito
@@ -85,8 +86,10 @@ class MeasurementRecallService
      */
     public static function findLastDress(string $customerName, ?string $phone = null, ?int $excludeDressId = null): ?Dress
     {
-        $q = Dress::query()
-            ->where('customer_name', $customerName);
+        
+    $q = Dress::withoutGlobalScope('notArchived') // 👈 include anche gli archiviati
+        ->where('customer_name', $customerName);
+
 
         if (!empty($phone)) {
             $q->where('phone_number', $phone);

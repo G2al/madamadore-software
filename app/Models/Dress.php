@@ -32,6 +32,7 @@ class Dress extends Model
         'manual_client_price',
         'pronta_misura_notes',
         'use_manual_price',
+        'archived_at', // 👈 nuovo campo fillable
     ];
 
     protected $casts = [
@@ -45,9 +46,10 @@ class Dress extends Model
         'total_profit' => 'decimal:2',
         'manual_client_price' => 'decimal:2',
         'use_manual_price' => 'boolean',
+        'archived_at' => 'datetime', // 👈 cast per archivio
     ];
 
-    // Relationships
+    // 🔹 RELAZIONI
     public function fabrics(): HasMany
     {
         return $this->hasMany(DressFabric::class);
@@ -68,16 +70,19 @@ class Dress extends Model
         return $this->hasMany(DressCustomMeasurement::class);
     }
 
-    // Totali calcolati (usati per UI)
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(DressExpense::class);
+    }
+
+    // 🔹 CALCOLI TOTALI
     public function getTotalPurchaseCostAttribute(): float
     {
-        // costo d'acquisto = metri * prezzo_acquisto
         return $this->fabrics->sum(fn($f) => (float) $f->meters * (float) $f->purchase_price);
     }
 
     public function getTotalClientPriceAttribute(): float
     {
-        // prezzo cliente = (metri * prezzo_cliente_unitario) + extra + manifattura
         $calculated =
             $this->fabrics->sum(fn($f) => (float) $f->meters * (float) $f->client_price)
             + $this->extras->sum('cost')
@@ -110,12 +115,9 @@ class Dress extends Model
                 <small class='text-gray-500'>{$type}</small>";
     }
 
-    /**
-     * Ricalcola i valori economici e (se $persist = true) li salva in DB.
-     */
+    // 🔹 RICALCOLO VALORI
     public function recalcFinancials(bool $persist = false): array
     {
-        // Prepara array per il service
         $fabrics = $this->fabrics->map(fn($f) => [
             'meters' => (float) $f->meters,
             'purchase_price' => (float) $f->purchase_price,
@@ -133,7 +135,6 @@ class Dress extends Model
             (float) ($this->manufacturing_price ?? 0),
         );
 
-        // Se è attivo il prezzo manuale, sovrascrivi il totale & ricalcola profitto/remaining
         if ($this->use_manual_price && $this->manual_client_price !== null) {
             $calc['total_client_price'] = (float) $this->manual_client_price;
             $calc['total_profit'] = $calc['total_client_price'] - $calc['total_purchase_cost'];
@@ -141,7 +142,6 @@ class Dress extends Model
         }
 
         if ($persist) {
-            // Scrive nei campi DB (senza scatenare eventi → no loop)
             $this->forceFill([
                 'total_purchase_cost' => $calc['total_purchase_cost'],
                 'total_client_price'  => $calc['total_client_price'],
@@ -153,37 +153,48 @@ class Dress extends Model
         return $calc;
     }
 
-    /**
-     * Dopo ogni salvataggio del Dress, ricalcola e persiste i totali.
-     * (Nessuna modifica alle pagine Create/Edit richiesta)
-     */
-   protected static function booted(): void
+    // 🔹 EVENTI E GLOBAL SCOPE
+    protected static function booted(): void
+    {
+        parent::booted();
+
+        // Escludi tutti gli abiti archiviati dalle query standard
+        static::addGlobalScope('notArchived', function ($query) {
+            $query->whereNull('archived_at');
+        });
+
+        // Ricalcolo automatico e cache invalidation
+        static::saved(function (self $dress) {
+            $dress->loadMissing('fabrics', 'extras');
+            $dress->recalcFinancials(true);
+
+            if ($dress->delivery_date) {
+                $date = \Carbon\Carbon::parse($dress->delivery_date);
+                $cacheKey = 'calendar_availability:' . self::class . ':delivery_date:' . $date->year . ':' . $date->month;
+                \Cache::forget($cacheKey);
+            }
+        });
+
+        static::deleted(function (self $dress) {
+            if ($dress->delivery_date) {
+                $date = \Carbon\Carbon::parse($dress->delivery_date);
+                $cacheKey = 'calendar_availability:' . self::class . ':delivery_date:' . $date->year . ':' . $date->month;
+                \Cache::forget($cacheKey);
+            }
+        });
+    }
+
+    // 🔹 SCOPI E METODI CUSTOM
+    public function scopeArchived($query)
+    {
+        return $query->whereNotNull('archived_at');
+    }
+    
+public function archive(): void
 {
-    static::saved(function (self $dress) {
-        // 1. Ricalcola i totali (codice esistente)
-        $dress->loadMissing('fabrics', 'extras');
-        $dress->recalcFinancials(true);
-
-        // 2. Invalida la cache del calendario per il mese della delivery_date
-        if ($dress->delivery_date) {
-            $date = \Carbon\Carbon::parse($dress->delivery_date);
-            $cacheKey = 'calendar_availability:' . self::class . ':delivery_date:' . $date->year . ':' . $date->month;
-            \Cache::forget($cacheKey);
-        }
-    });
-
-    // 3. Invalida la cache anche quando elimini un abito
-    static::deleted(function (self $dress) {
-        if ($dress->delivery_date) {
-            $date = \Carbon\Carbon::parse($dress->delivery_date);
-            $cacheKey = 'calendar_availability:' . self::class . ':delivery_date:' . $date->year . ':' . $date->month;
-            \Cache::forget($cacheKey);
-        }
-    });
+    static::withoutGlobalScope('notArchived')
+        ->where('id', $this->id)
+        ->update(['archived_at' => now()]);
 }
 
-public function expenses(): \Illuminate\Database\Eloquent\Relations\HasMany
-{
-    return $this->hasMany(DressExpense::class);
-}
 }
