@@ -15,11 +15,10 @@ class ShoppingItemResource extends Resource
     protected static ?string $model = ShoppingItem::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
-    protected static ?string $navigationGroup = 'Magazzino';
+    protected static ?int $navigationSort = 2;
     protected static ?string $navigationLabel = 'Lista della Spesa';
     protected static ?string $modelLabel = 'Voce Spesa';
     protected static ?string $pluralModelLabel = 'Lista della Spesa';
-    protected static ?int $navigationSort = 10;
 
     public static function form(Forms\Form $form): Forms\Form
     {
