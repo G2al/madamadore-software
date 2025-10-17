@@ -29,10 +29,25 @@ class AdjustmentReceiptService
         // 204pt ≈ 72mm, altezza flessibile (1000 pt = ~35cm, si adatta al contenuto)
     }
 
+    /**
+     * Genera il PDF per ricevuta aziendale completa
+     */
     public function generateThermalReceiptCompany(CompanyAdjustment $adjustment)
-{
-    return Pdf::loadView('pdf.company-adjustment-receipt', [
-        'adjustment' => $adjustment,
-    ])->setPaper([0, 0, 204, 1000], 'portrait');
-}
+    {
+        return Pdf::loadView('pdf.company-adjustment-receipt', [
+            'adjustment' => $adjustment,
+        ])->setPaper([0, 0, 204, 1000], 'portrait');
+    }
+
+    /**
+     * Genera ricevuta PDF per singolo item aziendale
+     */
+    public function generateSingleItemReceiptCompany(CompanyAdjustment $adjustment, $item)
+    {
+        return Pdf::loadView('pdf.company-adjustment-single', [
+            'adjustment' => $adjustment,
+            'item' => $item,
+        ])->setPaper([0, 0, 204, 600], 'portrait');
+        // Formato termica 72mm, altezza ridotta per singolo item
+    }
 }

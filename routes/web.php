@@ -31,6 +31,17 @@ Route::get('/company-adjustments/{companyAdjustment}/receipt', function (Company
     ]);
 })->name('company-adjustments.receipt');
 
+// NUOVA ROUTE: Ricevuta singolo item SOLO per aggiusti aziendali
+Route::get('/company-adjustments/{companyAdjustment}/receipt/item/{item}', function (CompanyAdjustment $companyAdjustment, $item, AdjustmentReceiptService $service) {
+    $adjustmentItem = $companyAdjustment->items()->findOrFail($item);
+    $pdf = $service->generateSingleItemReceiptCompany($companyAdjustment, $adjustmentItem);
+
+    return response($pdf->output(), 200, [
+        'Content-Type' => 'application/pdf',
+        'Content-Disposition' => 'inline; filename="ricevuta-singola-aziendale-' . $companyAdjustment->id . '-' . $item . '.pdf"',
+    ]);
+})->name('company-adjustments.single-receipt');
+
 // Nuove route per i PDF degli abiti e la lista della spesa
 Route::middleware(['auth'])->group(function () {
     // PDF abiti

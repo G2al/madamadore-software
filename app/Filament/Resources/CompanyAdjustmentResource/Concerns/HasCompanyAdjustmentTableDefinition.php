@@ -280,12 +280,17 @@ private static function getClientPriceColumn(): Tables\Columns\TextColumn
     /**
      * Definisce le azioni della tabella
      */
-    private static function getTableActions(): array
-    {
-        return [
+private static function getTableActions(): array
+{
+    return [
+        Tables\Actions\ActionGroup::make([
             self::getDownloadReceiptAction(),
-        ];
-    }
+            self::getSingleItemReceiptAction(), // nuovo metodo
+        ])->label('Ricevute')
+          ->icon('heroicon-o-document-text')
+          ->button(),
+    ];
+}
 
     /**
      * Azione per toggle ritirato (quando attivo → stato = consegnato)
@@ -317,6 +322,46 @@ private static function getClientPriceColumn(): Tables\Columns\TextColumn
             ->url(fn($record) => route('company-adjustments.receipt', $record)) // route dedicata per company adjustments
             ->openUrlInNewTab();
     }
+
+    /**
+ * Azione per scaricare ricevuta singolo item
+ */
+private static function getSingleItemReceiptAction(): Tables\Actions\Action
+{
+    return Tables\Actions\Action::make('single_item_receipt')
+        ->label('Ricevuta Singola')
+        ->icon('heroicon-o-document')
+        ->color('warning')
+        ->modalHeading('Seleziona aggiusto da stampare')
+        ->modalSubmitActionLabel('Stampa')
+        ->form(function ($record) {
+            $options = [];
+            foreach ($record->items as $item) {
+                $label = $item->name;
+                if ($item->price > 0) {
+                    $label .= ' - €' . number_format($item->price, 2, ',', '.');
+                }
+                $options[$item->id] = $label;
+            }
+            
+            return [
+                \Filament\Forms\Components\Select::make('item_id')
+                    ->label('Aggiusto')
+                    ->options($options)
+                    ->required()
+                    ->helperText('Seleziona quale aggiusto stampare'),
+            ];
+        })
+        ->action(function ($record, array $data) {
+            $itemId = $data['item_id'];
+            $url = route('company-adjustments.single-receipt', [
+                  'companyAdjustment' => $record->id,  // ← CORREGGI QUESTO
+                'item' => $itemId
+            ]);
+            
+            return redirect()->away($url);
+        });
+}
 
     /**
      * Gestisce il completamento del lavoro (in_lavorazione → confermato)
