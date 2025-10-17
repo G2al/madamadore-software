@@ -50,13 +50,16 @@ class FabricResource extends Resource
                     ->step(0.01)
                     ->prefix('€'),
 
-                Forms\Components\FileUpload::make('image')
-                    ->label('Foto Tessuto')
-                    ->image()
-                    ->disk('public')
-                    ->directory('fabrics')
-                    ->visibility('public')
-                    ->downloadable(),
+Forms\Components\FileUpload::make('image')
+    ->label('Foto Tessuto')
+    ->image()
+    ->disk('public')
+    ->directory('fabrics')
+    ->visibility('public')
+    ->imageEditor() // ← AGGIUNGI QUESTO per processare HEIC/orientamento
+    ->imageEditorAspectRatios([null]) // ← AGGIUNGI QUESTO per qualsiasi proporzione
+    ->maxSize(20480) // ← AGGIUNGI QUESTO per limite 20MB
+    ->downloadable(),
             ]);
     }
 
