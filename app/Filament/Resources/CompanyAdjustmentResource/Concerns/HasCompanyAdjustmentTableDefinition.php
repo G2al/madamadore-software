@@ -119,14 +119,46 @@ trait HasCompanyAdjustmentTableDefinition
     /**
      * Colonna prezzo cliente
      */
-    private static function getClientPriceColumn(): Tables\Columns\TextColumn
-    {
-        return Tables\Columns\TextColumn::make('client_price')
-            ->label('Prezzo')
-            ->money('EUR')
-            ->sortable()
-            ->color('gray');
-    }
+private static function getClientPriceColumn(): Tables\Columns\TextColumn
+{
+    return Tables\Columns\TextColumn::make('client_price')
+        ->label('Prezzo Totale')
+        ->money('EUR')
+        ->sortable()
+        ->color('primary')
+        ->weight('bold')
+        ->tooltip(function ($record) {
+            $items = $record->items;
+            if ($items->count() === 0) {
+                return 'Nessun aggiusto con prezzo';
+            }
+            
+            $details = [];
+            $total = 0;
+            foreach ($items as $item) {
+                if ($item->price > 0) {
+                    $details[] = $item->name . ': €' . number_format($item->price, 2, ',', '.');
+                    $total += $item->price;
+                }
+            }
+            
+            if (empty($details)) {
+                return 'Prezzo inserito manualmente';
+            }
+            
+            $details[] = '-------------------';
+            $details[] = 'Totale: €' . number_format($total, 2, ',', '.');
+            
+            return implode("\n", $details);
+        })
+        ->description(function ($record) {
+            $itemsTotal = $record->items->sum('price');
+            if ($itemsTotal > 0 && $itemsTotal != $record->client_price) {
+                return '(modificato manualmente)';
+            }
+            return null;
+        });
+}
 
     /**
      * Colonna acconto (nascosta di default)

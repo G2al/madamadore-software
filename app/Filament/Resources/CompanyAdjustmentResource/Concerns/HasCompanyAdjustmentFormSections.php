@@ -238,31 +238,49 @@ trait HasCompanyAdjustmentFormSections
                     ])
                     ->dehydrated(false),
 
-                // Repeater per gli aggiusti
-                Forms\Components\Repeater::make('items')
-                    ->label('Aggiusti')
-                    ->relationship()
-                    ->schema([
-                        Forms\Components\TextInput::make('name')
-                            ->label('Nome aggiusto')
-                            ->placeholder('es. Pantalone nero, Camicia bianca...')
-                            ->required()
-                            ->validationMessages([
-                                'required' => 'Il nome dell\'aggiusto è obbligatorio. Inserisci cosa deve essere aggiustato.',
-                            ])
-                            ->columnSpan(1),
-                        
-                        Forms\Components\Textarea::make('description')
-                            ->label('Descrizione lavoro')
-                            ->placeholder('Descrivi cosa è stato fatto...')
-                            ->rows(3)
-                            ->columnSpan(2),
-                    ])
-                    ->columns(3)
-                    ->addActionLabel('Aggiungi aggiusto')
-                    ->defaultItems(1)
-                    ->collapsible()
-                    ->cloneable(),
+// Repeater per gli aggiusti
+Forms\Components\Repeater::make('items')
+    ->label('Aggiusti')
+    ->relationship()
+    ->schema([
+        Forms\Components\TextInput::make('name')
+            ->label('Nome aggiusto')
+            ->placeholder('es. Pantalone nero, Camicia bianca...')
+            ->required()
+            ->validationMessages([
+                'required' => 'Il nome dell\'aggiusto è obbligatorio.',
+            ])
+            ->columnSpan(1),
+        
+        Forms\Components\Textarea::make('description')
+            ->label('Descrizione lavoro')
+            ->placeholder('Descrivi cosa è stato fatto...')
+            ->rows(3)
+            ->columnSpan(1), // ← CAMBIATO da 2 a 1
+
+        // NUOVO CAMPO PREZZO
+        Forms\Components\TextInput::make('price')
+            ->label('Prezzo')
+            ->numeric()
+            ->prefix('€')
+            ->default(0)
+            ->placeholder('0.00')
+            ->step(0.01)
+            ->columnSpan(1)
+            ->live(debounce: 300)
+            ->afterStateUpdated(fn (Set $set, Get $get) => 
+                CompanyAdjustmentResource::updateCalculations($set, $get)
+            ),
+    ])
+    ->columns(3)
+    ->addActionLabel('Aggiungi aggiusto')
+    ->defaultItems(1)
+    ->collapsible()
+    ->cloneable()
+    ->live() // ← AGGIUNGI
+    ->afterStateUpdated(fn (Set $set, Get $get) => 
+        CompanyAdjustmentResource::updateCalculations($set, $get)
+    ),
             ]);
     }
 

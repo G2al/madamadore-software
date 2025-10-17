@@ -13,6 +13,11 @@ class AdjustmentItem extends Model
         'adjustment_id',
         'name',
         'description',
+        'price', // ← AGGIUNTO
+    ];
+
+    protected $casts = [
+        'price' => 'decimal:2', // ← AGGIUNTO
     ];
 
     public function adjustment()

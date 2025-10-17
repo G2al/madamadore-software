@@ -43,25 +43,49 @@ class AdjustmentResource extends Resource
     }
 
     protected static function updateCalculations(Set $set, Get $get): void
-    {
-        $price = (float) ($get('client_price') ?? 0);
-        $deposit = $get('deposit');
-
-        // se è null, consideralo 0
-        $deposit = is_null($deposit) ? 0.0 : (float) $deposit;
-
-        // sicurezza: mai minore di 0, mai maggiore del prezzo
-        if ($deposit < 0) {
-            $deposit = 0;
+{
+    // Calcola la somma dei prezzi degli items
+    $items = $get('items') ?? [];
+    $itemsTotal = 0;
+    
+    // Debug: vediamo cosa arriva
+    foreach ($items as $item) {
+        // Assicuriamoci che il prezzo esista e sia numerico
+        if (isset($item['price']) && is_numeric($item['price'])) {
+            $itemPrice = (float) $item['price'];
+            $itemsTotal += $itemPrice;
         }
-        if ($deposit > $price) {
-            $deposit = $price;
-        }
-
-        $set('total', number_format($price, 2, '.', ''));
-        $set('remaining', number_format($price - $deposit, 2, '.', ''));
-        $set('profit', number_format($price, 2, '.', '')); // guadagno = prezzo
     }
+    
+    // Prendi il prezzo manuale corrente
+    $currentManualPrice = (float) ($get('client_price') ?? 0);
+    
+    // Se la somma degli items è maggiore di 0, aggiorna automaticamente
+    if ($itemsTotal > 0) {
+        $set('client_price', number_format($itemsTotal, 2, '.', ''));
+        $price = $itemsTotal;
+    } else {
+        // Altrimenti usa il prezzo manuale
+        $price = $currentManualPrice;
+    }
+    
+    // Gestione acconto
+    $deposit = $get('deposit');
+    $deposit = is_null($deposit) ? 0.0 : (float) $deposit;
+    
+    // Sicurezza
+    if ($deposit < 0) {
+        $deposit = 0;
+    }
+    if ($deposit > $price) {
+        $deposit = $price;
+    }
+    
+    // Aggiorna tutti i campi calcolati
+    $set('total', number_format($price, 2, '.', ''));
+    $set('remaining', number_format($price - $deposit, 2, '.', ''));
+    $set('profit', number_format($price, 2, '.', ''));
+}
 
     public static function getPages(): array
     {
@@ -73,20 +97,20 @@ class AdjustmentResource extends Resource
     }
 
     // Badge con conteggio nel menu
-public static function getNavigationBadge(): ?string
-{
-    return static::getModel()::count() ?: null;
-}
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count() ?: null;
+    }
 
-public static function getNavigationBadgeColor(): ?string
-{
-    $count = static::getModel()::count();
-    
-    return match (true) {
-        $count > 20 => 'danger',
-        $count > 10 => 'warning',
-        $count > 0 => 'primary',
-        default => null
-    };
-}
+    public static function getNavigationBadgeColor(): ?string
+    {
+        $count = static::getModel()::count();
+        
+        return match (true) {
+            $count > 20 => 'danger',
+            $count > 10 => 'warning',
+            $count > 0 => 'primary',
+            default => null
+        };
+    }
 }

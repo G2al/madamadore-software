@@ -238,74 +238,100 @@ Forms\Components\Placeholder::make('delivery_date_helper')
     ->dehydrated(false),
 
             // Repeater per gli aggiusti
-            Forms\Components\Repeater::make('items')
-                ->label('Aggiusti')
-                ->relationship()
-                ->schema([
-                    Forms\Components\TextInput::make('name')
-                        ->label('Nome aggiusto')
-                        ->placeholder('es. Pantalone nero, Camicia bianca...')
-                        ->required()
-                        ->validationMessages([
-                            'required' => 'Il nome dell\'aggiusto è obbligatorio. Inserisci cosa deve essere aggiustato.',
-                        ])
-                        ->columnSpan(1),
-                    
-                    Forms\Components\Textarea::make('description')
-                        ->label('Descrizione lavoro')
-                        ->placeholder('Descrivi cosa è stato fatto...')
-                        ->rows(3)
-                        ->columnSpan(2),
-                ])
-                ->columns(3)
-                ->addActionLabel('Aggiungi aggiusto')
-                ->defaultItems(1)
-                ->collapsible()
-                ->cloneable(),
+Forms\Components\Repeater::make('items')
+    ->label('Aggiusti')
+    ->relationship()
+    ->schema([
+        Forms\Components\TextInput::make('name')
+            ->label('Nome aggiusto')
+            ->placeholder('es. Pantalone nero, Camicia bianca...')
+            ->required()
+            ->validationMessages([
+                'required' => 'Il nome dell\'aggiusto è obbligatorio. Inserisci cosa deve essere aggiustato.',
+            ])
+            ->columnSpan(1),
+        
+        Forms\Components\Textarea::make('description')
+            ->label('Descrizione lavoro')
+            ->placeholder('Descrivi cosa è stato fatto...')
+            ->rows(3)
+            ->columnSpan(1),  // ← CAMBIATO da 2 a 1
+
+        // NUOVO CAMPO PREZZO
+        Forms\Components\TextInput::make('price')
+            ->label('Prezzo')
+            ->numeric()
+            ->prefix('€')
+            ->default(0)
+            ->placeholder('0.00')
+            ->step(0.01)
+            ->columnSpan(1)
+            ->live(debounce: 300)
+            ->afterStateUpdated(fn (Set $set, Get $get) => 
+                AdjustmentResource::updateCalculations($set, $get)
+            ),
+    ])
+    ->columns(3)
+    ->addActionLabel('Aggiungi aggiusto')
+    ->defaultItems(1)
+    ->collapsible()
+    ->cloneable()
+    ->live() // ← AGGIUNGI per aggiornare i calcoli in tempo reale
+    ->afterStateUpdated(fn (Set $set, Get $get) => 
+        AdjustmentResource::updateCalculations($set, $get)
+    ),
         ]);
 }
     /**
      * Sezione: Pagamento
      */
     protected static function paymentSection(): Forms\Components\Section
-    {
-        return Forms\Components\Section::make('Pagamento')
-            ->schema([
-                Forms\Components\TextInput::make('client_price')
-                    ->label('Prezzo cliente')
-                    ->numeric()
-                    ->default(0)
-                    ->rules(['gte:0'])
-                    ->live()
-                    ->afterStateUpdated(fn (Set $set, Get $get) => AdjustmentResource::updateCalculations($set, $get)),
+{
+    return Forms\Components\Section::make('Pagamento')
+        ->schema([
+            Forms\Components\TextInput::make('client_price')
+                ->label('Prezzo totale cliente')
+                ->numeric()
+                ->default(0)
+                ->prefix('€')
+                ->helperText('Calcolato automaticamente dalla somma degli aggiusti. Puoi sovrascrivere manualmente.')
+                ->rules(['gte:0'])
+                ->live()
+                ->afterStateUpdated(fn (Set $set, Get $get) => 
+                    AdjustmentResource::updateCalculations($set, $get)),
 
-                Forms\Components\TextInput::make('deposit')
-                    ->label('Acconto')
-                    ->numeric()
-                    ->default(0)
-                    ->rules(['nullable', 'gte:0'])
-                    ->live()
-                    ->afterStateUpdated(fn (Set $set, Get $get) => AdjustmentResource::updateCalculations($set, $get)),
+            Forms\Components\TextInput::make('deposit')
+                ->label('Acconto')
+                ->numeric()
+                ->default(0)
+                ->prefix('€')
+                ->rules(['nullable', 'gte:0'])
+                ->live()
+                ->afterStateUpdated(fn (Set $set, Get $get) => 
+                    AdjustmentResource::updateCalculations($set, $get)),
 
-                Forms\Components\TextInput::make('total')
-                    ->label('Totale')
-                    ->numeric()
-                    ->default(0)
-                    ->readOnly(),
+            Forms\Components\TextInput::make('total')
+                ->label('Totale')
+                ->numeric()
+                ->prefix('€')
+                ->default(0)
+                ->readOnly(),
 
-                Forms\Components\TextInput::make('remaining')
-                    ->label('Rimanente')
-                    ->numeric()
-                    ->default(0)
-                    ->readOnly(),
+            Forms\Components\TextInput::make('remaining')
+                ->label('Rimanente')
+                ->numeric()
+                ->prefix('€')
+                ->default(0)
+                ->readOnly(),
 
-                Forms\Components\TextInput::make('profit')
-                    ->label('Guadagno')
-                    ->numeric()
-                    ->default(0)
-                    ->readOnly(),
-            ]);
-    }
+            Forms\Components\TextInput::make('profit')
+                ->label('Guadagno')
+                ->numeric()
+                ->prefix('€')
+                ->default(0)
+                ->readOnly(),
+        ]);
+}
 
         /**
      * Sezione: Lista della spesa
