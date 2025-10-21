@@ -26,22 +26,19 @@ class ShoppingItemResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('name')
                     ->label('Nome')
-                    ->required()
                     ->maxLength(255),
 
                 Forms\Components\TextInput::make('price')
                     ->label('Prezzo (€)')
                     ->numeric()
                     ->step(0.01)
-                    ->prefix('€')
-                    ->required(),
+                    ->prefix('€'),
 
                 Forms\Components\TextInput::make('quantity')
                     ->label('Quantità')
                     ->numeric()
                     ->step(0.01)
-                    ->suffix(fn(Forms\Get $get) => $get('unit_type') === 'metri' ? 'mt' : 'pz')
-                    ->required(),
+                    ->suffix(fn(Forms\Get $get) => $get('unit_type') === 'metri' ? 'mt' : 'pz'),
 
                 Forms\Components\Select::make('unit_type')
                     ->label('Tipo Misura')
