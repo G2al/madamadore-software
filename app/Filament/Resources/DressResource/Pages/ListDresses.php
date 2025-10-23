@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\DressResource\Pages;
 
 use App\Filament\Resources\DressResource;
+use App\Filament\Widgets\DressesOverview;
+use App\Filament\Widgets\DressesEconomics;
 use App\Models\Dress;
 use Filament\Actions;
 use Filament\Forms;
@@ -25,13 +27,11 @@ class ListDresses extends ListRecords
                 ->modalHeading('Abiti archiviati')
                 ->modalWidth('3xl')
                 ->form(function () {
-                    // Prendo gli archiviati (senza global scope)
                     $archived = Dress::withoutGlobalScopes()
                         ->whereNotNull('archived_at')
                         ->latest('archived_at')
                         ->get(['id', 'customer_name', 'ceremony_type', 'archived_at']);
 
-                    // Se vuoto, mostro solo un placeholder e niente submit
                     if ($archived->isEmpty()) {
                         return [
                             Forms\Components\Placeholder::make('empty')
@@ -40,7 +40,6 @@ class ListDresses extends ListRecords
                         ];
                     }
 
-                    // Altrimenti mostro la lista selezionabile
                     return [
                         Forms\Components\CheckboxList::make('to_restore')
                             ->label('Seleziona gli abiti da ripristinare')
@@ -58,7 +57,6 @@ class ListDresses extends ListRecords
                             ->columns(1),
                     ];
                 })
-                // Se nel form c'è solo il placeholder, nascondo il bottone submit
                 ->modalSubmitActionLabel('Ripristina selezionati')
                 ->modalCancelActionLabel('Chiudi')
                 ->action(function (array $data): void {
@@ -72,7 +70,6 @@ class ListDresses extends ListRecords
                         return;
                     }
 
-                    // Ripristino (tolgo archived_at) senza global scopes
                     Dress::withoutGlobalScopes()
                         ->whereIn('id', $ids)
                         ->update(['archived_at' => null]);
@@ -83,9 +80,17 @@ class ListDresses extends ListRecords
                         ->success()
                         ->send();
 
-                    // ricarico la tabella
                     $this->dispatch('refresh');
                 }),
+        ];
+    }
+
+    // 👇 AGGIUNGI QUESTO: Widget SOPRA la tabella
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            DressesOverview::class,
+            DressesEconomics::class,
         ];
     }
 }
