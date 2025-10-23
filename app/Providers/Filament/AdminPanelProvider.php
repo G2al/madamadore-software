@@ -30,8 +30,12 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->plugins([
-                FilamentFullCalendarPlugin::make(), // 👈 Registriamo il plugin qui
+                FilamentFullCalendarPlugin::make(),
             ])
+            ->renderHook(
+                'panels::body.end',
+                fn () => view('filament.scripts.collapse-navigation')
+            )
             ->colors([
                 'primary' => Color::hex('#7678ED'),
                 'gray'    => Color::hex('#273043'),
