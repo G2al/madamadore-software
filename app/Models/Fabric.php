@@ -23,4 +23,10 @@ class Fabric extends Model
         'purchase_price' => 'decimal:2',
         'client_price' => 'decimal:2',
     ];
+
+    // 👇 AGGIUNGI QUESTA RELAZIONE
+    public function patterns()
+    {
+        return $this->hasMany(FabricPattern::class);
+    }
 }
