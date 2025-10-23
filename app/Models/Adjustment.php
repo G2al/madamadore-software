@@ -20,6 +20,7 @@ class Adjustment extends Model
         'status',
         'ritirato',
         'saldato',
+         'payment_method',
         'name',
         'client_price',
         'deposit',

@@ -93,39 +93,89 @@ class ConsegnatiResource extends Resource
                             ->send();
                     }),
 
-Tables\Columns\ToggleColumn::make('saldato')
+Tables\Columns\IconColumn::make('saldato')
     ->label('Saldato')
-    ->onColor('success')
-    ->offColor('warning')
-    ->afterStateUpdated(function ($record, $state) {
-        if ($state === true) {
-            // Segna come completamente saldato
-            $oldDeposit = $record->deposit; // Salva l'acconto originale
-            
-            $record->update([
-                'deposit' => $record->client_price,
-                'remaining' => 0,
-            ]);
-            
-            \Filament\Notifications\Notification::make()
-                ->title('Aggiusto Saldato!')
-                ->body('Importo totale incassato: €' . number_format($record->client_price, 2, ',', '.'))
-                ->success()
-                ->send();
-        } else {
-            // Togglo OFF: ricalcola il rimanente con deposit attuale
-            $record->update([
-                'remaining' => $record->client_price - $record->deposit,
-            ]);
-            
-            \Filament\Notifications\Notification::make()
-                ->title('Stato aggiornato')
-                ->body('Aggiusto marcato come non saldato. Rimanente: €' . number_format($record->remaining, 2, ',', '.'))
-                ->warning()
-                ->send();
-        }
-    }),
-            ])
+    ->boolean()
+    ->trueIcon('heroicon-o-check-circle')
+    ->falseIcon('heroicon-o-x-circle')
+    ->trueColor('success')
+    ->falseColor('warning')
+    ->action(
+        Tables\Actions\Action::make('toggle_saldato')
+            ->label(fn($record) => $record->saldato ? 'Desalda' : 'Salda')
+            ->icon(fn($record) => $record->saldato ? 'heroicon-o-x-circle' : 'heroicon-o-banknotes')
+            ->color(fn($record) => $record->saldato ? 'warning' : 'success')
+            ->requiresConfirmation()
+            ->modalHeading(fn($record) => $record->saldato ? 'Desalda Aggiusto' : 'Conferma Saldamento')
+            ->modalDescription(fn($record) => $record->saldato 
+                ? 'Vuoi annullare il saldamento? L\'acconto sarà azzerato.' 
+                : 'Totale da saldare: €' . number_format($record->remaining, 2, ',', '.'))
+            ->form(fn($record) => $record->saldato ? [] : [
+    \Filament\Forms\Components\Select::make('payment_method')
+        ->label('Metodo di Pagamento')
+        ->options([
+            'contanti' => 'Contanti',
+            'pos' => 'POS',
+            'bonifico' => 'Bonifico',
+            'altro' => 'Altro',
+        ])
+        ->required()
+        ->reactive()
+        ->native(false)
+        ->prefixIcon('heroicon-o-banknotes'), // Icona singola per il campo
+
+    \Filament\Forms\Components\TextInput::make('payment_method_custom')
+        ->label('Specifica Metodo')
+        ->placeholder('Es: Assegno, PayPal, ecc.')
+        ->required()
+        ->visible(fn($get) => $get('payment_method') === 'altro')
+        ->maxLength(255)
+        ->prefixIcon('heroicon-o-pencil'),
+])
+            ->action(function ($record, array $data) {
+                if ($record->saldato) {
+                    // DESALDA
+                    $record->update([
+                        'saldato' => false,
+                        'deposit' => 0,
+                        'remaining' => $record->client_price,
+                        'payment_method' => null,
+                    ]);
+                    
+                    \Filament\Notifications\Notification::make()
+                        ->title('Aggiusto Desaldato')
+                        ->body('Rimanente da incassare: €' . number_format($record->client_price, 2, ',', '.'))
+                        ->warning()
+                        ->send();
+                } else {
+                    // SALDA con metodo pagamento
+                    $paymentMethod = $data['payment_method'] === 'altro' 
+                        ? $data['payment_method_custom'] 
+                        : $data['payment_method'];
+
+                    $record->update([
+                        'saldato' => true,
+                        'deposit' => $record->client_price,
+                        'remaining' => 0,
+                        'payment_method' => $paymentMethod,
+                    ]);
+
+                    \Filament\Notifications\Notification::make()
+                        ->title('Aggiusto Saldato!')
+                        ->body('Importo: €' . number_format($record->client_price, 2, ',', '.') . ' | Metodo: ' . ucfirst($paymentMethod))
+                        ->success()
+                        ->send();
+                }
+            })
+    ),
+
+Tables\Columns\TextColumn::make('payment_method')
+    ->label('Metodo Pagamento')
+    ->badge()
+    ->color('info')
+    ->formatStateUsing(fn($state) => $state ? ucfirst($state) : '-')
+    ->toggleable(),
+])
             ->filters([
                 Tables\Filters\SelectFilter::make('customer_id')
                     ->label('Cliente')

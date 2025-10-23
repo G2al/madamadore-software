@@ -8,7 +8,7 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class AdjustmentsEconomics extends BaseWidget
 {
-    protected static ?string $pollingInterval = '30s';
+    protected static ?string $pollingInterval = '5s';
     protected static ?int $sort = 2;
     protected static bool $isDiscovered = false;
 
