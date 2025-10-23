@@ -42,7 +42,7 @@ class AdjustmentResource extends Resource
         return self::buildTable($table);
     }
 
-    protected static function updateCalculations(Set $set, Get $get): void
+    public static function updateCalculations(Set $set, Get $get): void
 {
     // Calcola la somma dei prezzi degli items
     $items = $get('items') ?? [];

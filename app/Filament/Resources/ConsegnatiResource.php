@@ -93,28 +93,38 @@ class ConsegnatiResource extends Resource
                             ->send();
                     }),
 
-            Tables\Columns\ToggleColumn::make('saldato')
-                ->label('Saldato')
-                ->onColor('success')
-                ->offColor('warning')
-                ->afterStateUpdated(function ($record, $state) {
-                    \Filament\Notifications\Notification::make()
-                        ->title('Stato aggiornato')
-                        ->body($state ? 'Aggiusto marcato come saldato' : 'Aggiusto marcato come non saldato')
-                        ->success()
-                        ->send();
-                }),
-
-                Tables\Columns\TextColumn::make('delivery_date')
-                    ->label('Data Consegna')
-                    ->date('d/m/Y')
-                    ->sortable(),
-
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->label('Consegnato il')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+Tables\Columns\ToggleColumn::make('saldato')
+    ->label('Saldato')
+    ->onColor('success')
+    ->offColor('warning')
+    ->afterStateUpdated(function ($record, $state) {
+        if ($state === true) {
+            // Segna come completamente saldato
+            $oldDeposit = $record->deposit; // Salva l'acconto originale
+            
+            $record->update([
+                'deposit' => $record->client_price,
+                'remaining' => 0,
+            ]);
+            
+            \Filament\Notifications\Notification::make()
+                ->title('Aggiusto Saldato!')
+                ->body('Importo totale incassato: €' . number_format($record->client_price, 2, ',', '.'))
+                ->success()
+                ->send();
+        } else {
+            // Togglo OFF: ricalcola il rimanente con deposit attuale
+            $record->update([
+                'remaining' => $record->client_price - $record->deposit,
+            ]);
+            
+            \Filament\Notifications\Notification::make()
+                ->title('Stato aggiornato')
+                ->body('Aggiusto marcato come non saldato. Rimanente: €' . number_format($record->remaining, 2, ',', '.'))
+                ->warning()
+                ->send();
+        }
+    }),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('customer_id')
