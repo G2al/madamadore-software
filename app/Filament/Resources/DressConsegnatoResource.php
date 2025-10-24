@@ -8,6 +8,8 @@ use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
+use Filament\Tables\Columns\IconColumn;
 use App\Filament\Resources\DressConsegnatoResource\Pages;
 
 class DressConsegnatoResource extends Resource
@@ -68,6 +70,104 @@ class DressConsegnatoResource extends Resource
                     ->money('EUR')
                     ->color('success')
                     ->sortable()
+                    ->visible(fn() => auth()->user()->role === 'admin'),
+
+                // 🆕 TOGGLE RITIRATO
+                ToggleColumn::make('ritirato')
+                    ->label('Ritirato')
+                    ->onColor('success')
+                    ->offColor('info')
+                    ->afterStateUpdated(function ($record, $state) {
+                        \Filament\Notifications\Notification::make()
+                            ->title('Stato aggiornato')
+                            ->body($state ? 'Abito marcato come ritirato' : 'Abito marcato come non ritirato')
+                            ->success()
+                            ->send();
+                    }),
+
+                // 🆕 ICONA SALDATO CON AZIONE
+                IconColumn::make('saldato')
+                    ->label('Saldato')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('success')
+                    ->falseColor('warning')
+                    ->action(
+                        Action::make('toggle_saldato')
+                            ->label(fn($record) => $record->saldato ? 'Desalda' : 'Salda')
+                            ->icon(fn($record) => $record->saldato ? 'heroicon-o-x-circle' : 'heroicon-o-banknotes')
+                            ->color(fn($record) => $record->saldato ? 'warning' : 'success')
+                            ->requiresConfirmation()
+                            ->modalHeading(fn($record) => $record->saldato ? 'Desalda Abito' : 'Conferma Saldamento')
+                            ->modalDescription(fn($record) => $record->saldato 
+                                ? 'Vuoi annullare il saldamento? Il rimanente tornerà al prezzo totale.' 
+                                : 'Totale da saldare: €' . number_format($record->total_client_price, 2, ',', '.'))
+                            ->form(fn($record) => $record->saldato ? [] : [
+                                \Filament\Forms\Components\Select::make('payment_method')
+                                    ->label('Metodo di Pagamento')
+                                    ->options([
+                                        'contanti' => 'Contanti',
+                                        'pos' => 'POS',
+                                        'bonifico' => 'Bonifico',
+                                        'altro' => 'Altro',
+                                    ])
+                                    ->required()
+                                    ->reactive()
+                                    ->native(false)
+                                    ->prefixIcon('heroicon-o-banknotes'),
+
+                                \Filament\Forms\Components\TextInput::make('payment_method_custom')
+                                    ->label('Specifica Metodo')
+                                    ->placeholder('Es: Assegno, PayPal, ecc.')
+                                    ->required()
+                                    ->visible(fn($get) => $get('payment_method') === 'altro')
+                                    ->maxLength(255)
+                                    ->prefixIcon('heroicon-o-pencil'),
+                            ])
+                            ->action(function ($record, array $data) {
+                                if ($record->saldato) {
+                                    // DESALDA
+                                    $record->update([
+                                        'saldato' => false,
+                                        'remaining' => $record->total_client_price,
+                                        'payment_method' => null,
+                                    ]);
+                                    
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('Abito Desaldato')
+                                        ->body('Rimanente da incassare: €' . number_format($record->total_client_price, 2, ',', '.'))
+                                        ->warning()
+                                        ->send();
+                                } else {
+                                    // SALDA con metodo pagamento
+                                    $paymentMethod = $data['payment_method'] === 'altro' 
+                                        ? $data['payment_method_custom'] 
+                                        : $data['payment_method'];
+
+                                    $record->update([
+                                        'saldato' => true,
+                                        'remaining' => 0,
+                                        'payment_method' => $paymentMethod,
+                                    ]);
+
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('Abito Saldato!')
+                                        ->body('Importo: €' . number_format($record->total_client_price, 2, ',', '.') . ' | Metodo: ' . ucfirst($paymentMethod))
+                                        ->success()
+                                        ->send();
+                                }
+                            })
+                    )
+                    ->visible(fn() => auth()->user()->role === 'admin'),
+
+                // 🆕 METODO PAGAMENTO
+                TextColumn::make('payment_method')
+                    ->label('Metodo Pagamento')
+                    ->badge()
+                    ->color('info')
+                    ->formatStateUsing(fn($state) => $state ? ucfirst($state) : '-')
+                    ->toggleable()
                     ->visible(fn() => auth()->user()->role === 'admin'),
 
                 TextColumn::make('updated_at')
@@ -201,38 +301,37 @@ class DressConsegnatoResource extends Resource
                 
             ])
             
-->bulkActions([
-    \Filament\Tables\Actions\BulkActionGroup::make([
-        \Filament\Tables\Actions\BulkAction::make('archive')
-            ->label('Sposta nel Cestino')
-            ->icon('heroicon-o-archive-box')
-            ->color('warning')
-            ->requiresConfirmation()
-            ->modalHeading('Sposta nel Cestino')
-            ->modalDescription('Gli abiti selezionati verranno rimossi visivamente dal pannello ma resteranno conservati nel database per eventuali consultazioni future.')
-            ->modalSubmitActionLabel('Archivia')
-            ->action(function ($records): void {
-                $count = 0;
+            ->bulkActions([
+                \Filament\Tables\Actions\BulkActionGroup::make([
+                    \Filament\Tables\Actions\BulkAction::make('archive')
+                        ->label('Sposta nel Cestino')
+                        ->icon('heroicon-o-archive-box')
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->modalHeading('Sposta nel Cestino')
+                        ->modalDescription('Gli abiti selezionati verranno rimossi visivamente dal pannello ma resteranno conservati nel database per eventuali consultazioni future.')
+                        ->modalSubmitActionLabel('Archivia')
+                        ->action(function ($records): void {
+                            $count = 0;
 
-                foreach ($records as $record) {
-                    // Ricarica il record senza global scopes
-                    $fresh = \App\Models\Dress::withoutGlobalScopes()->find($record->id);
-                    if ($fresh) {
-                        $fresh->archive();
-                        $count++;
-                    }
-                }
+                            foreach ($records as $record) {
+                                // Ricarica il record senza global scopes
+                                $fresh = \App\Models\Dress::withoutGlobalScopes()->find($record->id);
+                                if ($fresh) {
+                                    $fresh->archive();
+                                    $count++;
+                                }
+                            }
 
-                \Filament\Notifications\Notification::make()
-                    ->title('Archiviazione completata')
-                    ->body("{$count} abiti spostati nel cestino.")
-                    ->success()
-                    ->send();
-            }),
-    ]),
-])
-
-            ->defaultSort('updated_at', 'desc') // Ordina per data di consegna più recente
+                            \Filament\Notifications\Notification::make()
+                                ->title('Archiviazione completata')
+                                ->body("{$count} abiti spostati nel cestino.")
+                                ->success()
+                                ->send();
+                        }),
+                ]),
+            ])
+            ->defaultSort('updated_at', 'desc')
             ->emptyStateHeading('Nessun abito consegnato')
             ->emptyStateDescription('Non ci sono ancora abiti consegnati.')
             ->emptyStateIcon('heroicon-o-check-circle');

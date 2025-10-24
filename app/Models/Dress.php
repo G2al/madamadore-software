@@ -32,7 +32,10 @@ class Dress extends Model
         'manual_client_price',
         'pronta_misura_notes',
         'use_manual_price',
-        'archived_at', // 👈 nuovo campo fillable
+        'archived_at', 
+        'ritirato',          
+        'saldato',          
+        'payment_method', 
     ];
 
     protected $casts = [
@@ -46,7 +49,9 @@ class Dress extends Model
         'total_profit' => 'decimal:2',
         'manual_client_price' => 'decimal:2',
         'use_manual_price' => 'boolean',
-        'archived_at' => 'datetime', // 👈 cast per archivio
+        'archived_at' => 'datetime',
+        'ritirato' => 'boolean',      
+        'saldato' => 'boolean',      
     ];
 
     // 🔹 RELAZIONI
