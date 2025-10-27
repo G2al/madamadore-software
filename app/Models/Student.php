@@ -14,6 +14,7 @@ class Student extends Model
         'cognome',
         'telefono',
         'costo_lezione',
+        'saldato',
     ];
 
     // Accessor: Nome completo

@@ -49,6 +49,10 @@ class StudentResource extends Resource
                     ->numeric()
                     ->required()
                     ->prefix('€'),
+                
+                Forms\Components\Toggle::make('saldato')
+                    ->label('Saldato')
+                    ->default(false),
             ]);
     }
 
@@ -69,6 +73,11 @@ class StudentResource extends Resource
                     ->sum('payments', 'amount')
                     ->money('EUR')
                     ->label('Totale Pagato'),
+
+Tables\Columns\ToggleColumn::make('saldato')
+    ->label('Saldato')
+    ->onColor('success')
+    ->offColor('info'),
             ])
             ->filters([])
             ->actions([
