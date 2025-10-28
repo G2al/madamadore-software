@@ -22,11 +22,11 @@ class Appuntamento extends Model
         'completed_at',
     ];
 
-    protected $casts = [
-        'data_appuntamento' => 'date:Y-m-d',
-        'ora_appuntamento' => 'string', // TIME nel DB → meglio string qui
-        'completed_at' => 'datetime',
-    ];
+protected $casts = [
+    'data_appuntamento' => 'date',
+    'ora_appuntamento'  => 'string',
+    'completed_at'      => 'datetime',
+];
 
     /**
      * Segna l'appuntamento come completato manualmente.
