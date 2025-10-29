@@ -13,10 +13,12 @@ class StudentPresence extends Model
     protected $fillable = [
         'student_id',
         'date',
+        'is_paid',
     ];
 
     protected $casts = [
         'date' => 'date',
+        'is_paid' => 'boolean', 
     ];
 
     public function student()
@@ -44,14 +46,13 @@ class StudentPresence extends Model
         });
 
         static::updated(function (StudentPresence $presence) {
-            if ($presence->isDirty('date')) {
-                // prova a trovare il pagamento generato per la vecchia data
-                StudentPayment::where('student_id', $presence->student_id)
-                    ->whereDate('date', $presence->getOriginal('date'))
-                    ->orderByDesc('id')
-                    ->first()?->update([
-                        'date' => $presence->date,
-                    ]);
+            if ($presence->isDirty('is_paid')) {
+                $student = $presence->student;
+
+                if ($student) {
+                    $allPaid = $student->presences()->where('is_paid', false)->doesntExist();
+                    $student->update(['saldato' => $allPaid]);
+                }
             }
         });
 

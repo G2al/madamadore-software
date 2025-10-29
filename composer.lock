@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2e0da6b8f53742dfe2484ed58bf03c3b",
+    "content-hash": "7748e2d6d3e11400afb9bcd0002f78a1",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -4929,6 +4929,80 @@
                 }
             ],
             "time": "2025-02-25T09:09:36+00:00"
+        },
+        {
+            "name": "saade/filament-fullcalendar",
+            "version": "v3.2.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/saade/filament-fullcalendar.git",
+                "reference": "218643a1c10c07ec073992b40845ccfcf977bb6e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/saade/filament-fullcalendar/zipball/218643a1c10c07ec073992b40845ccfcf977bb6e",
+                "reference": "218643a1c10c07ec073992b40845ccfcf977bb6e",
+                "shasum": ""
+            },
+            "require": {
+                "filament/filament": "^3.0",
+                "illuminate/contracts": "^10.0|^11.0|^12.0",
+                "php": "^8.1",
+                "spatie/laravel-package-tools": "^1.13.5"
+            },
+            "require-dev": {
+                "nunomaduro/collision": "^7.0|^8.0",
+                "nunomaduro/larastan": "^2.0",
+                "phpstan/extension-installer": "^1.1",
+                "phpstan/phpstan-deprecation-rules": "^1.0|^2.0",
+                "phpstan/phpstan-phpunit": "^1.0|^2.0",
+                "spatie/laravel-ray": "^1.26"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Saade\\FilamentFullCalendar\\FilamentFullCalendarServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/helpers.php"
+                ],
+                "psr-4": {
+                    "Saade\\FilamentFullCalendar\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Saade",
+                    "email": "saade@outlook.com.br",
+                    "role": "Developer"
+                }
+            ],
+            "description": "The Most Popular JavaScript Calendar integrated with Filament 💛",
+            "homepage": "https://github.com/saade/filament-fullcalendar",
+            "keywords": [
+                "filament-fullcalendar",
+                "laravel",
+                "saade"
+            ],
+            "support": {
+                "issues": "https://github.com/saade/filament-fullcalendar/issues",
+                "source": "https://github.com/saade/filament-fullcalendar/tree/v3.2.3"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/saade",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-02-19T17:19:23+00:00"
         },
         {
             "name": "sabberworm/php-css-parser",
