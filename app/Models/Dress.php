@@ -20,6 +20,7 @@ class Dress extends Model
         'delivery_date',
         'sketch_image',
         'final_image',
+        'drawing_image',
         'notes',
         'estimated_time',
         'manufacturing_price',

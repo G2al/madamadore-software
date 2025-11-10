@@ -11,6 +11,7 @@ use App\Services\MeasurementRecallService;
 use Filament\Forms\Components\Actions;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Notifications\Notification;
+use Saade\FilamentAutograph\Forms\Components\SignaturePad;
 
 
 
@@ -182,24 +183,61 @@ Forms\Components\Placeholder::make('delivery_date_helper')
         ->columns(2);
     }
 
-    // --- SEZIONE 2: Immagini Abito ---
     private static function imagesSection(): Forms\Components\Section
-    {
-        return Forms\Components\Section::make('Immagini Abito')
-            ->schema([
-                Forms\Components\FileUpload::make('sketch_image')
-                    ->label('Bozza')->image()->disk('public')->directory('dress-sketches')->visibility('public')
-                    ->acceptedFileTypes(['image/*'])
-                    ->downloadable(),
+{
+    return Forms\Components\Section::make('Immagini Abito')
+        ->schema([
+            // Row 1: Bozza e Definitivo (2 colonne)
+            Forms\Components\FileUpload::make('sketch_image')
+                ->label('Bozza')
+                ->image()
+                ->disk('public')
+                ->directory('dress-sketches')
+                ->visibility('public')
+                ->acceptedFileTypes(['image/*'])
+                ->downloadable()
+                ->columnSpan(1),
 
-                Forms\Components\FileUpload::make('final_image')
-                    ->label('Definitivo')->image()->disk('public')->directory('dress-finals')->visibility('public')
-                    ->acceptedFileTypes(['image/*'])
-                    ->downloadable(),
-            ])
-            ->columns(2);
-    }
+            Forms\Components\FileUpload::make('final_image')
+                ->label('Definitivo')
+                ->image()
+                ->disk('public')
+                ->directory('dress-finals')
+                ->visibility('public')
+                ->acceptedFileTypes(['image/*'])
+                ->downloadable()
+                ->columnSpan(1),
 
+            // Row 2: Canvas GRANDE (full width - 12 colonne)
+            SignaturePad::make('drawing_pad')
+                ->label('Disegna abito (schizzo monocolore)')
+                ->penColor('#ffffff')
+                ->exportPenColor('#000000')
+                ->backgroundColor('#805D93')
+                ->exportBackgroundColor('#ffffff')
+                ->lineMinWidth(0.9)
+                ->lineMaxWidth(2.8)
+                ->undoable()
+                ->clearable()
+                ->confirmable()
+                ->helperText('Disegna e premi "Done" per fissare lo schizzo. Verrà salvato come immagine.')
+                ->columnSpan('full'),  // ← FULL WIDTH
+
+            // Row 3: Preview salvato (full width)
+            Forms\Components\FileUpload::make('drawing_image')
+                ->label('Disegno salvato')
+                ->image()
+                ->disk('public')
+                ->directory('dress-drawings')
+                ->visibility('public')
+                ->downloadable()
+                ->dehydrated(false)
+                ->disabled()
+                ->columnSpan('full'),  // ← FULL WIDTH
+
+        ])
+        ->columns(2);  // Base 2 colonne, ma i full occupano tutto
+}
     // --- SEZIONE 3: Note ---
     private static function notesSection(): Forms\Components\Section
     {
