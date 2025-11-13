@@ -495,36 +495,45 @@ Forms\Components\Repeater::make('fabrics')
                 ->visible(fn (Get $get) => $get('mode') === 'fill'),
         ])
         ->action(function (array $data, Set $set, Get $get, $livewire) {
-            $currentMeasurements = $get('measurements') ?? [];
-            $currentCustoms      = $get('customMeasurements') ?? [];
-            $excludeId           = $livewire->record->id ?? null;
 
-            $result = MeasurementRecallService::recallForCustomerKey(
-                $data['customer_key'],
-                $excludeId,
-                $currentMeasurements,
-                $currentCustoms,
-                $data['mode'] ?? 'replace',
-                (bool) ($data['include_custom'] ?? true),
-                (bool) ($data['merge_custom_by_label'] ?? true),
-            );
+        $currentMeasurements = $get('measurements') ?? [];
+        $currentCustoms      = $get('customMeasurements') ?? [];
+        $excludeId           = $livewire->record->id ?? null;
 
-            $set('measurements', $result['measurements']);
-            $set('customMeasurements', $result['customMeasurements']);
+        $result = MeasurementRecallService::recallForCustomerKey(
+            $data['customer_key'],
+            $excludeId,
+            $currentMeasurements,
+            $currentCustoms,
+            $data['mode'] ?? 'replace',
+            (bool) ($data['include_custom'] ?? true),
+            (bool) ($data['merge_custom_by_label'] ?? true),
+        );
 
-            if (!empty($result['sourceDressId'])) {
-                Notification::make()
-                    ->title('Misure importate')
-                    ->body('Prese da Abito #'.$result['sourceDressId'])
-                    ->success()
-                    ->send();
-            } else {
-                Notification::make()
-                    ->title('Nessuna misura trovata per il cliente selezionato')
-                    ->warning()
-                    ->send();
-            }
-        }),
+        // ✔ Importa misure
+        $set('measurements', $result['measurements']);
+        $set('customMeasurements', $result['customMeasurements']);
+
+        // ✔ Importa anche NOME e TELEFONO
+        if ($result['sourceCustomerName']) {
+            $set('customer_name', $result['sourceCustomerName']);
+            $set('phone_number', $result['sourcePhoneNumber']);
+        }
+
+        // Notifiche
+        if (!empty($result['sourceDressId'])) {
+            Notification::make()
+                ->title('Misure importate')
+                ->body('Prese da Abito #'.$result['sourceDressId'])
+                ->success()
+                ->send();
+        } else {
+            Notification::make()
+                ->title('Nessuna misura trovata per il cliente selezionato')
+                ->warning()
+                ->send();
+        }
+    }),
 ]),
 
             ])
