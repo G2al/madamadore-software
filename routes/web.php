@@ -7,6 +7,7 @@ use App\Models\CompanyAdjustment;
 use App\Http\Controllers\ShoppingItemPrintController;
 use App\Http\Controllers\SpecialDressPdfController;
 use App\Http\Controllers\DrawingController;
+use App\Http\Controllers\PdfController;
 
 // Redirect alla dashboard admin
 Route::get('/', function () {
@@ -54,11 +55,17 @@ Route::get('/company-adjustments/{companyAdjustment}/receipt/item/{item}', funct
 Route::middleware(['auth'])->group(function () {
 
     // 📄 PDF Abiti standard
-    Route::get('/pdf/modellino/{dress}', [App\Http\Controllers\PdfController::class, 'modellino'])
+    Route::get('/pdf/modellino/{dress}', [PdfController::class, 'modellino'])
         ->name('pdf.modellino');
 
-    Route::get('/pdf/preventivo/{dress}', [App\Http\Controllers\PdfController::class, 'preventivo'])
+    Route::get('/pdf/preventivo/{dress}', [PdfController::class, 'preventivo'])
         ->name('pdf.preventivo');
+
+    // 📄 PDF Abiti per mese (consegna)
+    Route::get('/pdf/dresses/monthly/{year}/{month}', [PdfController::class, 'monthlyDresses'])
+        ->whereNumber('year')
+        ->whereNumber('month')
+        ->name('pdf.dresses.monthly');
 
     // 🌟 PDF Abiti Speciali
     Route::get('/pdf/special/modellino/{record}', [SpecialDressPdfController::class, 'modellino'])
@@ -82,29 +89,27 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/admin/calendar/availability', [App\Http\Controllers\Admin\CalendarController::class, 'getAvailability'])
         ->name('admin.calendar.availability');
 
-// ===============================================
-// 🎨 DRAWING TOOL — NUOVE ROTTE
-// ===============================================
+    // ===============================================
+    // 🎨 DRAWING TOOL — NUOVE ROTTE
+    // ===============================================
 
-// Pagina dove disegnare collegata a un abito ESISTENTE
-Route::get('/admin/draw/dress/{dress}', [DrawingController::class, 'edit'])
-    ->name('draw.edit');
+    // Pagina dove disegnare collegata a un abito ESISTENTE
+    Route::get('/admin/draw/dress/{dress}', [DrawingController::class, 'edit'])
+        ->name('draw.edit');
 
-// Salvataggio PNG per abito ESISTENTE
-Route::post('/admin/draw/dress/{dress}', [DrawingController::class, 'store'])
-    ->name('draw.store');
+    // Salvataggio PNG per abito ESISTENTE
+    Route::post('/admin/draw/dress/{dress}', [DrawingController::class, 'store'])
+        ->name('draw.store');
 
-// ===============================================
-// 🎨 DRAWING TOOL — MODALITÀ TEMPORANEA (NUOVO ABITO)
-// ===============================================
+    // ===============================================
+    // 🎨 DRAWING TOOL — MODALITÀ TEMPORANEA (NUOVO ABITO)
+    // ===============================================
 
-// Apri canvas SENZA un dress_id
-Route::get('/admin/draw/temp', [DrawingController::class, 'editTemp'])
-    ->name('draw.temp');
+    // Apri canvas SENZA un dress_id
+    Route::get('/admin/draw/temp', [DrawingController::class, 'editTemp'])
+        ->name('draw.temp');
 
-// Salva PNG temporaneo
-Route::post('/admin/draw/temp/save', [DrawingController::class, 'storeTemp'])
-    ->name('draw.temp.store');
-
-
+    // Salva PNG temporaneo
+    Route::post('/admin/draw/temp/save', [DrawingController::class, 'storeTemp'])
+        ->name('draw.temp.store');
 });

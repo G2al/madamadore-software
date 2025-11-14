@@ -6,6 +6,7 @@ use App\Filament\Resources\DressResource;
 use App\Filament\Widgets\DressesOverview;
 use App\Filament\Widgets\DressesEconomics;
 use App\Models\Dress;
+use Carbon\Carbon;
 use Filament\Actions;
 use Filament\Forms;
 use Filament\Notifications\Notification;
@@ -20,6 +21,7 @@ class ListDresses extends ListRecords
         return [
             Actions\CreateAction::make(),
 
+            // 🗑️ Cestino
             Actions\Action::make('open_trash')
                 ->label('Cestino')
                 ->icon('heroicon-o-archive-box')
@@ -82,10 +84,45 @@ class ListDresses extends ListRecords
 
                     $this->dispatch('refresh');
                 }),
+
+            // 🖨️ Stampa mensile
+            Actions\Action::make('print_monthly')
+                ->label('Stampa abiti per mese')
+                ->icon('heroicon-o-printer')
+                ->color('primary')
+                ->modalHeading('Stampa abiti per mese di consegna')
+                ->form([
+                    Forms\Components\DatePicker::make('month')
+                        ->label('Mese di consegna')
+                        ->native(false)
+                        ->displayFormat('m/Y')
+                        ->required()
+                        ->closeOnDateSelection(),
+                ])
+                ->modalSubmitActionLabel('Stampa PDF')
+                ->action(function (array $data) {
+                    if (empty($data['month'])) {
+                        Notification::make()
+                            ->title('Seleziona un mese')
+                            ->warning()
+                            ->send();
+
+                        return;
+                    }
+
+                    $date = Carbon::parse($data['month']);
+                    $year = $date->year;
+                    $month = $date->month;
+
+                    return redirect()->route('pdf.dresses.monthly', [
+                        'year'  => $year,
+                        'month' => $month,
+                    ]);
+                }),
         ];
     }
 
-    // 👇 AGGIUNGI QUESTO: Widget SOPRA la tabella
+    // 👇 Widget SOPRA la tabella
     protected function getHeaderWidgets(): array
     {
         return [
