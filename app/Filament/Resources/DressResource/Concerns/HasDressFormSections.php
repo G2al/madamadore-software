@@ -182,11 +182,11 @@ Forms\Components\Placeholder::make('delivery_date_helper')
         ])
         ->columns(2);
     }
-
-    private static function imagesSection(): Forms\Components\Section
+private static function imagesSection(): Forms\Components\Section
 {
     return Forms\Components\Section::make('Immagini Abito')
         ->schema([
+
             // Row 1: Bozza e Definitivo (2 colonne)
             Forms\Components\FileUpload::make('sketch_image')
                 ->label('Bozza')
@@ -208,20 +208,22 @@ Forms\Components\Placeholder::make('delivery_date_helper')
                 ->downloadable()
                 ->columnSpan(1),
 
-            // Row 2: Canvas GRANDE (full width - 12 colonne)
-            SignaturePad::make('drawing_pad')
-                ->label('Disegna abito (schizzo monocolore)')
-                ->penColor('#ffffff')
-                ->exportPenColor('#000000')
-                ->backgroundColor('#805D93')
-                ->exportBackgroundColor('#ffffff')
-                ->lineMinWidth(0.9)
-                ->lineMaxWidth(2.8)
-                ->undoable()
-                ->clearable()
-                ->confirmable()
-                ->helperText('Disegna e premi "Done" per fissare lo schizzo. Verrà salvato come immagine.')
-                ->columnSpan('full'),  // ← FULL WIDTH
+            // ============================================================
+            // ➕ BOTTONE APERTURA CANVAS (CREATE + EDIT, NUOVA TAB)
+            // ============================================================
+            \Filament\Forms\Components\Actions::make([
+                \Filament\Forms\Components\Actions\Action::make('open_canvas')
+                    ->label('Disegna abito')
+                    ->icon('heroicon-o-pencil')
+                    ->color('primary')
+                    ->url(fn ($record) =>
+                        $record
+                            ? route('draw.edit', $record->id)   // EDIT: /admin/draw/dress/{dress}
+                            : route('draw.temp')                // CREATE: /admin/draw/temp
+                    )
+                    ->openUrlInNewTab(),                        // 👈 usa il supporto nativo
+            ])
+            ->columnSpan('full'),
 
             // Row 3: Preview salvato (full width)
             Forms\Components\FileUpload::make('drawing_image')
@@ -231,13 +233,14 @@ Forms\Components\Placeholder::make('delivery_date_helper')
                 ->directory('dress-drawings')
                 ->visibility('public')
                 ->downloadable()
-                ->dehydrated(false)
-                ->disabled()
-                ->columnSpan('full'),  // ← FULL WIDTH
-
+                ->dehydrated(true)
+                ->columnSpan('full'),
         ])
-        ->columns(2);  // Base 2 colonne, ma i full occupano tutto
+        ->columns(2);
 }
+
+
+
     // --- SEZIONE 3: Note ---
     private static function notesSection(): Forms\Components\Section
     {

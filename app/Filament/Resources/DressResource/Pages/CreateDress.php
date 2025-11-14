@@ -4,38 +4,26 @@ namespace App\Filament\Resources\DressResource\Pages;
 
 use App\Filament\Resources\DressResource;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Session;
 
 class CreateDress extends CreateRecord
 {
     protected static string $resource = DressResource::class;
 
+    /**
+     * Prima di creare il Dress nel DB, agganciamo
+     * l'eventuale disegno salvato in modalità TEMP
+     * (canvas aperto da "Nuovo Abito").
+     */
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        if (!empty($data['drawing_pad'])) {
-            $data['drawing_image'] = $this->storePadAsImage($data['drawing_pad']);
+        // Se NON c'è già un'immagine caricata a mano
+        // e abbiamo un disegno temporaneo salvato dal canvas,
+        // usalo come drawing_image.
+        if (empty($data['drawing_image']) && Session::has('last_dress_temp_drawing')) {
+            $data['drawing_image'] = Session::pull('last_dress_temp_drawing'); // legge e svuota la sessione
         }
-
-        // Non persistiamo lo state del pad
-        unset($data['drawing_pad']);
 
         return $data;
-    }
-
-    private function storePadAsImage(string $dataUrl): string
-    {
-        // Supporta sia PNG che JPEG se mai cambiassi export
-        if (!preg_match('#^data:image/(png|jpe?g);base64,#i', $dataUrl)) {
-            return '';
-        }
-
-        $binary = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $dataUrl));
-        $ext = str_contains($dataUrl, 'image/jpeg') || str_contains($dataUrl, 'image/jpg') ? 'jpg' : 'png';
-
-        $path = 'dress-drawings/' . Str::uuid() . '.' . $ext;
-        Storage::disk('public')->put($path, $binary);
-
-        return $path;
     }
 }
