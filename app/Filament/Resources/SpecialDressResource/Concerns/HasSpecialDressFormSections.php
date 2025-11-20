@@ -25,11 +25,11 @@ trait HasSpecialDressFormSections
                     ->tel()
                     ->maxLength(255),
 
-                Forms\Components\TextInput::make('ceremony_type')
+                Forms\Components\Select::make('ceremony_type')
                     ->label('Festività')
-                    ->placeholder('Es: Matrimonio, Battesimo, Comunione, ..')
-                    ->datalist(array_values(config('dress.ceremonies', [])))
-                    ->maxLength(255),
+                    ->options(fn () => \App\Models\Ceremony::orderBy('sort_order')->pluck('name', 'name'))
+                    ->searchable()
+                    ->required(),
 
                 Forms\Components\DatePicker::make('delivery_date')
                     ->label('Data di Consegna Prevista')

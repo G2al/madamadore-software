@@ -151,6 +151,12 @@ trait HasSpecialDressTableDefinition
             ->filters(self::tableFilters())
             ->actions(self::tableRowActions())
             ->bulkActions(self::tableBulkActions())
-            ->defaultSort('created_at', 'desc');
+            ->groups([
+                Tables\Grouping\Group::make('ceremony_type')
+                    ->label('Festività')
+                    ->collapsible(),
+            ])
+            ->defaultSort('created_at', 'desc')
+            ->defaultGroup('ceremony_type');
     }
 }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SpecialDress extends Model
 {
@@ -42,6 +43,12 @@ class SpecialDress extends Model
     public function measurements(): HasOne
     {
         return $this->hasOne(SpecialDressMeasurement::class);
+    }
+
+    // Relazione verso la festività
+    public function ceremony(): BelongsTo
+    {
+        return $this->belongsTo(Ceremony::class, 'ceremony_type', 'name');
     }
 
     // Recalcolo semplice: remaining = price - deposit (min 0)
