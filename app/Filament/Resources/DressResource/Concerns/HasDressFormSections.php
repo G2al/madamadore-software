@@ -12,7 +12,6 @@ use Filament\Forms\Components\Actions;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Notifications\Notification;
 use Saade\FilamentAutograph\Forms\Components\SignaturePad;
-use App\Forms\Components\SignaturePadWithEraser;
 
 
 
@@ -209,7 +208,7 @@ private static function imagesSection(): Forms\Components\Section
                 ->columnSpan(1),
 
             // Row 2: SignaturePad GRANDE (full width - 12 colonne)
-            SignaturePadWithEraser::make('drawing_pad')
+            SignaturePad::make('drawing_pad')
                 ->label('Disegna abito (schizzo monocolore)')
                 ->penColor('#ffffff')
                 ->exportPenColor('#000000')
@@ -220,7 +219,6 @@ private static function imagesSection(): Forms\Components\Section
                 ->undoable()
                 ->clearable()
                 ->confirmable()
-                ->eraser()
                 ->helperText('Disegna e premi "Done" per fissare lo schizzo. Verrà salvato come immagine.')
                 ->columnSpan('full'),
 
