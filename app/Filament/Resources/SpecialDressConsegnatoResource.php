@@ -10,6 +10,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Grouping\Group;
 use Illuminate\Database\Eloquent\Builder; // 👈
 use App\Filament\Resources\SpecialDressConsegnatoResource\Pages;
 
@@ -165,7 +166,13 @@ class SpecialDressConsegnatoResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([]),
             ])
+            ->groups([
+                Group::make('ceremony_type')
+                    ->label('Festività')
+                    ->collapsible(),
+            ])
             ->defaultSort('updated_at', 'desc')
+            ->defaultGroup('ceremony_type')
             ->emptyStateHeading('Nessun abito consegnato (Special)')
             ->emptyStateDescription('Quando consegnerai un abito speciale comparirà qui.')
             ->emptyStateIcon('heroicon-o-check-circle');

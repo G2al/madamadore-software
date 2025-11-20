@@ -9,6 +9,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder; // 👈 IMPORTANTE
 use App\Filament\Resources\SpecialDressConfermatiResource\Pages;
+use Filament\Tables\Grouping\Group;
 
 class SpecialDressConfermatiResource extends Resource
 {
@@ -76,7 +77,13 @@ class SpecialDressConfermatiResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([]),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->groups([
+                Group::make('ceremony_type')
+                    ->label('Festività')
+                    ->collapsible(),
+            ])
+            ->defaultSort('created_at', 'desc')
+            ->defaultGroup('ceremony_type');
     }
 
     public static function getRelations(): array { return []; }

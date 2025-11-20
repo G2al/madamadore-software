@@ -9,6 +9,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\SpecialDressInAttesaAccontoResource\Pages;
+use Filament\Tables\Grouping\Group;
 
 class SpecialDressInAttesaAccontoResource extends Resource
 {
@@ -79,7 +80,13 @@ class SpecialDressInAttesaAccontoResource extends Resource
                     Tables\Actions\DeleteBulkAction::make()->visible(false),
                 ]),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->groups([
+                Group::make('ceremony_type')
+                    ->label('Festività')
+                    ->collapsible(),
+            ])
+            ->defaultSort('created_at', 'desc')
+            ->defaultGroup('ceremony_type');
     }
 
     public static function getRelations(): array
