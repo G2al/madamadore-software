@@ -54,14 +54,10 @@
             setTimeout(() => {
                 initSignaturePad();
                 @if ($hasEraser)
-                    // Intercetta l'evento di disegno originale
+                    // Aggancia la gomma al canvas
                     const canvasEl = $refs.canvas;
-                    const originalOnMouseMove = canvasEl.onmousemove;
-                    const originalOnMouseDown = canvasEl.onmousedown;
-
                     canvasEl.addEventListener('mousemove', (e) => {
-                        if (eraserMode) {
-                            e.stopPropagation();
+                        if ($data.eraserMode) {
                             const ctx = canvasEl.getContext('2d');
                             const rect = canvasEl.getBoundingClientRect();
                             const x = e.clientX - rect.left;
@@ -71,7 +67,7 @@
                                 ctx.clearRect(x - 5, y - 5, 15, 15);
                             }
                         }
-                    }, true);
+                    });
                 @endif
             }, 200)
         }}"
