@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(php artisan:*)"
+      "Bash(php artisan:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAggiunta colonna drawing_pad alla tabella dresses\n\n- Creata migration per aggiungere colonna drawing_pad\n- Tipo: longText (per contenere il base64 del disegno)\n- Posizionata dopo final_image\n- Migration eseguita con successo\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
