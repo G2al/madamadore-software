@@ -29,7 +29,30 @@ trait HasSpecialDressFormSections
                     ->label('Festività')
                     ->options(fn () => \App\Models\Ceremony::orderBy('sort_order')->pluck('name', 'name'))
                     ->searchable()
-                    ->required(),
+                    ->required()
+                    ->createOptionAction(function (Forms\Components\Actions\CreateAction $action) {
+                        return $action
+                            ->modalHeading('Crea nuova festività')
+                            ->modalSubmitActionLabel('Crea')
+                            ->modalCancelActionLabel('Annulla')
+                            ->form([
+                                Forms\Components\TextInput::make('name')
+                                    ->label('Nome Festività')
+                                    ->required()
+                                    ->maxLength(255),
+                                Forms\Components\TextInput::make('icon')
+                                    ->label('Emoji/Icona')
+                                    ->hint('Es: 💒, 🎂, 🎈, etc')
+                                    ->maxLength(10),
+                            ])
+                            ->action(function (array $data) {
+                                \App\Models\Ceremony::create([
+                                    'name' => $data['name'],
+                                    'icon' => $data['icon'] ?? '✨',
+                                    'sort_order' => 999,
+                                ]);
+                            });
+                    }),
 
                 Forms\Components\DatePicker::make('delivery_date')
                     ->label('Data di Consegna Prevista')
