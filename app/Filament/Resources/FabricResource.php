@@ -136,6 +136,14 @@ public static function form(Forms\Form $form): Forms\Form
             ])
             ->filters([])
             ->actions([
+                Tables\Actions\Action::make('view_image')
+                    ->label('Visualizza Foto')
+                    ->icon('heroicon-o-eye')
+                    ->color('info')
+                    ->modalHeading('Foto Tessuto')
+                    ->modalContent(fn ($record) => view('filament.modals.fabric-image-modal', ['record' => $record]))
+                    ->modal(),
+
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
