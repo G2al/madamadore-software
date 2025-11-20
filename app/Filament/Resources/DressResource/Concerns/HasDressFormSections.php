@@ -357,7 +357,9 @@ Forms\Components\Repeater::make('fabrics')
             ->step(0.01)
             ->prefix('€')
             ->live(debounce: 300)
-            ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get)),
+            ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get))
+            ->hidden()
+            ->dehydrated(),
 
         Forms\Components\TextInput::make('client_price')
             ->label('Prezzo Cliente')
