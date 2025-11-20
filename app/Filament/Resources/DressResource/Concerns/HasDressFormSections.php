@@ -187,25 +187,66 @@ private static function imagesSection(): Forms\Components\Section
     return Forms\Components\Section::make('Immagini Abito')
         ->schema([
             // Row 1: Bozza e Definitivo (2 colonne)
-            Forms\Components\FileUpload::make('sketch_image')
-                ->label('Bozza')
-                ->image()
-                ->disk('public')
-                ->directory('dress-sketches')
-                ->visibility('public')
-                ->acceptedFileTypes(['image/*'])
-                ->downloadable()
-                ->columnSpan(1),
+            Forms\Components\Grid::make(2)
+                ->schema([
+                    Forms\Components\FileUpload::make('sketch_image')
+                        ->label('Bozza')
+                        ->image()
+                        ->disk('public')
+                        ->directory('dress-sketches')
+                        ->visibility('public')
+                        ->acceptedFileTypes(['image/*'])
+                        ->downloadable(),
 
-            Forms\Components\FileUpload::make('final_image')
-                ->label('Definitivo')
-                ->image()
-                ->disk('public')
-                ->directory('dress-finals')
-                ->visibility('public')
-                ->acceptedFileTypes(['image/*'])
-                ->downloadable()
-                ->columnSpan(1),
+                    Forms\Components\FileUpload::make('final_image')
+                        ->label('Definitivo')
+                        ->image()
+                        ->disk('public')
+                        ->directory('dress-finals')
+                        ->visibility('public')
+                        ->acceptedFileTypes(['image/*'])
+                        ->downloadable(),
+                ]),
+
+            // Row 2: Bottoni di visualizzazione
+            Forms\Components\Actions::make([
+                Forms\Components\Actions\Action::make('view_sketch')
+                    ->label('🔍 Visualizza Bozza')
+                    ->icon('heroicon-o-eye')
+                    ->color('info')
+                    ->modalHeading('Visualizza Bozza')
+                    ->modalContent(fn($record) => $record?->sketch_image
+                        ? view('filament.modals.image-viewer', ['imagePath' => $record->sketch_image, 'title' => 'Bozza'])
+                        : view('filament.modals.image-viewer', ['imagePath' => null, 'title' => 'Bozza'])
+                    )
+                    ->modal()
+                    ->visible(fn($record) => $record?->sketch_image),
+
+                Forms\Components\Actions\Action::make('view_final')
+                    ->label('🔍 Visualizza Definitivo')
+                    ->icon('heroicon-o-eye')
+                    ->color('success')
+                    ->modalHeading('Visualizza Definitivo')
+                    ->modalContent(fn($record) => $record?->final_image
+                        ? view('filament.modals.image-viewer', ['imagePath' => $record->final_image, 'title' => 'Definitivo'])
+                        : view('filament.modals.image-viewer', ['imagePath' => null, 'title' => 'Definitivo'])
+                    )
+                    ->modal()
+                    ->visible(fn($record) => $record?->final_image),
+
+                Forms\Components\Actions\Action::make('view_drawing')
+                    ->label('🔍 Visualizza Disegno')
+                    ->icon('heroicon-o-eye')
+                    ->color('warning')
+                    ->modalHeading('Visualizza Disegno')
+                    ->modalContent(fn($record) => $record?->drawing_image
+                        ? view('filament.modals.image-viewer', ['imagePath' => $record->drawing_image, 'title' => 'Disegno Salvato'])
+                        : view('filament.modals.image-viewer', ['imagePath' => null, 'title' => 'Disegno Salvato'])
+                    )
+                    ->modal()
+                    ->visible(fn($record) => $record?->drawing_image),
+            ])
+            ->columnSpanFull(),
 
             // Row 2: SignaturePad GRANDE (full width - 12 colonne)
             SignaturePad::make('drawing_pad')
