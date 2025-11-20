@@ -20,6 +20,7 @@ class Dress extends Model
         'delivery_date',
         'sketch_image',
         'final_image',
+        'drawing_pad',
         'drawing_image',
         'notes',
         'estimated_time',
@@ -33,10 +34,10 @@ class Dress extends Model
         'manual_client_price',
         'pronta_misura_notes',
         'use_manual_price',
-        'archived_at', 
-        'ritirato',          
-        'saldato',          
-        'payment_method', 
+        'archived_at',
+        'ritirato',
+        'saldato',
+        'payment_method',
     ];
 
     protected $casts = [
@@ -206,6 +207,31 @@ public function archive(): void
     static::withoutGlobalScope('notArchived')
         ->where('id', $this->id)
         ->update(['archived_at' => now()]);
+}
+
+// 🔹 MUTATORE: Salva drawing_pad come immagine in drawing_image
+protected function drawingPad(): \Illuminate\Database\Eloquent\Casts\Attribute
+{
+    return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+        set: function ($value) {
+            // Se il disegno è in base64, salvalo come file
+            if ($value && is_string($value) && strpos($value, 'data:image') === 0) {
+                // Estrai i dati base64
+                $data = str_replace('data:image/png;base64,', '', $value);
+                $data = str_replace('data:image/jpeg;base64,', '', $data);
+                $image = base64_decode($data);
+
+                // Salva il file su storage
+                $filename = 'dress-drawings/' . uniqid('drawing_') . '.png';
+                \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $image);
+
+                // Imposta il filename in drawing_image
+                $this->drawing_image = $filename;
+            }
+
+            return $value;
+        }
+    );
 }
 
 }
