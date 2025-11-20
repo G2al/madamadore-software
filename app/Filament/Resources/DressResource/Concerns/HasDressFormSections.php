@@ -496,11 +496,16 @@ Forms\Components\Repeater::make('fabrics')
                 ->label('Evita duplicati per etichetta (solo in "Completa")')
                 ->default(true)
                 ->visible(fn (Get $get) => $get('mode') === 'fill'),
+
+            Forms\Components\Toggle::make('include_corsets')
+                ->label('Includi misure corsetto')
+                ->default(true),
         ])
         ->action(function (array $data, Set $set, Get $get, $livewire) {
 
         $currentMeasurements = $get('measurements') ?? [];
         $currentCustoms      = $get('customMeasurements') ?? [];
+        $currentCorsets      = $get('corsets') ?? [];
         $excludeId           = $livewire->record->id ?? null;
 
         $result = MeasurementRecallService::recallForCustomerKey(
@@ -511,11 +516,14 @@ Forms\Components\Repeater::make('fabrics')
             $data['mode'] ?? 'replace',
             (bool) ($data['include_custom'] ?? true),
             (bool) ($data['merge_custom_by_label'] ?? true),
+            (bool) ($data['include_corsets'] ?? true),
+            $currentCorsets,
         );
 
         // ✔ Importa misure
         $set('measurements', $result['measurements']);
         $set('customMeasurements', $result['customMeasurements']);
+        $set('corsets', $result['corsets']);
 
         // ✔ Importa anche NOME e TELEFONO
         if ($result['sourceCustomerName']) {
@@ -704,6 +712,90 @@ Forms\Components\TextInput::make('remaining')
                     ->options(self::getStatusLabels())
                     ->default('in_attesa_acconto'),
                 ]),
+            ])
+            ->columnSpanFull();
+    }
+
+    private static function corsetsSection(): Forms\Components\Section
+    {
+        return Forms\Components\Section::make('Misura Corsetto')
+            ->schema([
+                Forms\Components\Repeater::make('corsets')
+                    ->label('Corsetti')
+                    ->relationship('corsets')
+                    ->schema([
+                        Forms\Components\Fieldset::make('Pinza Vita')
+                            ->schema([
+                                Forms\Components\TextInput::make('pinza_vita_davanti')
+                                    ->label('Davanti')
+                                    ->numeric()
+                                    ->step(0.1)
+                                    ->suffix('cm'),
+
+                                Forms\Components\TextInput::make('pinza_vita_lato')
+                                    ->label('Lato')
+                                    ->numeric()
+                                    ->step(0.1)
+                                    ->suffix('cm'),
+
+                                Forms\Components\TextInput::make('pinza_vita_dietro')
+                                    ->label('Dietro')
+                                    ->numeric()
+                                    ->step(0.1)
+                                    ->suffix('cm'),
+                            ])
+                            ->columns(3),
+
+                        Forms\Components\Fieldset::make('Pinza Fianchi')
+                            ->schema([
+                                Forms\Components\TextInput::make('pinza_fianchi_davanti')
+                                    ->label('Davanti')
+                                    ->numeric()
+                                    ->step(0.1)
+                                    ->suffix('cm'),
+
+                                Forms\Components\TextInput::make('pinza_fianchi_lato')
+                                    ->label('Lato')
+                                    ->numeric()
+                                    ->step(0.1)
+                                    ->suffix('cm'),
+
+                                Forms\Components\TextInput::make('pinza_fianchi_dietro')
+                                    ->label('Dietro')
+                                    ->numeric()
+                                    ->step(0.1)
+                                    ->suffix('cm'),
+                            ])
+                            ->columns(3),
+
+                        Forms\Components\Fieldset::make('Linea Sotto Seno')
+                            ->schema([
+                                Forms\Components\TextInput::make('linea_sottoseno_davanti')
+                                    ->label('Davanti')
+                                    ->numeric()
+                                    ->step(0.1)
+                                    ->suffix('cm'),
+
+                                Forms\Components\TextInput::make('linea_sottoseno_lato')
+                                    ->label('Lato')
+                                    ->numeric()
+                                    ->step(0.1)
+                                    ->suffix('cm'),
+
+                                Forms\Components\TextInput::make('linea_sottoseno_dietro')
+                                    ->label('Dietro')
+                                    ->numeric()
+                                    ->step(0.1)
+                                    ->suffix('cm'),
+                            ])
+                            ->columns(3),
+                    ])
+                    ->itemLabel('Corsetto')
+                    ->collapsible()
+                    ->cloneable()
+                    ->reorderableWithButtons()
+                    ->addActionLabel('Aggiungi Corsetto')
+                    ->defaultItems(0),
             ])
             ->columnSpanFull();
     }

@@ -133,14 +133,6 @@ public static function form(Forms\Form $form): Forms\Form
 
                 Tables\Columns\TextColumn::make('supplier')
                     ->label('Fornitore'),
-
-                Tables\Columns\TextColumn::make('purchase_price')
-                    ->label('Prezzo Acquisto')
-                    ->money('EUR'),
-
-                Tables\Columns\TextColumn::make('client_price')
-                    ->label('Prezzo Cliente')
-                    ->money('EUR'),
             ])
             ->filters([])
             ->actions([

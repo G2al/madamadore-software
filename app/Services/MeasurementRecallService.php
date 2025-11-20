@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Dress;
 use App\Models\DressMeasurement;
+use App\Models\DressCorset;
 
 class MeasurementRecallService
 {
@@ -102,13 +103,13 @@ class MeasurementRecallService
             $q->where('id', '!=', $excludeDressId);
         }
 
-        return $q->with(['measurements', 'customMeasurements'])
+        return $q->with(['measurements', 'customMeasurements', 'corsets'])
             ->latest('created_at')
             ->first();
     }
 
     /**
-     * Esporta le misure dal Dress sorgente.
+     * Esporta le misure dal Dress sorgente (inclusi corsetti).
      */
     public static function exportFromDress(Dress $source): array
     {
@@ -136,14 +137,31 @@ class MeasurementRecallService
 
         $measurements = empty($measurementsItem) ? [] : [$measurementsItem];
 
+        // Export corsetti
+        $corsetsItems = $source->corsets
+            ->map(fn ($corset) => [
+                'pinza_vita_davanti' => $corset->pinza_vita_davanti,
+                'pinza_vita_lato' => $corset->pinza_vita_lato,
+                'pinza_vita_dietro' => $corset->pinza_vita_dietro,
+                'pinza_fianchi_davanti' => $corset->pinza_fianchi_davanti,
+                'pinza_fianchi_lato' => $corset->pinza_fianchi_lato,
+                'pinza_fianchi_dietro' => $corset->pinza_fianchi_dietro,
+                'linea_sottoseno_davanti' => $corset->linea_sottoseno_davanti,
+                'linea_sottoseno_lato' => $corset->linea_sottoseno_lato,
+                'linea_sottoseno_dietro' => $corset->linea_sottoseno_dietro,
+            ])
+            ->values()
+            ->all();
+
         return [
             'measurements'       => $measurements,
             'customMeasurements' => $customItems,
+            'corsets'            => $corsetsItems,
         ];
     }
 
     /**
-     * Applica export allo stato attuale del form.
+     * Applica export allo stato attuale del form (inclusi corsetti).
      */
     public static function applyToState(
         array $currentMeasurements,
@@ -152,6 +170,8 @@ class MeasurementRecallService
         string $mode = 'replace',
         bool $includeCustom = true,
         bool $mergeCustomByLabel = true,
+        bool $includeCorsets = true,
+        array $currentCorsets = [],
     ): array {
         /** -----------------  MISURE FISSE ----------------- */
 
@@ -212,18 +232,37 @@ class MeasurementRecallService
             $newMeasurements = [$newMeasurements[0]];
         }
 
+        /** -----------------  CORSETTI (PINCE) ----------------- */
+
+        $newCorsets = $currentCorsets;
+
+        if ($includeCorsets) {
+            $exportCorsets = $export['corsets'] ?? [];
+
+            if ($mode === 'replace') {
+                $newCorsets = $exportCorsets;
+            } else { // fill
+                if (!empty($exportCorsets) && empty($currentCorsets)) {
+                    $newCorsets = $exportCorsets;
+                }
+                // In fill mode, se ci sono già corsetti, non aggiungiamo quelli importati
+            }
+        }
+
         return [
             'measurements'       => $newMeasurements,
             'customMeasurements' => array_values($newCustoms),
+            'corsets'            => array_values($newCorsets),
         ];
     }
 
     /**
-     * Wrapper finale: importa misure + nome + telefono.
+     * Wrapper finale: importa misure + nome + telefono + corsetti.
      *
      * @return array{
      *     measurements: array,
      *     customMeasurements: array,
+     *     corsets: array,
      *     sourceDressId: int|null,
      *     sourceCustomerName: string|null,
      *     sourcePhoneNumber: string|null
@@ -237,6 +276,8 @@ class MeasurementRecallService
         string $mode = 'replace',
         bool $includeCustom = true,
         bool $mergeCustomByLabel = true,
+        bool $includeCorsets = true,
+        array $currentCorsets = [],
     ): array {
         [$name, $phone] = array_pad(explode('|', $customerKey, 2), 2, null);
         $name  = trim((string) $name);
@@ -248,6 +289,7 @@ class MeasurementRecallService
             return [
                 'measurements'       => $currentMeasurements,
                 'customMeasurements' => $currentCustoms,
+                'corsets'            => $currentCorsets,
                 'sourceDressId'      => null,
                 'sourceCustomerName' => null,
                 'sourcePhoneNumber'  => null,
@@ -262,7 +304,9 @@ class MeasurementRecallService
             $export,
             $mode,
             $includeCustom,
-            $mergeCustomByLabel
+            $mergeCustomByLabel,
+            $includeCorsets,
+            $currentCorsets
         );
 
         return $applied + [

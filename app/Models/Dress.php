@@ -81,6 +81,11 @@ class Dress extends Model
         return $this->hasMany(DressExpense::class);
     }
 
+    public function corsets(): HasMany
+    {
+        return $this->hasMany(DressCorset::class);
+    }
+
     // 🔹 CALCOLI TOTALI
     public function getTotalPurchaseCostAttribute(): float
     {
