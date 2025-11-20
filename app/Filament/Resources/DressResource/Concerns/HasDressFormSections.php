@@ -186,7 +186,6 @@ private static function imagesSection(): Forms\Components\Section
 {
     return Forms\Components\Section::make('Immagini Abito')
         ->schema([
-
             // Row 1: Bozza e Definitivo (2 colonne)
             Forms\Components\FileUpload::make('sketch_image')
                 ->label('Bozza')
@@ -208,22 +207,20 @@ private static function imagesSection(): Forms\Components\Section
                 ->downloadable()
                 ->columnSpan(1),
 
-            // ============================================================
-            // ➕ BOTTONE APERTURA CANVAS (CREATE + EDIT, NUOVA TAB)
-            // ============================================================
-            \Filament\Forms\Components\Actions::make([
-                \Filament\Forms\Components\Actions\Action::make('open_canvas')
-                    ->label('Disegna abito')
-                    ->icon('heroicon-o-pencil')
-                    ->color('primary')
-                    ->url(fn ($record) =>
-                        $record
-                            ? route('draw.edit', $record->id)   // EDIT: /admin/draw/dress/{dress}
-                            : route('draw.temp')                // CREATE: /admin/draw/temp
-                    )
-                    ->openUrlInNewTab(),                        // 👈 usa il supporto nativo
-            ])
-            ->columnSpan('full'),
+            // Row 2: SignaturePad GRANDE (full width - 12 colonne)
+            SignaturePad::make('drawing_pad')
+                ->label('Disegna abito (schizzo monocolore)')
+                ->penColor('#ffffff')
+                ->exportPenColor('#000000')
+                ->backgroundColor('#805D93')
+                ->exportBackgroundColor('#ffffff')
+                ->lineMinWidth(0.9)
+                ->lineMaxWidth(2.8)
+                ->undoable()
+                ->clearable()
+                ->confirmable()
+                ->helperText('Disegna e premi "Done" per fissare lo schizzo. Verrà salvato come immagine.')
+                ->columnSpan('full'),
 
             // Row 3: Preview salvato (full width)
             Forms\Components\FileUpload::make('drawing_image')
@@ -233,8 +230,10 @@ private static function imagesSection(): Forms\Components\Section
                 ->directory('dress-drawings')
                 ->visibility('public')
                 ->downloadable()
-                ->dehydrated(true)
+                ->dehydrated(false)
+                ->disabled()
                 ->columnSpan('full'),
+
         ])
         ->columns(2);
 }

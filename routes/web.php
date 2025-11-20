@@ -6,7 +6,6 @@ use App\Models\Adjustment;
 use App\Models\CompanyAdjustment;
 use App\Http\Controllers\ShoppingItemPrintController;
 use App\Http\Controllers\SpecialDressPdfController;
-use App\Http\Controllers\DrawingController;
 use App\Http\Controllers\PdfController;
 
 // Redirect alla dashboard admin
@@ -88,28 +87,4 @@ Route::middleware(['auth'])->group(function () {
     // 🗓️ Calendario disponibilità (abiti + aggiusti)
     Route::post('/admin/calendar/availability', [App\Http\Controllers\Admin\CalendarController::class, 'getAvailability'])
         ->name('admin.calendar.availability');
-
-    // ===============================================
-    // 🎨 DRAWING TOOL — NUOVE ROTTE
-    // ===============================================
-
-    // Pagina dove disegnare collegata a un abito ESISTENTE
-    Route::get('/admin/draw/dress/{dress}', [DrawingController::class, 'edit'])
-        ->name('draw.edit');
-
-    // Salvataggio PNG per abito ESISTENTE
-    Route::post('/admin/draw/dress/{dress}', [DrawingController::class, 'store'])
-        ->name('draw.store');
-
-    // ===============================================
-    // 🎨 DRAWING TOOL — MODALITÀ TEMPORANEA (NUOVO ABITO)
-    // ===============================================
-
-    // Apri canvas SENZA un dress_id
-    Route::get('/admin/draw/temp', [DrawingController::class, 'editTemp'])
-        ->name('draw.temp');
-
-    // Salva PNG temporaneo
-    Route::post('/admin/draw/temp/save', [DrawingController::class, 'storeTemp'])
-        ->name('draw.temp.store');
 });
