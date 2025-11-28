@@ -59,7 +59,7 @@ class DressesOverview extends BaseWidget
                 ->description($daTagliare > 0 ? "{$daTagliare} in attesa di taglio" : 'Nessuno'),
 
             Stat::make('Pronta misura', (string) $prontaMisura)
-                ->icon('heroicon-o-ruler')
+                ->icon('heroicon-o-chart-bar')
                 ->color('secondary')
                 ->description($prontaMisura > 0 ? "{$prontaMisura} proni per misure" : 'Nessuno'),
 
