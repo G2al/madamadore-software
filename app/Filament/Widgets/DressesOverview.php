@@ -61,7 +61,7 @@ class DressesOverview extends BaseWidget
             Stat::make('Pronta misura', (string) $prontaMisura)
                 ->icon('heroicon-o-chart-bar')
                 ->color('secondary')
-                ->description($prontaMisura > 0 ? "{$prontaMisura} proni per misure" : 'Nessuno'),
+                ->description($prontaMisura > 0 ? "{$prontaMisura} pronti per misure" : 'Nessuno'),
 
             Stat::make('Consegnati', (string) $consegnato)
                 ->icon('heroicon-o-truck')
