@@ -69,6 +69,8 @@ class ShoppingItemResource extends Resource
 
     public static function table(Tables\Table $table): Tables\Table
     {
+        $printSelectedUrl = route('shopping-items.print.selected');
+
         return $table
             ->columns([
                 Tables\Columns\ImageColumn::make('photo_path')
@@ -143,6 +145,11 @@ class ShoppingItemResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
+                Tables\Actions\BulkAction::make('stampa_selezionati')
+                    ->label('Stampa selezionati')
+                    ->icon('heroicon-o-printer')
+                    ->color('primary')
+                    ->alpineClickHandler('window.open(' . json_encode($printSelectedUrl) . " + '?ids=' + selectedRecords.join(','), '_blank')"),
                 Tables\Actions\BulkAction::make('stampa_tutti')
                     ->label('Stampa Tutto')
                     ->icon('heroicon-o-printer')

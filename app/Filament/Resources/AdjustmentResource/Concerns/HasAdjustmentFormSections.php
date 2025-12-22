@@ -43,7 +43,23 @@ trait HasAdjustmentFormSections
                         ->validationMessages([
                             'unique' => 'Questo numero di telefono è già stato registrato per un altro cliente.',
                         ])
-                ]),
+                ])
+                ->editOptionForm([
+                    Forms\Components\TextInput::make('name')
+                        ->label('Nome cliente')
+                        ->required(),
+                    Forms\Components\TextInput::make('phone_number')
+                        ->label('Numero di Cellulare')
+                        ->tel()
+                        ->maxLength(255)
+                        ->unique(table: Customer::class, column: 'phone_number', ignoreRecord: true)
+                        ->required(),
+                ])
+                ->editOptionAction(
+                    fn (FormAction $action) => $action
+                        ->tooltip('Modifica cliente')
+                        ->after(fn ($state, $set) => $set('customer_phone', \App\Models\Customer::find($state)?->phone_number))
+                ),
 
                 Forms\Components\TextInput::make('referente')
     ->label('Referente')

@@ -91,6 +91,7 @@ class PresenceCalendarWidget extends FullCalendarWidget
             ->mountUsing(function (FilamentForm $form, array $arguments) {
                 $form->fill([
                     'date' => $arguments['start'] ?? now()->toDateString(),
+                    'shift_type' => 'full_day',
                 ]);
             })
             ->after(function () {
@@ -134,6 +135,13 @@ protected function modalActions(): array
                 )
                 ->searchable()
                 ->required(),
+
+            Forms\Components\Select::make('shift_type')
+                ->label('Turno')
+                ->options(Presence::SHIFT_TYPES)
+                ->default('full_day')
+                ->required()
+                ->native(false),
 
             Forms\Components\DatePicker::make('date')
                 ->label('Data')

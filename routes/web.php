@@ -73,12 +73,21 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pdf/special/preventivo/{record}', [SpecialDressPdfController::class, 'preventivo'])
         ->name('pdf.special.preventivo');
 
+    // PDF Abiti Speciali per mese (consegna)
+    Route::get('/pdf/special/dresses/monthly/{year}/{month}', [SpecialDressPdfController::class, 'monthlySpecialDresses'])
+        ->whereNumber('year')
+        ->whereNumber('month')
+        ->name('pdf.special.dresses.monthly');
+
     // 📦 Lista della Spesa - Stampa PDF
     Route::get('/shopping-items/{shoppingItem}/print', [ShoppingItemPrintController::class, 'printSingle'])
         ->name('shopping-items.print.single');
 
     Route::get('/shopping-items/print/all', [ShoppingItemPrintController::class, 'printAll'])
         ->name('shopping-items.print.all');
+
+    Route::get('/shopping-items/print/selected', [ShoppingItemPrintController::class, 'printSelected'])
+        ->name('shopping-items.print.selected');
 
     // 🗓️ API per calendario consegne
     Route::get('/api/delivery-calendar', [App\Http\Controllers\Api\DeliveryCalendarController::class, 'getDeliveryDates'])

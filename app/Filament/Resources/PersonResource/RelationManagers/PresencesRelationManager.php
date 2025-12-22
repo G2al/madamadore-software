@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PersonResource\RelationManagers;
 
+use App\Models\Presence;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -24,6 +25,13 @@ class PresencesRelationManager extends RelationManager
                 ->displayFormat('d/m/Y')
                 ->required()
                 ->default(now()),
+
+            Forms\Components\Select::make('shift_type')
+                ->label('Turno')
+                ->options(Presence::SHIFT_TYPES)
+                ->default('full_day')
+                ->required()
+                ->native(false),
         ]);
     }
 
@@ -36,6 +44,12 @@ class PresencesRelationManager extends RelationManager
                     ->date('d/m/Y')
                     ->sortable()
                     ->searchable(),
+                Tables\Columns\TextColumn::make('shift_type')
+                    ->label('Turno')
+                    ->formatStateUsing(fn (?string $state) => Presence::SHIFT_TYPES[$state] ?? $state ?? '-')
+                    ->badge()
+                    ->color(fn (?string $state) => $state === 'half_day' ? 'warning' : 'success')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Creata il')
                     ->dateTime('d/m/Y H:i')
@@ -51,7 +65,19 @@ class PresencesRelationManager extends RelationManager
                             now()->startOfMonth()->toDateString(),
                             now()->endOfMonth()->toDateString(),
                         ])),
+
+                Tables\Filters\SelectFilter::make('shift_type')
+                    ->label('Turno')
+                    ->options(Presence::SHIFT_TYPES),
             ])
+            ->groups([
+                Tables\Grouping\Group::make('shift_type')
+                    ->label('Turno')
+                    ->titlePrefixedWithLabel(false)
+                    ->getTitleFromRecordUsing(fn (Presence $record): string => Presence::SHIFT_TYPES[$record->shift_type] ?? $record->shift_type ?? '-')
+                    ->collapsible(),
+            ])
+            ->defaultGroup('shift_type')
             ->headerActions([
                 Tables\Actions\CreateAction::make()
                     ->label('Aggiungi Presenza'),

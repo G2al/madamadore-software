@@ -11,9 +11,15 @@ class Presence extends Model
 
     protected $table = 'presences';
 
+    public const SHIFT_TYPES = [
+        'full_day' => 'Giorno intero',
+        'half_day' => 'Mezza giornata',
+    ];
+
     protected $fillable = [
         'person_id',
         'date',
+        'shift_type',
     ];
 
     protected $casts = [
