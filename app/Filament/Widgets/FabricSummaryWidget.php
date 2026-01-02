@@ -271,7 +271,7 @@ SelectFilter::make('name')
                     ->tooltip('Scarica PDF per questo codice colore')
                     ->icon('heroicon-o-document-arrow-down')
                     ->color('primary')
-                    ->url(fn (DressFabric $record) => route('pdf.fabrics', ['color' => $record->color_code]))
+                    ->url(fn (DressFabric $record) => route('pdf.fabrics', ['color' => $record->color_code, 'download' => 1]))
                     ->openUrlInNewTab(),
             ])
             ->headerActions([
@@ -279,13 +279,13 @@ SelectFilter::make('name')
                     ->label('Scarica Lista Acquisti PDF')
                     ->icon('heroicon-o-document-arrow-down')
                     ->color('success')
-                    ->url(fn () => route('pdf.fabrics'))
+                    ->url(fn () => route('pdf.fabrics', ['download' => 1]))
                     ->openUrlInNewTab(),
                 Tables\Actions\Action::make('stampa_pdf')
                     ->label('Stampa Lista Acquisti')
                     ->icon('heroicon-o-printer')
                     ->color('primary')
-                    ->url(fn () => route('pdf.fabrics', ['autoPrint' => 1]))
+                    ->url(fn () => route('pdf.fabrics'))
                     ->openUrlInNewTab(),
             ])
             ->paginated(false);
