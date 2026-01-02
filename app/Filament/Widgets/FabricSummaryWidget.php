@@ -271,61 +271,23 @@ SelectFilter::make('name')
                     ->tooltip('Scarica PDF per questo codice colore')
                     ->icon('heroicon-o-document-arrow-down')
                     ->color('primary')
-                    ->action(fn (DressFabric $record) => $this->generateFabricPdf($record->color_code)),
+                    ->url(fn (DressFabric $record) => route('pdf.fabrics', ['color' => $record->color_code]))
+                    ->openUrlInNewTab(),
             ])
             ->headerActions([
                 Tables\Actions\Action::make('scarica_pdf')
                     ->label('Scarica Lista Acquisti PDF')
                     ->icon('heroicon-o-document-arrow-down')
                     ->color('success')
-                    ->action(fn () => $this->generateFabricPdf(null)),
+                    ->url(fn () => route('pdf.fabrics'))
+                    ->openUrlInNewTab(),
                 Tables\Actions\Action::make('stampa_pdf')
                     ->label('Stampa Lista Acquisti')
                     ->icon('heroicon-o-printer')
                     ->color('primary')
-                    ->action(fn () => $this->generateFabricPdf(null, true)),
+                    ->url(fn () => route('pdf.fabrics', ['autoPrint' => 1]))
+                    ->openUrlInNewTab(),
             ])
             ->paginated(false);
-    }
-
-    protected function generateFabricPdf(?string $colorCode = null, bool $autoPrint = false)
-    {
-        $query = DressFabric::query()
-            ->with(['dress:id,customer_name,status,delivery_date'])
-            ->whereHas('dress', fn ($q) => $q->whereIn('status', ['confermato', 'da_tagliare']))
-            ->orderBy('supplier', 'asc')
-            ->orderBy('color_code', 'asc');
-
-        if ($colorCode !== null) {
-            $query->where('color_code', $colorCode);
-        }
-
-        $fabrics = $query->get();
-
-        $totalCost = $fabrics->sum(fn ($item) => (float) $item->meters * (float) $item->purchase_price);
-
-        $pdf = Pdf::loadView('pdf.fabric-requirements', [
-            'fabrics'     => $fabrics,
-            'totalCost'   => $totalCost,
-            'generatedAt' => now()->format('d/m/Y H:i'),
-            'colorCode'   => $colorCode,
-        ]);
-
-        $filename = $colorCode
-            ? "lista-tessuti-{$colorCode}-" . now()->format('Y-m-d') . ".pdf"
-            : "lista-acquisti-tessuti-" . now()->format('Y-m-d') . ".pdf";
-
-        if ($autoPrint) {
-            $base64Pdf = base64_encode($pdf->output());
-
-            return response()->view('pdf.auto-print', [
-                'pdfData'  => 'data:application/pdf;base64,' . $base64Pdf,
-                'filename' => $filename,
-            ]);
-        }
-
-        return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->output();
-        }, $filename);
     }
 }

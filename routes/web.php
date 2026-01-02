@@ -79,6 +79,9 @@ Route::middleware(['auth'])->group(function () {
         ->whereNumber('month')
         ->name('pdf.special.dresses.monthly');
 
+    Route::get('/pdf/fabrics', [\App\Http\Controllers\FabricPdfController::class, 'print'])
+        ->name('pdf.fabrics');
+
     // 📦 Lista della Spesa - Stampa PDF
     Route::get('/shopping-items/{shoppingItem}/print', [ShoppingItemPrintController::class, 'printSingle'])
         ->name('shopping-items.print.single');
