@@ -275,12 +275,6 @@ SelectFilter::make('name')
                     ->openUrlInNewTab(),
             ])
             ->headerActions([
-                Tables\Actions\Action::make('scarica_pdf')
-                    ->label('Scarica Lista Acquisti PDF')
-                    ->icon('heroicon-o-document-arrow-down')
-                    ->color('success')
-                    ->url(fn () => route('pdf.fabrics', ['download' => 1]))
-                    ->openUrlInNewTab(),
                 Tables\Actions\Action::make('stampa_pdf')
                     ->label('Stampa Lista Acquisti')
                     ->icon('heroicon-o-printer')
