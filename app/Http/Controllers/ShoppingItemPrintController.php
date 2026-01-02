@@ -11,19 +11,25 @@ class ShoppingItemPrintController extends Controller
     /**
      * 📄 Stampa singolo elemento della lista della spesa
      */
-    public function printSingle(ShoppingItem $shoppingItem)
+    public function printSingle(Request $request, ShoppingItem $shoppingItem)
     {
         $pdf = Pdf::loadView('pdf.shopping-item-single', [
             'item' => $shoppingItem,
         ]);
 
-        return $pdf->stream('voce-spesa-' . $shoppingItem->id . '.pdf');
+        $filename = 'voce-spesa-' . $shoppingItem->id . '.pdf';
+
+        if ($request->boolean('autoPrint')) {
+            return $this->autoPrint($pdf, $filename);
+        }
+
+        return $pdf->stream($filename);
     }
 
     /**
      * 📑 Stampa l’intera lista della spesa
      */
-    public function printAll()
+    public function printAll(Request $request)
     {
         $items = ShoppingItem::orderByDesc('created_at')->get();
 
@@ -31,7 +37,13 @@ class ShoppingItemPrintController extends Controller
             'items' => $items,
         ]);
 
-        return $pdf->stream('lista-della-spesa.pdf');
+        $filename = 'lista-della-spesa.pdf';
+
+        if ($request->boolean('autoPrint')) {
+            return $this->autoPrint($pdf, $filename);
+        }
+
+        return $pdf->stream($filename);
     }
 
     /**
@@ -61,6 +73,22 @@ class ShoppingItemPrintController extends Controller
             'items' => $items,
         ]);
 
-        return $pdf->stream('lista-della-spesa-selezionati.pdf');
+        $filename = 'lista-della-spesa-selezionati.pdf';
+
+        if ($request->boolean('autoPrint')) {
+            return $this->autoPrint($pdf, $filename);
+        }
+
+        return $pdf->stream($filename);
+    }
+
+    protected function autoPrint(\Barryvdh\DomPDF\PDF $pdf, string $filename)
+    {
+        $base64Pdf = base64_encode($pdf->output());
+
+        return response()->view('pdf.auto-print', [
+            'pdfData'  => 'data:application/pdf;base64,' . $base64Pdf,
+            'filename' => $filename,
+        ]);
     }
 }

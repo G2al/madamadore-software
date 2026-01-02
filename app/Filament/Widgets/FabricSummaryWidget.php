@@ -279,11 +279,16 @@ SelectFilter::make('name')
                     ->icon('heroicon-o-document-arrow-down')
                     ->color('success')
                     ->action(fn () => $this->generateFabricPdf(null)),
+                Tables\Actions\Action::make('stampa_pdf')
+                    ->label('Stampa Lista Acquisti')
+                    ->icon('heroicon-o-printer')
+                    ->color('primary')
+                    ->action(fn () => $this->generateFabricPdf(null, true)),
             ])
             ->paginated(false);
     }
 
-    protected function generateFabricPdf(?string $colorCode = null)
+    protected function generateFabricPdf(?string $colorCode = null, bool $autoPrint = false)
     {
         $query = DressFabric::query()
             ->with(['dress:id,customer_name,status,delivery_date'])
@@ -309,6 +314,15 @@ SelectFilter::make('name')
         $filename = $colorCode
             ? "lista-tessuti-{$colorCode}-" . now()->format('Y-m-d') . ".pdf"
             : "lista-acquisti-tessuti-" . now()->format('Y-m-d') . ".pdf";
+
+        if ($autoPrint) {
+            $base64Pdf = base64_encode($pdf->output());
+
+            return response()->view('pdf.auto-print', [
+                'pdfData'  => 'data:application/pdf;base64,' . $base64Pdf,
+                'filename' => $filename,
+            ]);
+        }
 
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
