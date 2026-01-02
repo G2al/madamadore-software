@@ -33,6 +33,12 @@ protected static function tableColumns(): array
             ->color('info')
             ->sortable(),
 
+        Tables\Columns\TextColumn::make('ceremony_holder')
+            ->label('Intestatario cerimonia')
+            ->searchable()
+            ->sortable()
+            ->toggleable(isToggledHiddenByDefault: true),
+
         Tables\Columns\TextColumn::make('status')
             ->label('Stato')
             ->badge()
@@ -80,6 +86,14 @@ protected static function tableColumns(): array
         StatusFilter::make(),
         CeremonyTypeFilter::make(),
         DeliveryDateFilter::make(),
+        Tables\Filters\SelectFilter::make('ceremony_holder')
+            ->label('Intestatario cerimonia')
+            ->options(fn () => \App\Models\Dress::query()
+                ->whereNotNull('ceremony_holder')
+                ->orderBy('ceremony_holder')
+                ->pluck('ceremony_holder', 'ceremony_holder')
+                ->toArray()
+            ),
         
         // Nuovo filtro scadenze
         Tables\Filters\TernaryFilter::make('upcoming_deliveries')
