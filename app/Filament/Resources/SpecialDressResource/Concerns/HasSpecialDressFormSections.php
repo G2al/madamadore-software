@@ -207,6 +207,38 @@ trait HasSpecialDressFormSections
                     ->maxItems(1)
                     ->defaultItems(1),
 
+                // --- Repeater per Misure Personalizzate ---
+                Forms\Components\Repeater::make('customMeasurements')
+                    ->label('Misure Personalizzate')
+                    ->relationship('customMeasurements')
+                    ->schema([
+                        Forms\Components\TextInput::make('label')
+                            ->label('Nome Misura')
+                            ->required()
+                            ->placeholder('es: Circonferenza polpaccio sinistro')
+                            ->maxLength(255),
+
+                        Forms\Components\TextInput::make('value')
+                            ->label('Valore')
+                            ->numeric()
+                            ->step(0.1)
+                            ->suffix('cm')
+                            ->placeholder('Valore opzionale'),
+
+                        Forms\Components\Textarea::make('notes')
+                            ->label('Note')
+                            ->rows(2)
+                            ->placeholder('Note aggiuntive...')
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(2)
+                    ->itemLabel(fn (array $state): ?string => $state['label'] ?? 'Misura personalizzata')
+                    ->collapsible()
+                    ->cloneable()
+                    ->reorderableWithButtons()
+                    ->addActionLabel('Aggiungi Misura Personalizzata')
+                    ->defaultItems(0),
+
             Actions::make([
     Action::make('recall_measurements')
         ->label('Ricorda misure')

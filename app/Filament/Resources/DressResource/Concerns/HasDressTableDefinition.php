@@ -196,6 +196,11 @@ return [
             ->filters(self::tableFilters())
             ->actions(self::tableRowActions())
             ->bulkActions(self::tableBulkActions())
+            ->groups([
+                Tables\Grouping\Group::make('ceremony_holder')
+                    ->label('Intestatario Cerimonia')
+                    ->collapsible(),
+            ])
             ->defaultSort('created_at', 'desc');
     }
 

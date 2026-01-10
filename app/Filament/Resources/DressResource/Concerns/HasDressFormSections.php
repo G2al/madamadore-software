@@ -51,9 +51,29 @@ trait HasDressFormSections
                     ])
                     ->maxLength(255),
 
-                Forms\Components\TextInput::make('ceremony_holder')
+                Forms\Components\Select::make('ceremony_holder')
                     ->label('Intestatario della Cerimonia')
-                    ->maxLength(255),
+                    ->options(fn () => \App\Models\Dress::query()
+                        ->whereNotNull('ceremony_holder')
+                        ->where('ceremony_holder', '!=', '')
+                        ->orderBy('ceremony_holder')
+                        ->pluck('ceremony_holder', 'ceremony_holder')
+                        ->unique()
+                        ->toArray()
+                    )
+                    ->searchable()
+                    ->createOptionForm([
+                        Forms\Components\TextInput::make('ceremony_holder')
+                            ->label('Nome intestatario')
+                            ->required()
+                            ->maxLength(255)
+                    ])
+                    ->createOptionUsing(function (array $data): string {
+                        return $data['ceremony_holder'];
+                    })
+                    ->allowHtml(false)
+                    ->preload()
+                    ->helperText('Seleziona un intestatario esistente o creane uno nuovo'),
  // SOSTITUISCI tutto il blocco DatePicker::make('delivery_date') con questo:
 
 Forms\Components\DatePicker::make('delivery_date')
