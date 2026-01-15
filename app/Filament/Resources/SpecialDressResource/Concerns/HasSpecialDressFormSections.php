@@ -54,6 +54,11 @@ trait HasSpecialDressFormSections
                             });
                     }),
 
+                Forms\Components\TextInput::make('character')
+                    ->label('Personaggio/Maschera')
+                    ->placeholder('es: Cenerentola, Batman, Superman...')
+                    ->maxLength(255),
+
                 Forms\Components\DatePicker::make('delivery_date')
                     ->label('Data di Consegna Prevista')
                     ->native(false)

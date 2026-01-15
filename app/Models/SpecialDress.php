@@ -14,6 +14,7 @@ class SpecialDress extends Model
         'customer_name',
         'phone_number',
         'ceremony_type',
+        'character',
         'delivery_date',
         'sketch_image',
         'final_image',

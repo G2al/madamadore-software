@@ -26,6 +26,13 @@ trait HasSpecialDressTableDefinition
                 ->color('info')
                 ->sortable(),
 
+            Tables\Columns\TextColumn::make('character')
+                ->label('Personaggio/Maschera')
+                ->searchable()
+                ->sortable()
+                ->placeholder('-')
+                ->toggleable(),
+
             Tables\Columns\TextColumn::make('status')
                 ->label('Stato')
                 ->badge()

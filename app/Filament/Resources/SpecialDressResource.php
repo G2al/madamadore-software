@@ -19,7 +19,7 @@ class SpecialDressResource extends Resource
 
     protected static ?string $model = SpecialDress::class;
 
-  protected static ?string $navigationGroup = 'Abiti Speciali';
+    protected static ?string $navigationGroup = 'Abiti Speciali';
     protected static ?string $navigationLabel = 'Tutti gli Abiti Speciali';
     protected static ?string $modelLabel      = 'Abito Speciale';
     protected static ?string $navigationIcon = 'heroicon-o-star';

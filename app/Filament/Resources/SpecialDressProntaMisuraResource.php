@@ -47,6 +47,13 @@ class SpecialDressProntaMisuraResource extends Resource
                     ->color('info')
                     ->sortable(),
 
+                Tables\Columns\TextColumn::make('character')
+                    ->label('Personaggio/Maschera')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('-')
+                    ->toggleable(),
+
                 Tables\Columns\TextColumn::make('delivery_date')
                     ->label('Consegna')
                     ->date('d/m/Y')
