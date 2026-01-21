@@ -122,9 +122,10 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width: 30%;">Cliente</th>
-                    <th style="width: 18%;">Telefono</th>
-                    <th style="width: 18%;">Festività</th>
+                    <th style="width: 22%;">Cliente</th>
+                    <th style="width: 14%;">Telefono</th>
+                    <th style="width: 14%;">Festività</th>
+                    <th style="width: 16%;">Personaggio</th>
                     <th style="width: 14%;">Data consegna</th>
                     <th style="width: 20%;">Stato</th>
                 </tr>
@@ -149,6 +150,7 @@
                                 -
                             @endif
                         </td>
+                        <td>{{ $dress->character ?? '-' }}</td>
                         <td class="text-center">
                             @if($dress->delivery_date)
                                 {{ \Carbon\Carbon::parse($dress->delivery_date)->format('d/m/Y') }}
