@@ -69,7 +69,7 @@ class ShoppingItemResource extends Resource
 
     public static function table(Tables\Table $table): Tables\Table
     {
-        $printSelectedUrl = route('shopping-items.print.selected', ['autoPrint' => 1]);
+        $printSelectedUrl = route('shopping-items.print.selected');
 
         return $table
             ->columns([
@@ -140,7 +140,7 @@ class ShoppingItemResource extends Resource
                     ->label('Stampa')
                     ->icon('heroicon-o-printer')
                     ->color('primary')
-                    ->url(fn($record) => route('shopping-items.print.single', [$record, 'autoPrint' => 1]))
+                    ->url(fn($record) => route('shopping-items.print.single', [$record]))
                     ->openUrlInNewTab(),
             ])
             ->bulkActions([
@@ -154,7 +154,7 @@ class ShoppingItemResource extends Resource
                     ->label('Stampa Tutto')
                     ->icon('heroicon-o-printer')
                     ->color('info')
-                    ->url(route('shopping-items.print.all', ['autoPrint' => 1]))
+                    ->url(route('shopping-items.print.all'))
                     ->openUrlInNewTab(),
             ])
             ->defaultSort('created_at', 'desc');

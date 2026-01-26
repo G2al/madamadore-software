@@ -22,7 +22,7 @@
             <tr>
                 <th>Foto</th>
                 <th>Nome</th>
-                <th>Quantità</th>
+                <th>Quantita</th>
                 <th>Misure</th>
                 <th>Fornitore</th>
                 <th>Prezzo (€)</th>
@@ -31,17 +31,29 @@
         </thead>
         <tbody>
             @foreach($items as $item)
+                @php
+                    $unitLabel = match($item->unit_type) {
+                        'metri' => 'mt',
+                        'pezzi' => 'pz',
+                        default => $item->unit_type,
+                    };
+                    $photoPath = $item->photo_path
+                        ? storage_path('app/public/' . $item->photo_path)
+                        : null;
+                @endphp
                 <tr>
                     <td>
-                        @if($item->photo)
-                            <img src="{{ public_path('storage/' . $item->photo) }}" alt="Foto">
+                        @if($photoPath && file_exists($photoPath))
+                            <img src="{{ $photoPath }}" alt="Foto">
                         @else
                             -
                         @endif
                     </td>
                     <td>{{ $item->name }}</td>
-                    <td>{{ $item->quantity }}</td>
-                    <td>{{ $item->measure ?? '-' }}</td>
+                    <td>
+                        {{ is_null($item->quantity) ? '-' : number_format((float) $item->quantity, 2, ',', '.') }}
+                    </td>
+                    <td>{{ $unitLabel ?? '-' }}</td>
                     <td>{{ $item->supplier ?? '-' }}</td>
                     <td class="right">€ {{ number_format($item->price, 2, ',', '.') }}</td>
                     <td>

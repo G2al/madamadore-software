@@ -20,16 +20,28 @@
     <div class="container">
         <div class="row"><span class="label">Nome:</span> {{ $item->name }}</div>
         <div class="row"><span class="label">Prezzo:</span> € {{ number_format($item->price, 2, ',', '.') }}</div>
-        <div class="row"><span class="label">Quantità:</span> {{ $item->quantity }}</div>
-        <div class="row"><span class="label">Misure:</span> {{ $item->measure ?? '-' }}</div>
+        @php
+            $unitLabel = match($item->unit_type) {
+                'metri' => 'mt',
+                'pezzi' => 'pz',
+                default => $item->unit_type,
+            };
+            $photoPath = $item->photo_path
+                ? storage_path('app/public/' . $item->photo_path)
+                : null;
+        @endphp
+        <div class="row"><span class="label">Quantita:</span>
+            {{ is_null($item->quantity) ? '-' : number_format((float) $item->quantity, 2, ',', '.') }}
+        </div>
+        <div class="row"><span class="label">Misure:</span> {{ $unitLabel ?? '-' }}</div>
         <div class="row"><span class="label">Fornitore:</span> {{ $item->supplier ?? '-' }}</div>
         <div class="row"><span class="label">Data Acquisto:</span> 
             {{ $item->purchase_date ? \Carbon\Carbon::parse($item->purchase_date)->format('d/m/Y') : 'Non ancora saldato' }}
         </div>
 
-        @if($item->photo)
+        @if($photoPath && file_exists($photoPath))
             <div class="photo">
-                <img src="{{ public_path('storage/' . $item->photo) }}" alt="Foto Prodotto">
+                <img src="{{ $photoPath }}" alt="Foto Prodotto">
             </div>
         @endif
     </div>
