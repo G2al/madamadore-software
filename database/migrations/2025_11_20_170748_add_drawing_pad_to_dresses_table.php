@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasColumn('dresses', 'drawing_pad')) {
+            return;
+        }
+
         Schema::table('dresses', function (Blueprint $table) {
             $table->longText('drawing_pad')->nullable()->after('final_image');
         });
@@ -21,6 +25,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (! Schema::hasColumn('dresses', 'drawing_pad')) {
+            return;
+        }
+
         Schema::table('dresses', function (Blueprint $table) {
             $table->dropColumn('drawing_pad');
         });
