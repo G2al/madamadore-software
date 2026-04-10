@@ -137,19 +137,13 @@ class MeasurementRecallService
 
         $measurements = empty($measurementsItem) ? [] : [$measurementsItem];
 
-        // Export corsetti
+        $corsetFields = DressCorset::dataFieldNames();
+
         $corsetsItems = $source->corsets
-            ->map(fn ($corset) => [
-                'pinza_vita_davanti' => $corset->pinza_vita_davanti,
-                'pinza_vita_lato' => $corset->pinza_vita_lato,
-                'pinza_vita_dietro' => $corset->pinza_vita_dietro,
-                'pinza_fianchi_davanti' => $corset->pinza_fianchi_davanti,
-                'pinza_fianchi_lato' => $corset->pinza_fianchi_lato,
-                'pinza_fianchi_dietro' => $corset->pinza_fianchi_dietro,
-                'linea_sottoseno_davanti' => $corset->linea_sottoseno_davanti,
-                'linea_sottoseno_lato' => $corset->linea_sottoseno_lato,
-                'linea_sottoseno_dietro' => $corset->linea_sottoseno_dietro,
-            ])
+            ->map(fn (DressCorset $corset) => collect($corsetFields)
+                ->mapWithKeys(fn (string $field) => [$field => $corset->{$field}])
+                ->all()
+            )
             ->values()
             ->all();
 

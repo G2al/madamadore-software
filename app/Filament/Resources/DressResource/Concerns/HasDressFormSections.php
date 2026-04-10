@@ -5,12 +5,13 @@ namespace App\Filament\Resources\DressResource\Concerns;
 use Filament\Forms;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use App\Models\DressCorset;
 use App\Models\DressMeasurement;
-use App\Forms\Components\AvailabilityDateTimePicker;
 use App\Services\MeasurementRecallService;
 use Filament\Forms\Components\Actions;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Notifications\Notification;
+use Illuminate\Support\HtmlString;
 use Saade\FilamentAutograph\Forms\Components\SignaturePad;
 
 
@@ -782,77 +783,29 @@ Forms\Components\TextInput::make('remaining')
 
     private static function corsetsSection(): Forms\Components\Section
     {
-        return Forms\Components\Section::make('Misura Corsetto')
+        return Forms\Components\Section::make('Misure Corsetto')
             ->schema([
                 Forms\Components\Repeater::make('corsets')
                     ->label('Corsetti')
                     ->relationship('corsets')
                     ->schema([
-                        Forms\Components\Fieldset::make('Pinza Vita')
+                        Forms\Components\Fieldset::make('Misura')
                             ->schema([
-                                Forms\Components\TextInput::make('pinza_vita_davanti')
-                                    ->label('Davanti')
-                                    ->numeric()
-                                    ->step(0.1)
-                                    ->suffix('cm'),
+                                self::corsetDimensionalMeasurementsHeader(),
+                                ...self::corsetDimensionalMeasurementRows(),
+                                Forms\Components\Placeholder::make('corset_structural_measurements_title')
+                                    ->label('')
+                                    ->content(new HtmlString('<span class="font-semibold">Misure strutturali</span>')),
+                                ...self::corsetStructuralMeasurementRows(),
+                                self::corsetSupportFieldset(),
+                            ]),
 
-                                Forms\Components\TextInput::make('pinza_vita_lato')
-                                    ->label('Lato')
-                                    ->numeric()
-                                    ->step(0.1)
-                                    ->suffix('cm'),
-
-                                Forms\Components\TextInput::make('pinza_vita_dietro')
-                                    ->label('Dietro')
-                                    ->numeric()
-                                    ->step(0.1)
-                                    ->suffix('cm'),
-                            ])
-                            ->columns(3),
-
-                        Forms\Components\Fieldset::make('Pinza Fianchi')
+                        Forms\Components\Fieldset::make('Riprese')
                             ->schema([
-                                Forms\Components\TextInput::make('pinza_fianchi_davanti')
-                                    ->label('Davanti')
-                                    ->numeric()
-                                    ->step(0.1)
-                                    ->suffix('cm'),
-
-                                Forms\Components\TextInput::make('pinza_fianchi_lato')
-                                    ->label('Lato')
-                                    ->numeric()
-                                    ->step(0.1)
-                                    ->suffix('cm'),
-
-                                Forms\Components\TextInput::make('pinza_fianchi_dietro')
-                                    ->label('Dietro')
-                                    ->numeric()
-                                    ->step(0.1)
-                                    ->suffix('cm'),
+                                self::corsetRipreseFieldset('vita'),
+                                self::corsetRipreseFieldset('fianchi'),
                             ])
-                            ->columns(3),
-
-                        Forms\Components\Fieldset::make('Linea Sotto Seno')
-                            ->schema([
-                                Forms\Components\TextInput::make('linea_sottoseno_davanti')
-                                    ->label('Davanti')
-                                    ->numeric()
-                                    ->step(0.1)
-                                    ->suffix('cm'),
-
-                                Forms\Components\TextInput::make('linea_sottoseno_lato')
-                                    ->label('Lato')
-                                    ->numeric()
-                                    ->step(0.1)
-                                    ->suffix('cm'),
-
-                                Forms\Components\TextInput::make('linea_sottoseno_dietro')
-                                    ->label('Dietro')
-                                    ->numeric()
-                                    ->step(0.1)
-                                    ->suffix('cm'),
-                            ])
-                            ->columns(3),
+                            ->columns(2),
                     ])
                     ->itemLabel('Corsetto')
                     ->collapsible()
@@ -862,6 +815,196 @@ Forms\Components\TextInput::make('remaining')
                     ->defaultItems(0),
             ])
             ->columnSpanFull();
+    }
+
+    private static function corsetDimensionalMeasurementsHeader(): Forms\Components\Grid
+    {
+        return Forms\Components\Grid::make(4)
+            ->schema([
+                self::corsetHeaderPlaceholder('corset_dimensional_header_measure', 'Misura'),
+                self::corsetHeaderPlaceholder('corset_dimensional_header_cm', 'cm'),
+                self::corsetHeaderPlaceholder('corset_dimensional_header_half', '1/2'),
+                self::corsetHeaderPlaceholder('corset_dimensional_header_quarter', '1/4'),
+            ]);
+    }
+
+    private static function corsetDimensionalMeasurementRows(): array
+    {
+        $rows = [];
+
+        foreach (DressCorset::DIMENSIONAL_MEASUREMENTS as $field => $label) {
+            $rows[] = Forms\Components\Grid::make(4)
+                ->schema([
+                    self::corsetLabelPlaceholder("{$field}_label", $label),
+                    self::corsetMeasurementInput($field),
+                    self::corsetDerivedValuePlaceholder("{$field}_half", $field, 2),
+                    self::corsetDerivedValuePlaceholder("{$field}_quarter", $field, 4),
+                ]);
+        }
+
+        return $rows;
+    }
+
+    private static function corsetStructuralMeasurementRows(): array
+    {
+        $rows = [];
+
+        foreach (DressCorset::STRUCTURAL_MEASUREMENTS as $field => $label) {
+            $rows[] = Forms\Components\Grid::make(2)
+                ->schema([
+                    self::corsetLabelPlaceholder("{$field}_label", $label),
+                    self::corsetMeasurementInput($field, $field === 'linea_sotto_seno'),
+                ]);
+        }
+
+        return $rows;
+    }
+
+    private static function corsetSupportFieldset(): Forms\Components\Fieldset
+    {
+        return Forms\Components\Fieldset::make('Supporto calcolo linea sotto il seno')
+            ->schema([
+                Forms\Components\Placeholder::make('corset_larghezza_seno_formula')
+                    ->label('Formula larghezza seno')
+                    ->content(fn (Get $get) => self::buildLarghezzaSenoFormulaSummary(
+                        self::nullableFloat($get('circonferenza_seno'))
+                    )),
+
+                Forms\Components\Placeholder::make('corset_larghezza_seno_value')
+                    ->label('Larghezza seno suggerita')
+                    ->content(fn (Get $get) => self::formatCorsetValue(
+                        DressCorset::calculateLarghezzaSeno(self::nullableFloat($get('circonferenza_seno')))
+                    )),
+
+                Forms\Components\Placeholder::make('corset_linea_sotto_seno_formula')
+                    ->label('Formula linea sotto il seno')
+                    ->content('1/2 Larghezza seno - 1/40 Circonferenza seno'),
+
+                Forms\Components\Placeholder::make('corset_linea_sotto_seno_value')
+                    ->label('Linea sotto il seno suggerita')
+                    ->content(fn (Get $get) => self::formatCorsetValue(
+                        DressCorset::calculateLineaSottoSenoSuggerita(self::nullableFloat($get('circonferenza_seno')))
+                    )),
+            ])
+            ->columns(2);
+    }
+
+    private static function corsetRipreseFieldset(string $group): Forms\Components\Fieldset
+    {
+        $groupDefinition = DressCorset::RIPRESA_GROUPS[$group];
+        $fields = [];
+
+        foreach ($groupDefinition['fields'] as $field => $label) {
+            $fields[] = Forms\Components\TextInput::make($field)
+                ->label($label)
+                ->numeric()
+                ->step(0.1)
+                ->suffix('cm');
+        }
+
+        array_unshift(
+            $fields,
+            Forms\Components\Placeholder::make("riprese_{$group}_formula")
+                ->label('')
+                ->content(new HtmlString('<span class="text-sm text-gray-600">' . e($groupDefinition['formula']) . '</span>'))
+                ->columnSpanFull(),
+        );
+
+        return Forms\Components\Fieldset::make($groupDefinition['label'])
+            ->schema($fields)
+            ->columns(3);
+    }
+
+    private static function corsetHeaderPlaceholder(string $name, string $label): Forms\Components\Placeholder
+    {
+        return Forms\Components\Placeholder::make($name)
+            ->label('')
+            ->content(new HtmlString('<span class="font-semibold">' . e($label) . '</span>'));
+    }
+
+    private static function corsetLabelPlaceholder(string $name, string $label): Forms\Components\Placeholder
+    {
+        return Forms\Components\Placeholder::make($name)
+            ->label('')
+            ->content($label);
+    }
+
+    private static function corsetMeasurementInput(string $field, bool $withCalculatedHelper = false): Forms\Components\TextInput
+    {
+        $input = Forms\Components\TextInput::make($field)
+            ->label('')
+            ->numeric()
+            ->step(0.1)
+            ->suffix('cm');
+
+        if (! $withCalculatedHelper) {
+            return $input;
+        }
+
+        return $input->helperText(fn (Get $get) => self::buildLineaSottoSenoHelperText(
+            self::nullableFloat($get('circonferenza_seno'))
+        ));
+    }
+
+    private static function corsetDerivedValuePlaceholder(
+        string $name,
+        string $field,
+        int $divisor,
+    ): Forms\Components\Placeholder {
+        return Forms\Components\Placeholder::make($name)
+            ->label('')
+            ->content(fn (Get $get) => self::formatCorsetValue(
+                self::calculateDerivedCorsetValue(self::nullableFloat($get($field)), $divisor)
+            ));
+    }
+
+    private static function calculateDerivedCorsetValue(?float $value, int $divisor): ?float
+    {
+        if ($value === null || $divisor <= 0) {
+            return null;
+        }
+
+        return round($value / $divisor, 1);
+    }
+
+    private static function buildLarghezzaSenoFormulaSummary(?float $circSeno): string
+    {
+        $formula = DressCorset::larghezzaSenoFormulaFor($circSeno);
+
+        if ($formula === null) {
+            return 'Disponibile per circonferenza seno tra 80 e 116 cm';
+        }
+
+        return $formula;
+    }
+
+    private static function buildLineaSottoSenoHelperText(?float $circSeno): string
+    {
+        $suggestedValue = DressCorset::calculateLineaSottoSenoSuggerita($circSeno);
+
+        if ($suggestedValue === null) {
+            return 'Inserisci la circonferenza seno per ottenere un valore suggerito.';
+        }
+
+        return 'Valore suggerito: ' . self::formatCorsetValue($suggestedValue);
+    }
+
+    private static function formatCorsetValue(?float $value): string
+    {
+        if ($value === null) {
+            return '—';
+        }
+
+        return number_format($value, 1, ',', '.') . ' cm';
+    }
+
+    private static function nullableFloat(mixed $value): ?float
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return (float) $value;
     }
 
     private static function bootCalcPlaceholder(): Forms\Components\Placeholder
