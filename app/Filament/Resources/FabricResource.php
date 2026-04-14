@@ -69,7 +69,6 @@ public static function form(Forms\Form $form): Forms\Form
                         ->visibility('public')
                         ->imageEditor()
                         ->imageEditorAspectRatios([null])
-                        ->maxSize(20480)
                         ->downloadable()
                         ->columnSpanFull(),
                 ])
@@ -97,7 +96,6 @@ public static function form(Forms\Form $form): Forms\Form
                                         ->visibility('public')
                                         ->imageEditor()
                                         ->imageEditorAspectRatios([null])
-                                        ->maxSize(20480)
                                         ->downloadable()
                                         ->columnSpan(1),
                                 ]),

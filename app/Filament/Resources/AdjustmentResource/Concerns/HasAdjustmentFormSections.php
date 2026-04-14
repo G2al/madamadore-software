@@ -370,8 +370,7 @@ Forms\Components\Repeater::make('items')
                             ->label('Foto')
                             ->image()
                             ->directory('expenses')
-                            ->imageEditor()
-                            ->maxSize(1024),
+                            ->imageEditor(),
 
                         Forms\Components\TextInput::make('price')
                             ->label('Costo interno (€)')

@@ -332,8 +332,7 @@ private static function imagesSection(): Forms\Components\Section
                         ->label('Foto')
                         ->image()
                         ->directory('dress-expenses')
-                        ->imageEditor()
-                        ->maxSize(1024),
+                        ->imageEditor(),
                     
                     Forms\Components\TextInput::make('price')
                         ->label('Costo interno (€)')
