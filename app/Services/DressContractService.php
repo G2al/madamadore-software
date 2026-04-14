@@ -15,6 +15,13 @@ class DressContractService
      */
     public function generateContract(Dress $dress)
     {
+        $dress->loadMissing([
+            'measurements',
+            'customMeasurements',
+            'fabrics',
+            'extras',
+        ]);
+
         return Pdf::loadView('pdf.dress-contract', [
             'dress' => $dress,
         ]);

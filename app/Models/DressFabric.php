@@ -25,6 +25,7 @@ class DressFabric extends Model
         'client_price',
         'color_code',
         'supplier',
+        'photo_path',
     ];
 
     protected $casts = [

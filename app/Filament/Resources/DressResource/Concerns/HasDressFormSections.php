@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources\DressResource\Concerns;
 
+use App\Models\Fabric;
 use Filament\Forms;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
 use App\Models\DressCorset;
 use App\Models\DressMeasurement;
+use App\Services\DressFabricPhotoService;
 use App\Services\MeasurementRecallService;
 use Filament\Forms\Components\Actions;
 use Filament\Forms\Components\Actions\Action;
@@ -368,84 +370,86 @@ private static function imagesSection(): Forms\Components\Section
                     ->default(0)
                     ->live(debounce: 300)
                     ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get)),
-// Tessuti
-Forms\Components\Repeater::make('fabrics')
-    ->label('Tessuti')
-    ->relationship('fabrics')
-    ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get))
-    ->schema([
 
-        // 👇 Select collegato all’inventario
-        Forms\Components\Select::make('fabric_id')
-            ->label('Da Inventario')
-            ->relationship('fabric', 'name') // usa la relazione che creeremo in DressFabric
-            ->searchable()
-            ->preload()
-            ->reactive()
-            ->afterStateUpdated(function ($state, Set $set) {
-                if ($state) {
-                    $fabric = \App\Models\Fabric::find($state);
-                    if ($fabric) {
-                        $set('name', $fabric->name);
-                        $set('type', $fabric->type);
-                        $set('purchase_price', $fabric->purchase_price);
-                        $set('client_price', $fabric->client_price);
-                        $set('color_code', $fabric->color_code);
-                        $set('supplier', $fabric->supplier);
-                    }
-                }
-            }),
+                Forms\Components\Repeater::make('fabrics')
+                    ->label('Tessuti')
+                    ->relationship('fabrics')
+                    ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get))
+                    ->schema([
+                        Forms\Components\Select::make('fabric_id')
+                            ->label('Da Inventario')
+                            ->relationship('fabric', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->reactive()
+                            ->afterStateUpdated(fn ($state, Set $set, Get $get) => self::fillFabricFieldsFromInventory(
+                                $state ? (int) $state : null,
+                                $set,
+                                $get,
+                            )),
 
-        Forms\Components\TextInput::make('name')
-            ->label('Nome Tessuto')
-            ->maxLength(255),
+                        Forms\Components\FileUpload::make('photo_path')
+                            ->label('Foto tessuto per preventivo')
+                            ->image()
+                            ->disk('public')
+                            ->directory('dress-fabrics')
+                            ->visibility('public')
+                            ->acceptedFileTypes(['image/*'])
+                            ->imageEditor()
+                            ->downloadable()
+                            ->helperText('Se scegli un tessuto da inventario, la foto viene precompilata. Puoi comunque sostituirla manualmente.')
+                            ->columnSpanFull(),
 
-        Forms\Components\TextInput::make('type')
-            ->label('Tipologia')
-            ->maxLength(255),
+                        Forms\Components\TextInput::make('name')
+                            ->label('Nome Tessuto')
+                            ->maxLength(255),
 
-        Forms\Components\TextInput::make('meters')
-            ->label('Metratura')
-            ->numeric()
-            ->step(0.1)
-            ->suffix('mt')
-            ->live(debounce: 300)
-            ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get)),
+                        Forms\Components\TextInput::make('type')
+                            ->label('Tipologia')
+                            ->maxLength(255),
 
-        Forms\Components\TextInput::make('purchase_price')
-            ->label('Prezzo Acquisto')
-            ->numeric()
-            ->step(0.01)
-            ->prefix('€')
-            ->live(debounce: 300)
-            ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get))
-            ->hidden()
-            ->dehydrated(),
+                        Forms\Components\TextInput::make('meters')
+                            ->label('Metratura')
+                            ->numeric()
+                            ->step(0.1)
+                            ->suffix('mt')
+                            ->live(debounce: 300)
+                            ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get)),
 
-        Forms\Components\TextInput::make('client_price')
-            ->label('Prezzo Cliente')
-            ->numeric()
-            ->step(0.01)
-            ->prefix('€')
-            ->live(debounce: 300)
-            ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get))
-            ->hidden()
-            ->dehydrated(),
+                        Forms\Components\TextInput::make('purchase_price')
+                            ->label('Prezzo Acquisto')
+                            ->numeric()
+                            ->step(0.01)
+                            ->prefix('€')
+                            ->live(debounce: 300)
+                            ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get))
+                            ->hidden()
+                            ->dehydrated(),
 
-        Forms\Components\TextInput::make('color_code')
-            ->label('Codice Colore')
-            ->maxLength(255),
+                        Forms\Components\TextInput::make('client_price')
+                            ->label('Prezzo Cliente')
+                            ->numeric()
+                            ->step(0.01)
+                            ->prefix('€')
+                            ->live(debounce: 300)
+                            ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get))
+                            ->hidden()
+                            ->dehydrated(),
 
-        Forms\Components\TextInput::make('supplier')
-            ->label('Fornitore')
-            ->maxLength(255),
-    ])
-    ->columns(3)
-    ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
-    ->collapsible()
-    ->cloneable()
-    ->reorderableWithButtons()
-    ->addActionLabel('Aggiungi Tessuto'),
+                        Forms\Components\TextInput::make('color_code')
+                            ->label('Codice Colore')
+                            ->maxLength(255),
+
+                        Forms\Components\TextInput::make('supplier')
+                            ->label('Fornitore')
+                            ->maxLength(255),
+                    ])
+                    ->columns(3)
+                    ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
+                    ->collapsible()
+                    ->cloneable()
+                    ->reorderableWithButtons()
+                    ->addActionLabel('Aggiungi Tessuto'),
 
 
                 // Extra
@@ -475,6 +479,33 @@ Forms\Components\Repeater::make('fabrics')
                     ->addActionLabel('Aggiungi Extra'),
             ])
             ->columnSpanFull();
+    }
+
+    private static function fillFabricFieldsFromInventory(?int $fabricId, Set $set, Get $get): void
+    {
+        if (! $fabricId) {
+            self::updateCalculations($set, $get);
+
+            return;
+        }
+
+        $fabric = Fabric::query()->find($fabricId);
+
+        if (! $fabric) {
+            self::updateCalculations($set, $get);
+
+            return;
+        }
+
+        $set('name', $fabric->name);
+        $set('type', $fabric->type);
+        $set('purchase_price', $fabric->purchase_price);
+        $set('client_price', $fabric->client_price);
+        $set('color_code', $fabric->color_code);
+        $set('supplier', $fabric->supplier);
+        $set('photo_path', app(DressFabricPhotoService::class)->copyFromInventory($fabric));
+
+        self::updateCalculations($set, $get);
     }
 
     // --- SEZIONE 5: Misure (Tabs + ordine dal Model) ---

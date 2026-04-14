@@ -177,6 +177,18 @@
 
     <!-- PAGINA 3: Condizioni Generali -->
     <div class="page-break">
+        @php
+            $fabricPhotos = collect($dress->fabrics ?? [])
+                ->filter(fn ($fabric) => filled($fabric->photo_path))
+                ->take(4)
+                ->values();
+
+            $hiddenFabricPhotosCount = max(
+                collect($dress->fabrics ?? [])->filter(fn ($fabric) => filled($fabric->photo_path))->count() - $fabricPhotos->count(),
+                0
+            );
+        @endphp
+
         <h2 style="text-align: center; font-size: 16px; margin: 20px 0;">CONDIZIONI GENERALI</h2>
         <p style="text-align: center; font-size: 12px; margin-bottom: 15px;">Atelier MadamaDorè di Dora Maione</p>
         <p style="font-size: 12px; margin-bottom: 20px;">La sottoscrizione del presente costituisce parte integrante del contratto di vendita e delle complessive 4 pagine.</p>
@@ -188,7 +200,7 @@
                 <strong>TESSUTI:</strong><br>
                 @foreach($dress->fabrics as $fabric)
                     • {{ $fabric->name ?? 'N/A' }} - {{ $fabric->type ?? 'N/A' }} 
-                    ({{ $fabric->meters ?? 0 }}mt, {{ $fabric->supplier ?? 'N/A' }})
+                    ({{ $fabric->meters ?? 0 }}mt)
                     @if($fabric->color_code) - Codice: {{ $fabric->color_code }} @endif<br>
                 @endforeach
                 <br>
@@ -201,6 +213,45 @@
                 @endforeach
             @endif
         </div>
+
+        @if($fabricPhotos->isNotEmpty())
+            <div style="margin-bottom: 15px;">
+                <h3 style="font-size: 14px; margin: 12px 0 8px 0;">Campioni tessuto</h3>
+                <table style="width: 100%; border-collapse: separate; border-spacing: 6px 0; table-layout: fixed;">
+                    <tr>
+                        @foreach($fabricPhotos as $fabric)
+                            @php
+                                $photoAbsolutePath = storage_path('app/public/' . $fabric->photo_path);
+                            @endphp
+                            <td style="width: 25%; vertical-align: top;">
+                                <div style="border: 1px solid #d1d5db; padding: 6px; text-align: center; height: 112px;">
+                                    <div style="height: 78px; margin-bottom: 6px;">
+                                        @if(file_exists($photoAbsolutePath))
+                                            <img src="{{ $photoAbsolutePath }}" alt="Tessuto {{ $fabric->name ?? 'N/A' }}" style="max-width: 100%; max-height: 78px;">
+                                        @else
+                                            <div style="font-size: 10px; color: #999; padding-top: 28px;">Foto non disponibile</div>
+                                        @endif
+                                    </div>
+                                    <div style="font-size: 9px; line-height: 1.2;">
+                                        {{ $fabric->name ?? 'Tessuto' }}
+                                    </div>
+                                </div>
+                            </td>
+                        @endforeach
+
+                        @for($i = $fabricPhotos->count(); $i < 4; $i++)
+                            <td style="width: 25%;"></td>
+                        @endfor
+                    </tr>
+                </table>
+
+                @if($hiddenFabricPhotosCount > 0)
+                    <div style="font-size: 10px; color: #666; margin-top: 4px;">
+                        +{{ $hiddenFabricPhotosCount }} altri tessuti presenti nel preventivo
+                    </div>
+                @endif
+            </div>
+        @endif
 
         <!-- Annotazioni Generali -->
         <h3 style="font-size: 14px; margin: 12px 0 8px 0;">❖ Annotazioni Generali</h3>
