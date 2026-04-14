@@ -48,7 +48,7 @@ trait HasAdjustmentTableDefinition
         return Tables\Columns\TextColumn::make('customer.name')
             ->label('Cliente')
             ->description(fn($record) => $record->customer?->phone_number)
-            ->searchable()
+            ->searchable(['name', 'phone_number'])
             ->sortable()
             ->icon('heroicon-o-user')
             ->weight('bold');
