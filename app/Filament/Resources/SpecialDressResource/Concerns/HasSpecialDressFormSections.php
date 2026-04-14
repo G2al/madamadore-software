@@ -399,18 +399,32 @@ trait HasSpecialDressFormSections
 
     private static function totalsSection(): Forms\Components\Section
     {
-        return Forms\Components\Section::make('Prezzi')
+        return Forms\Components\Section::make('Totali e Stato')
             ->schema([
-                Forms\Components\Grid::make(3)->schema([
-                    Forms\Components\TextInput::make('total_client_price')
-                        ->label('Prezzo Totale')
-                        ->prefix('€')
-                        ->numeric()
-                        ->step(0.01)
-                        ->default(0)
-                        ->live(debounce: 300)
-                        ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get)),
+                Forms\Components\Section::make('Valori economici')
+                    ->description('Apri questa sezione per vedere e gestire i valori economici dell\'abito.')
+                    ->schema([
+                        Forms\Components\Grid::make(2)->schema([
+                            Forms\Components\TextInput::make('total_client_price')
+                                ->label('Prezzo Totale')
+                                ->prefix('€')
+                                ->numeric()
+                                ->step(0.01)
+                                ->default(0)
+                                ->live(debounce: 300)
+                                ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get)),
 
+                            Forms\Components\TextInput::make('remaining')
+                                ->label('Rimanente')
+                                ->prefix('€')
+                                ->disabled()
+                                ->dehydrated(true),
+                        ]),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
+
+                Forms\Components\Grid::make(2)->schema([
                     Forms\Components\TextInput::make('deposit')
                         ->label('Acconto')
                         ->prefix('€')
@@ -420,17 +434,11 @@ trait HasSpecialDressFormSections
                         ->live(debounce: 300)
                         ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get)),
 
-                    Forms\Components\TextInput::make('remaining')
-                        ->label('Rimanente')
-                        ->prefix('€')
-                        ->disabled()
-                        ->dehydrated(true),
+                    Forms\Components\Select::make('status')
+                        ->label('Stato')
+                        ->options(self::getStatusLabels())
+                        ->default('in_attesa_acconto'),
                 ]),
-
-                Forms\Components\Select::make('status')
-                    ->label('Stato')
-                    ->options(self::getStatusLabels())
-                    ->default('in_attesa_acconto'),
             ])->columnSpanFull();
     }
 

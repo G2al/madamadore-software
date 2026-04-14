@@ -718,32 +718,53 @@ Forms\Components\Repeater::make('fabrics')
     {
         return Forms\Components\Section::make('Totali e Stato')
             ->schema([
-                // Totali calcolati (sola lettura)
-                Forms\Components\Grid::make(4)->schema([
-                    Forms\Components\TextInput::make('total_purchase_cost')
-                        ->label('Costo Totale (per te)')
-                        ->prefix('€')
-                        ->disabled()
-                        ->dehydrated(false),
+                Forms\Components\Section::make('Valori economici')
+                    ->description('Apri questa sezione per vedere e gestire i valori economici dell\'abito.')
+                    ->schema([
+                        Forms\Components\Grid::make(4)->schema([
+                            Forms\Components\TextInput::make('total_purchase_cost')
+                                ->label('Costo Totale (per te)')
+                                ->prefix('€')
+                                ->disabled()
+                                ->dehydrated(false),
 
-                    Forms\Components\TextInput::make('total_client_price')
-                        ->label('Prezzo Cliente')
-                        ->prefix('€')
-                        ->disabled()
-                        ->dehydrated(false),
+                            Forms\Components\TextInput::make('total_client_price')
+                                ->label('Prezzo Cliente')
+                                ->prefix('€')
+                                ->disabled()
+                                ->dehydrated(false),
 
-                    Forms\Components\TextInput::make('total_profit')
-                        ->label('Guadagno')
-                        ->prefix('€')
-                        ->disabled()
-                        ->dehydrated(false),
-                        
-Forms\Components\TextInput::make('remaining')
-    ->label('Rimanente da Pagare')
-    ->prefix('€')
-    ->disabled()
-    ->dehydrated(true),   // <--- PRIMA era false
-                ]),
+                            Forms\Components\TextInput::make('total_profit')
+                                ->label('Guadagno')
+                                ->prefix('€')
+                                ->disabled()
+                                ->dehydrated(false),
+
+                            Forms\Components\TextInput::make('remaining')
+                                ->label('Rimanente da Pagare')
+                                ->prefix('€')
+                                ->disabled()
+                                ->dehydrated(true),
+                        ]),
+
+                        Forms\Components\Grid::make(2)->schema([
+                            Forms\Components\TextInput::make('manual_client_price')
+                                ->label('Prezzo Manuale (deciso da Madamadorè)')
+                                ->prefix('€')
+                                ->numeric()
+                                ->step(0.01)
+                                ->placeholder('Es: 600')
+                                ->helperText('Se impostato, sostituisce il Prezzo Cliente calcolato')
+                                ->default(null),
+
+                            Forms\Components\Toggle::make('use_manual_price')
+                                ->label('Usa Prezzo Manuale')
+                                ->helperText('Se attivo, i calcoli useranno il Prezzo Manuale invece del calcolato')
+                                ->default(false),
+                        ]),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
 
                 // Campi editabili
                 Forms\Components\Grid::make(2)->schema([
@@ -756,25 +777,10 @@ Forms\Components\TextInput::make('remaining')
                         ->live(debounce: 300)
                         ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get)),
 
-                Forms\Components\TextInput::make('manual_client_price')
-                    ->label('Prezzo Manuale (deciso da Madamadorè)')
-                    ->prefix('€')
-                    ->numeric()
-                    ->step(0.01)
-                    ->placeholder('Es: 600')
-                    ->helperText('Se impostato, sostituisce il Prezzo Cliente calcolato')
-                    ->default(null),
-
-                Forms\Components\Toggle::make('use_manual_price')
-                    ->label('Usa Prezzo Manuale')
-                    ->helperText('Se attivo, i calcoli useranno il Prezzo Manuale invece del calcolato')
-                    ->default(false),
-
-
-                Forms\Components\Select::make('status')
-                    ->label('Stato')
-                    ->options(self::getStatusLabels())
-                    ->default('in_attesa_acconto'),
+                    Forms\Components\Select::make('status')
+                        ->label('Stato')
+                        ->options(self::getStatusLabels())
+                        ->default('in_attesa_acconto'),
                 ]),
             ])
             ->columnSpanFull();
