@@ -14,8 +14,8 @@ class FabricPdfController extends Controller
         $download = $request->boolean('download');
 
         $query = DressFabric::query()
-            ->with(['dress:id,customer_name,status,delivery_date'])
-            ->whereHas('dress', fn ($q) => $q->whereIn('status', ['confermato', 'da_tagliare']))
+            ->pendingPurchase()
+            ->with(['dress:id,customer_name,delivery_date'])
             ->orderBy('supplier', 'asc')
             ->orderBy('color_code', 'asc');
 

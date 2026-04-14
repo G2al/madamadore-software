@@ -11,6 +11,10 @@ class DressFabric extends Model
 {
     use HasFactory;
 
+    public const PURCHASE_PENDING_DRESS_STATUSES = [
+        'confermato',
+    ];
+
     protected $fillable = [
         'dress_id',
         'fabric_id',       // 👈 aggiunto
@@ -60,6 +64,11 @@ class DressFabric extends Model
     public function scopeForDressStatus(Builder $query, string $status): Builder
     {
         return $query->whereHas('dress', fn ($q) => $q->where('status', $status));
+    }
+
+    public function scopePendingPurchase(Builder $query): Builder
+    {
+        return $query->whereHas('dress', fn ($q) => $q->whereIn('status', self::PURCHASE_PENDING_DRESS_STATUSES));
     }
 
     public function scopeInLavorazione(Builder $query): Builder
