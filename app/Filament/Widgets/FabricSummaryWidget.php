@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 
 class FabricSummaryWidget extends BaseWidget
 {
-    protected static ?string $heading = 'Tessuti da acquistare (raggruppati per codice colore)';
+    protected static ?string $heading = 'Tessuti da acquistare (raggruppati per nome tessuto)';
 
     protected int|string|array $columnSpan = 'full';
 
@@ -36,17 +36,18 @@ class FabricSummaryWidget extends BaseWidget
                         'dress_fabrics.*',
                         DB::raw('(COALESCE(meters,0) * COALESCE(purchase_price,0)) as row_total'),
                     ])
+                    ->orderBy('name', 'asc')
                     ->orderBy('color_code', 'asc')
             )
-            ->defaultGroup('color_code')
+            ->defaultGroup('name')
             ->groups([
-                Group::make('color_code')
-                    ->label('Codice Colore')
+                Group::make('name')
+                    ->label('Nome Tessuto')
                     ->collapsible()
                     ->getDescriptionFromRecordUsing(function (DressFabric $record): string {
                         $totals = DressFabric::query()
                             ->pendingPurchase()
-                            ->where('color_code', $record->color_code)
+                            ->where('name', $record->name)
                             ->selectRaw('COALESCE(SUM(meters),0) as total_meters, COALESCE(SUM(meters * purchase_price),0) as total_cost')
                             ->first();
 
