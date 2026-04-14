@@ -13,6 +13,8 @@ class AdjustmentReceiptService
      */
     public function generateReceipt(Adjustment $adjustment)
     {
+        $this->loadReceiptRelations($adjustment);
+
         return Pdf::loadView('pdf.adjustment-receipt', [
             'adjustment' => $adjustment,
         ]);
@@ -23,6 +25,8 @@ class AdjustmentReceiptService
      */
     public function generateThermalReceipt(Adjustment $adjustment)
     {
+        $this->loadReceiptRelations($adjustment);
+
         return Pdf::loadView('pdf.adjustment-receipt-thermal', [
             'adjustment' => $adjustment,
         ])->setPaper([0, 0, 204, 1000], 'portrait');
@@ -34,6 +38,8 @@ class AdjustmentReceiptService
      */
     public function generateThermalReceiptCompany(CompanyAdjustment $adjustment)
     {
+        $this->loadReceiptRelations($adjustment);
+
         return Pdf::loadView('pdf.company-adjustment-receipt', [
             'adjustment' => $adjustment,
         ])->setPaper([0, 0, 204, 1000], 'portrait');
@@ -44,10 +50,17 @@ class AdjustmentReceiptService
      */
     public function generateSingleItemReceiptCompany(CompanyAdjustment $adjustment, $item)
     {
+        $this->loadReceiptRelations($adjustment);
+
         return Pdf::loadView('pdf.company-adjustment-single', [
             'adjustment' => $adjustment,
             'item' => $item,
         ])->setPaper([0, 0, 204, 600], 'portrait');
         // Formato termica 72mm, altezza ridotta per singolo item
+    }
+
+    private function loadReceiptRelations(Adjustment|CompanyAdjustment $adjustment): void
+    {
+        $adjustment->loadMissing(['customer', 'items']);
     }
 }

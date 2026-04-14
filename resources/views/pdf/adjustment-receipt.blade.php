@@ -60,6 +60,11 @@
             margin-top: 5px;
             line-height: 1.4;
         }
+        .item-price {
+            font-weight: bold;
+            text-align: right;
+            white-space: nowrap;
+        }
         .totals-section {
             background-color: #EAF2EF;
             padding: 15px;
@@ -98,8 +103,9 @@
         <table class="items">
             <thead>
                 <tr>
-                    <th style="width: 30%;">Aggiusto</th>
-                    <th style="width: 70%;">Descrizione Lavoro</th>
+                    <th style="width: 26%;">Aggiusto</th>
+                    <th style="width: 54%;">Descrizione Lavoro</th>
+                    <th style="width: 20%;">Prezzo</th>
                 </tr>
             </thead>
             <tbody>
@@ -112,6 +118,9 @@
                         <div class="item-description">
                             {{ $item->description ?: 'Nessuna descrizione fornita' }}
                         </div>
+                    </td>
+                    <td class="item-price">
+                        {{ $item->price !== null ? '€ ' . number_format((float) $item->price, 2, ',', '.') : '-' }}
                     </td>
                 </tr>
                 @endforeach

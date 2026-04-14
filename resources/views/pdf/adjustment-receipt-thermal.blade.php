@@ -33,6 +33,7 @@
         .th, .tr { border-bottom: 1px dashed #000; }
         .th td { font-weight: 700; padding: 1mm 0; }
         .tr td { padding: 1mm 0; }
+        .price-cell { text-align: right; white-space: nowrap; }
 
         .tot td { padding: 0.8mm 0; }
         .tot td:first-child { width: 26mm; }
@@ -80,13 +81,17 @@
 
         <table class="mb-2">
             <tr class="th">
-                <td style="width: 28mm;">Aggiusto</td>
+                <td style="width: 20mm;">Aggiusto</td>
                 <td>Descrizione</td>
+                <td class="price-cell" style="width: 14mm;">Prezzo</td>
             </tr>
             @foreach($adjustment->items as $item)
                 <tr class="tr">
                     <td>{{ $item->name }}</td>
                     <td>{{ $item->description ?: '—' }}</td>
+                    <td class="price-cell">
+                        {{ $item->price !== null ? '€ ' . number_format((float) $item->price, 2, ',', '.') : '-' }}
+                    </td>
                 </tr>
             @endforeach
         </table>
