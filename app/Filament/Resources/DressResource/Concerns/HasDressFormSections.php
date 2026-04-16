@@ -10,11 +10,11 @@ use App\Models\DressCorset;
 use App\Models\DressMeasurement;
 use App\Services\DressFabricPhotoService;
 use App\Services\MeasurementRecallService;
+use App\Support\SingleFileUploadState;
 use Filament\Forms\Components\Actions;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Support\HtmlString;
-use Illuminate\Support\Str;
 use Saade\FilamentAutograph\Forms\Components\SignaturePad;
 
 
@@ -504,20 +504,11 @@ private static function imagesSection(): Forms\Components\Section
         $set('client_price', $fabric->client_price);
         $set('color_code', $fabric->color_code);
         $set('supplier', $fabric->supplier);
-        $set('photo_path', self::formatSingleFileUploadState(
+        $set('photo_path', SingleFileUploadState::fromPath(
             app(DressFabricPhotoService::class)->copyFromInventory($fabric)
         ));
 
         self::updateCalculations($set, $get);
-    }
-
-    private static function formatSingleFileUploadState(?string $path): ?array
-    {
-        if (blank($path)) {
-            return null;
-        }
-
-        return [(string) Str::uuid() => $path];
     }
 
     // --- SEZIONE 5: Misure (Tabs + ordine dal Model) ---

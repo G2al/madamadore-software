@@ -3,8 +3,13 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ShoppingItemResource\Pages;
+use App\Models\Fabric;
 use App\Models\ShoppingItem;
+use App\Services\ShoppingItemInventoryService;
+use App\Support\SingleFileUploadState;
 use Filament\Forms;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Tables;
 use Filament\Resources\Resource;
 use Filament\Notifications\Notification;
@@ -24,6 +29,24 @@ class ShoppingItemResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('fabric_id')
+                    ->label('Da Inventario Tessuti')
+                    ->relationship(
+                        name: 'fabric',
+                        titleAttribute: 'name',
+                        modifyQueryUsing: fn ($query) => $query->orderBy('name'),
+                    )
+                    ->getOptionLabelFromRecordUsing(fn (Fabric $record): string => self::getFabricOptionLabel($record))
+                    ->searchable()
+                    ->preload()
+                    ->live()
+                    ->helperText('Facoltativo: seleziona un tessuto da inventario per precompilare la voce. L’inserimento manuale resta disponibile.')
+                    ->afterStateUpdated(fn ($state, Set $set, Get $get) => self::fillShoppingItemFieldsFromInventory(
+                        $state ? (int) $state : null,
+                        $set,
+                        $get,
+                    )),
+
                 Forms\Components\TextInput::make('name')
                     ->label('Nome')
                     ->maxLength(255),
@@ -55,10 +78,13 @@ class ShoppingItemResource extends Resource
 
                 Forms\Components\FileUpload::make('photo_path')
                     ->label('Foto')
+                    ->disk('public')
                     ->directory('shopping-items')
+                    ->visibility('public')
                     ->image()
                     ->imageEditor()
-                    ->previewable(),
+                    ->previewable()
+                    ->downloadable(),
 
                 Forms\Components\DateTimePicker::make('purchase_date')
                     ->label('Data Acquisto')
@@ -158,6 +184,38 @@ class ShoppingItemResource extends Resource
                     ->openUrlInNewTab(),
             ])
             ->defaultSort('created_at', 'desc');
+    }
+
+    private static function fillShoppingItemFieldsFromInventory(?int $fabricId, Set $set, Get $get): void
+    {
+        if (! $fabricId) {
+            return;
+        }
+
+        $fabric = Fabric::query()->find($fabricId);
+
+        if (! $fabric) {
+            return;
+        }
+
+        $payload = app(ShoppingItemInventoryService::class)->payloadFor($fabric);
+
+        $set('name', $payload['name'] ?? null);
+        $set('price', $payload['price'] ?? null);
+        $set('supplier', $payload['supplier'] ?? null);
+        $set('unit_type', $payload['unit_type'] ?? 'metri');
+        $set('photo_path', SingleFileUploadState::fromPath($payload['photo_path'] ?? null));
+    }
+
+    private static function getFabricOptionLabel(Fabric $fabric): string
+    {
+        $parts = array_filter([
+            $fabric->name,
+            $fabric->type,
+            $fabric->color_code ? 'Codice ' . $fabric->color_code : null,
+        ]);
+
+        return implode(' - ', $parts);
     }
 
     public static function getPages(): array

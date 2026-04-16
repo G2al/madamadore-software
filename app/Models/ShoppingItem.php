@@ -4,12 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ShoppingItem extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'fabric_id',
         'name',
         'price',
         'quantity',
@@ -28,5 +30,10 @@ class ShoppingItem extends Model
     public function isPaid(): bool
     {
         return !is_null($this->purchase_date);
+    }
+
+    public function fabric(): BelongsTo
+    {
+        return $this->belongsTo(Fabric::class);
     }
 }

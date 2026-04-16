@@ -10,6 +10,11 @@ class DressFabricPhotoService
 {
     public function copyFromInventory(?Fabric $fabric): ?string
     {
+        return $this->copyToDirectory($fabric, 'dress-fabrics');
+    }
+
+    public function copyToDirectory(?Fabric $fabric, string $directory): ?string
+    {
         $sourcePath = $fabric?->image;
 
         if (blank($sourcePath) || ! Storage::disk('public')->exists($sourcePath)) {
@@ -17,7 +22,7 @@ class DressFabricPhotoService
         }
 
         $extension = pathinfo($sourcePath, PATHINFO_EXTENSION) ?: 'jpg';
-        $targetPath = 'dress-fabrics/' . Str::uuid() . '.' . $extension;
+        $targetPath = trim($directory, '/') . '/' . Str::uuid() . '.' . $extension;
 
         Storage::disk('public')->copy($sourcePath, $targetPath);
 
