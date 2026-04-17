@@ -17,6 +17,7 @@ class FabricPdfController extends Controller
             ->pendingPurchase()
             ->with(['dress:id,customer_name,delivery_date'])
             ->orderBy('supplier', 'asc')
+            ->orderBy('name', 'asc')
             ->orderBy('color_code', 'asc');
 
         if ($colorCode !== null) {

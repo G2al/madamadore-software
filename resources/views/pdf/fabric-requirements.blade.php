@@ -4,15 +4,15 @@
     <meta charset="utf-8">
     <title>Lista Acquisti Tessuti</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            font-size: 11px; 
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
             margin: 20px;
             color: #333;
         }
-        .header { 
-            text-align: center; 
-            margin-bottom: 30px; 
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
             border-bottom: 2px solid #333;
             padding-bottom: 15px;
         }
@@ -20,148 +20,147 @@
             margin: 0 0 10px 0;
             color: #2c3e50;
         }
-        .supplier-section { 
-            margin-bottom: 30px; 
-            page-break-inside: avoid; 
+        .supplier-section {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
         }
-        .supplier-header { 
-            background: #34495e; 
-            color: white; 
-            padding: 12px 15px; 
-            font-weight: bold; 
+        .supplier-header {
+            background: #34495e;
+            color: white;
+            padding: 12px 15px;
+            font-weight: bold;
             font-size: 14px;
             margin-bottom: 15px;
         }
-        .color-group { 
-            margin-bottom: 20px; 
+        .fabric-group {
+            margin-bottom: 18px;
             border: 1px solid #ddd;
         }
-        .color-header { 
-            background: #ecf0f1; 
-            padding: 8px 12px; 
-            font-weight: bold; 
+        .fabric-header {
+            background: #ecf0f1;
+            padding: 8px 12px;
+            font-weight: bold;
             color: #2c3e50;
             border-bottom: 1px solid #ddd;
         }
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-bottom: 10px; 
+        .fabric-type {
+            font-size: 10px;
+            font-weight: normal;
+            color: #5d6d7e;
         }
-        th, td { 
-            border: 1px solid #ddd; 
-            padding: 8px; 
-            text-align: left; 
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
         }
-        th { 
-            background: #f8f9fa; 
-            font-weight: bold; 
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
             font-size: 10px;
             text-align: center;
         }
         .text-right { text-align: right; }
-        .text-center { text-align: center; }
-        .total-row { 
-            background: #e8f5e8; 
-            font-weight: bold; 
-            border-top: 2px solid #27ae60;
-        }
-        .grand-total {
-            background: #d5e8d4;
-            font-size: 13px;
+        .total-row {
+            background: #e8f5e8;
             font-weight: bold;
+            border-top: 2px solid #27ae60;
         }
         .price { color: #e74c3c; font-weight: bold; }
         .meters { color: #27ae60; font-weight: bold; }
+        .muted { color: #6c757d; }
     </style>
 </head>
 <body>
     <div class="header">
-        @if (!empty($colorCode))
-            <h1>LISTA ACQUISTI – CODICE COLORE {{ strtoupper($colorCode) }}</h1>
+        @if (! empty($colorCode))
+            <h1>LISTA ACQUISTI - CODICE COLORE {{ strtoupper($colorCode) }}</h1>
         @else
             <h1>LISTA ACQUISTI TESSUTI</h1>
         @endif
         <p><strong>Generata il:</strong> {{ $generatedAt }}</p>
-        <p class="price"><strong>TOTALE COMPLESSIVO: € {{ number_format($totalCost, 2, ',', '.') }}</strong></p>
+        <p class="price"><strong>TOTALE COMPLESSIVO: EUR {{ number_format($totalCost, 2, ',', '.') }}</strong></p>
     </div>
 
-    @php 
-        $fabricsBySupplierAndColor = $fabrics->groupBy(['supplier', 'color_code']);
+    @php
+        $fabricsBySupplier = $fabrics->groupBy(fn ($fabric) => $fabric->supplier ?: 'Senza fornitore');
     @endphp
 
-    @foreach($fabricsBySupplierAndColor as $supplier => $colorGroups)
+    @foreach($fabricsBySupplier as $supplier => $supplierItems)
+        @php
+            $supplierTotalMeters = $supplierItems->sum('meters');
+            $supplierTotalCost = $supplierItems->sum(fn ($item) => (float) $item->meters * (float) $item->purchase_price);
+            $fabricsByName = $supplierItems->groupBy(fn ($item) => $item->name ?: 'Tessuto senza nome');
+        @endphp
+
         <div class="supplier-section">
             <div class="supplier-header">
                 FORNITORE: {{ strtoupper($supplier) }}
+                <span style="float: right;">
+                    Totale: {{ number_format((float) $supplierTotalMeters, 2, ',', '.') }} mt - EUR {{ number_format((float) $supplierTotalCost, 2, ',', '.') }}
+                </span>
             </div>
-            
-            @foreach($colorGroups as $colorCode => $items)
+
+            @foreach($fabricsByName as $fabricName => $fabricItems)
                 @php
-                    $colorTotalMeters = $items->sum('meters');
-                    $colorTotalCost = $items->sum(function($item) { 
-                        return $item->meters * $item->purchase_price; 
-                    });
+                    $fabricTotalMeters = $fabricItems->sum('meters');
+                    $fabricTotalCost = $fabricItems->sum(fn ($item) => (float) $item->meters * (float) $item->purchase_price);
+                    $fabricTypes = $fabricItems->pluck('type')->filter()->unique()->values();
+                    $fabricColors = $fabricItems->groupBy(fn ($item) => $item->color_code ?: 'Senza codice');
                 @endphp
-                
-                <div class="color-group">
-                    <div class="color-header">
-                      CODICE COLORE: {{ $colorCode }} 
+
+                <div class="fabric-group">
+                    <div class="fabric-header">
+                        TESSUTO: {{ strtoupper($fabricName) }}
+                        @if($fabricTypes->isNotEmpty())
+                            <span class="fabric-type">({{ $fabricTypes->join(', ') }})</span>
+                        @endif
                         <span style="float: right;">
-                            Totale: {{ number_format($colorTotalMeters, 2, ',', '.') }} mt - € {{ number_format($colorTotalCost, 2, ',', '.') }}
+                            Totale: {{ number_format((float) $fabricTotalMeters, 2, ',', '.') }} mt - EUR {{ number_format((float) $fabricTotalCost, 2, ',', '.') }}
                         </span>
                     </div>
-                    
+
                     <table>
                         <thead>
                             <tr>
-                                <th style="width: 20%;">TESSUTO</th>
-                                <th style="width: 20%;">CLIENTE/ABITO</th>
-                                <th style="width: 12%;">CONSEGNA</th>
-                                <th style="width: 12%;">METRI</th>
-                                <th style="width: 12%;">PREZZO/MT</th>
-                                <th style="width: 12%;">SUBTOTALE</th>
-                                <th style="width: 12%;">URGENZA</th>
+                                <th style="width: 34%;">CODICE COLORE</th>
+                                <th style="width: 22%;">METRI</th>
+                                <th style="width: 22%;">PREZZO/MT</th>
+                                <th style="width: 22%;">SUBTOTALE</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($items->sortBy('dress.delivery_date') as $fabric)
-                                @php 
-                                    $subtotal = $fabric->meters * $fabric->purchase_price;
-                                    $deliveryDate = $fabric->dress->delivery_date;
-                                    $urgency = '';
-                                    $urgencyColor = '';
-                                    
-                                    if ($deliveryDate) {
-                                        $daysUntil = \Carbon\Carbon::parse($deliveryDate)->diffInDays(now(), false);
-                                        if ($daysUntil > 0) {
-                                            $urgency = 'SCADUTO';
-                                            $urgencyColor = 'color: #e74c3c; font-weight: bold;';
-                                        } elseif ($daysUntil >= -7) {
-                                            $urgency = 'URGENTE';
-                                            $urgencyColor = 'color: #f39c12; font-weight: bold;';
-                                        } elseif ($daysUntil >= -14) {
-                                            $urgency = 'PROSSIMO';
-                                            $urgencyColor = 'color: #3498db;';
-                                        }
-                                    }
+                            @foreach($fabricColors as $groupColorCode => $colorItems)
+                                @php
+                                    $colorTotalMeters = $colorItems->sum('meters');
+                                    $colorTotalCost = $colorItems->sum(fn ($item) => (float) $item->meters * (float) $item->purchase_price);
+                                    $uniquePrices = $colorItems
+                                        ->pluck('purchase_price')
+                                        ->filter(fn ($price) => $price !== null)
+                                        ->map(fn ($price) => (float) $price)
+                                        ->unique()
+                                        ->values();
+
+                                    $priceLabel = $uniquePrices->count() === 1
+                                        ? 'EUR ' . number_format($uniquePrices->first(), 2, ',', '.')
+                                        : 'Variabile';
                                 @endphp
                                 <tr>
-                                    <td><strong>{{ $fabric->name }}</strong></td>
-                                    <td>{{ $fabric->dress->customer_name }}</td>
-                                    <td class="text-center">{{ $deliveryDate ? $deliveryDate->format('d/m/Y') : 'Non definita' }}</td>
-                                    <td class="text-right meters">{{ number_format($fabric->meters, 2, ',', '.') }} mt</td>
-                                    <td class="text-right">€ {{ number_format($fabric->purchase_price, 2, ',', '.') }}</td>
-                                    <td class="text-right price">€ {{ number_format($subtotal, 2, ',', '.') }}</td>
-                                    <td class="text-center" style="{{ $urgencyColor }}">{{ $urgency }}</td>
+                                    <td><strong>{{ strtoupper($groupColorCode) }}</strong></td>
+                                    <td class="text-right meters">{{ number_format((float) $colorTotalMeters, 2, ',', '.') }} mt</td>
+                                    <td class="text-right {{ $uniquePrices->count() === 1 ? '' : 'muted' }}">{{ $priceLabel }}</td>
+                                    <td class="text-right price">EUR {{ number_format((float) $colorTotalCost, 2, ',', '.') }}</td>
                                 </tr>
                             @endforeach
                             <tr class="total-row">
-                                <td colspan="3"><strong>TOTALE {{ $colorCode }}:</strong></td>
-                                <td class="text-right"><strong>{{ number_format($colorTotalMeters, 2, ',', '.') }} mt</strong></td>
+                                <td><strong>TOTALE {{ strtoupper($fabricName) }}:</strong></td>
+                                <td class="text-right"><strong>{{ number_format((float) $fabricTotalMeters, 2, ',', '.') }} mt</strong></td>
                                 <td></td>
-                                <td class="text-right"><strong>€ {{ number_format($colorTotalCost, 2, ',', '.') }}</strong></td>
-                                <td></td>
+                                <td class="text-right"><strong>EUR {{ number_format((float) $fabricTotalCost, 2, ',', '.') }}</strong></td>
                             </tr>
                         </tbody>
                     </table>
