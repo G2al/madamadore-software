@@ -22,6 +22,7 @@
             <tr>
                 <th>Foto</th>
                 <th>Nome</th>
+                <th>Codice Colore</th>
                 <th>Quantita</th>
                 <th>Misure</th>
                 <th>Fornitore</th>
@@ -50,6 +51,7 @@
                         @endif
                     </td>
                     <td>{{ $item->name }}</td>
+                    <td>{{ $item->color_code ?? '-' }}</td>
                     <td>
                         {{ is_null($item->quantity) ? '-' : number_format((float) $item->quantity, 2, ',', '.') }}
                     </td>

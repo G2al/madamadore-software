@@ -50,6 +50,9 @@ class ShoppingItemResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->label('Nome')
                     ->maxLength(255),
+                Forms\Components\TextInput::make('color_code')
+                    ->label('Codice Colore')
+                    ->maxLength(255),
 
                 Forms\Components\TextInput::make('price')
                     ->label('Prezzo (€)')
@@ -110,6 +113,12 @@ class ShoppingItemResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
+                Tables\Columns\TextColumn::make('color_code')
+                    ->label('Codice Colore')
+                    ->badge()
+                    ->color('primary')
+                    ->searchable()
+                    ->toggleable(),
 
                 Tables\Columns\TextColumn::make('price')
                     ->label('Prezzo')
@@ -201,6 +210,7 @@ class ShoppingItemResource extends Resource
         $payload = app(ShoppingItemInventoryService::class)->payloadFor($fabric);
 
         $set('name', $payload['name'] ?? null);
+        $set('color_code', $payload['color_code'] ?? null);
         $set('price', $payload['price'] ?? null);
         $set('supplier', $payload['supplier'] ?? null);
         $set('unit_type', $payload['unit_type'] ?? 'metri');

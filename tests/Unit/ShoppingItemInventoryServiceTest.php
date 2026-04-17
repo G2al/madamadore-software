@@ -16,6 +16,7 @@ class ShoppingItemInventoryServiceTest extends TestCase
 
         $fabric = new Fabric([
             'name' => 'Mikado',
+            'color_code' => 'MK-101',
             'supplier' => 'Fornitore A',
             'purchase_price' => 18.5,
             'image' => 'fabrics/mikado.jpg',
@@ -24,6 +25,7 @@ class ShoppingItemInventoryServiceTest extends TestCase
         $payload = app(ShoppingItemInventoryService::class)->payloadFor($fabric);
 
         $this->assertSame('Mikado', $payload['name']);
+        $this->assertSame('MK-101', $payload['color_code']);
         $this->assertSame(18.5, $payload['price']);
         $this->assertSame('Fornitore A', $payload['supplier']);
         $this->assertSame('metri', $payload['unit_type']);

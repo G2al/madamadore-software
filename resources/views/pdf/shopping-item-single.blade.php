@@ -19,6 +19,7 @@
 
     <div class="container">
         <div class="row"><span class="label">Nome:</span> {{ $item->name }}</div>
+        <div class="row"><span class="label">Codice Colore:</span> {{ $item->color_code ?? '-' }}</div>
         <div class="row"><span class="label">Prezzo:</span> € {{ number_format($item->price, 2, ',', '.') }}</div>
         @php
             $unitLabel = match($item->unit_type) {

@@ -13,6 +13,7 @@ class ShoppingItem extends Model
     protected $fillable = [
         'fabric_id',
         'name',
+        'color_code',
         'price',
         'quantity',
         'unit_type',
