@@ -13,15 +13,38 @@ class CompanyAdjustmentItem extends Model
         'company_adjustment_id',
         'name',
         'description',
-        'price', // ← AGGIUNTO
+        'worker_id',
+        'completed_at',
+        'price',
     ];
 
     protected $casts = [
-        'price' => 'decimal:2', // ← AGGIUNTO
+        'price' => 'decimal:2',
+        'completed_at' => 'datetime',
     ];
 
     public function companyAdjustment()
     {
         return $this->belongsTo(CompanyAdjustment::class);
+    }
+
+    public function worker()
+    {
+        return $this->belongsTo(Worker::class);
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function (self $item): void {
+            $companyAdjustment = $item->companyAdjustment;
+
+            if (
+                $companyAdjustment
+                && in_array($companyAdjustment->status, ['confermato', 'consegnato'], true)
+                && $item->completed_at === null
+            ) {
+                static::withoutEvents(fn () => $item->update(['completed_at' => now()]));
+            }
+        });
     }
 }

@@ -29,6 +29,7 @@ trait HasAdjustmentTableDefinition
         return [
             self::getCustomerColumn(),
             self::getReferenteColumn(),
+            self::getWorkersColumn(),
             self::getStatusColumn(),
             self::getRitiratoColumn(),
             self::getAdjustmentNameColumn(),
@@ -379,9 +380,44 @@ private static function getTableFilters(): array
     private static function getReferenteColumn(): Tables\Columns\TextColumn
 {
     return Tables\Columns\TextColumn::make('referente')
-        ->label('Referente')
+        ->label('Preso da')
         ->searchable()
         ->toggleable()
         ->placeholder('N/D');
+}
+
+    private static function getWorkersColumn(): Tables\Columns\TextColumn
+{
+    return Tables\Columns\TextColumn::make('workers_display')
+        ->label('Lavorato da')
+        ->state(function ($record) {
+            $record->loadMissing('items.worker', 'primaryWorker');
+
+            $workers = $record->items
+                ->pluck('worker.name')
+                ->filter()
+                ->unique()
+                ->values();
+
+            if ($workers->isEmpty()) {
+                return $record->primaryWorker?->name ?? 'N/D';
+            }
+
+            if ($workers->count() === 1) {
+                return $workers->first();
+            }
+
+            return $workers->first() . ' + ' . ($workers->count() - 1) . ' altri';
+        })
+        ->badge()
+        ->color('success')
+        ->searchable(query: function ($query, $search) {
+            return $query->where(function ($query) use ($search) {
+                $query
+                    ->whereHas('primaryWorker', fn ($workerQuery) => $workerQuery->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('items.worker', fn ($workerQuery) => $workerQuery->where('name', 'like', "%{$search}%"));
+            });
+        })
+        ->toggleable();
 }
 }

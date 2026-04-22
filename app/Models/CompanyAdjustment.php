@@ -17,6 +17,7 @@ class CompanyAdjustment extends Model
     protected $fillable = [
         'customer_id',
         'referente',
+        'primary_worker_id',
         'status',
         'ritirato',
         'saldato',
@@ -80,6 +81,11 @@ class CompanyAdjustment extends Model
         return $this->hasMany(CompanyAdjustmentItem::class);
     }
 
+    public function primaryWorker()
+    {
+        return $this->belongsTo(Worker::class, 'primary_worker_id');
+    }
+
     /**
      * 🧾 Relazione: spese associate all'aggiusto
      */
@@ -93,6 +99,17 @@ class CompanyAdjustment extends Model
      */
     protected static function booted()
     {
+        static::saved(function ($companyAdjustment) {
+            if (
+                in_array($companyAdjustment->status, ['confermato', 'consegnato'], true)
+                && ($companyAdjustment->wasChanged('status') || $companyAdjustment->wasRecentlyCreated)
+            ) {
+                $companyAdjustment->items()
+                    ->whereNull('completed_at')
+                    ->update(['completed_at' => now()]);
+            }
+        });
+
         static::deleted(function ($companyAdjustment) {
             \App\Models\Cashbox::where('source', 'CompanyAdjustment #' . $companyAdjustment->id)->delete();
         });

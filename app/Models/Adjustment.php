@@ -17,6 +17,7 @@ class Adjustment extends Model
     protected $fillable = [
         'customer_id',
         'referente',
+        'primary_worker_id',
         'status',
         'ritirato',
         'saldato',
@@ -81,6 +82,11 @@ class Adjustment extends Model
         return $this->hasMany(AdjustmentItem::class);
     }
 
+    public function primaryWorker()
+    {
+        return $this->belongsTo(Worker::class, 'primary_worker_id');
+    }
+
     /**
      * 🧾 Nuova relazione: spese associate all’aggiusto
      */
@@ -94,6 +100,17 @@ class Adjustment extends Model
      */
     protected static function booted()
     {
+        static::saved(function ($adjustment) {
+            if (
+                in_array($adjustment->status, ['confermato', 'consegnato'], true)
+                && ($adjustment->wasChanged('status') || $adjustment->wasRecentlyCreated)
+            ) {
+                $adjustment->items()
+                    ->whereNull('completed_at')
+                    ->update(['completed_at' => now()]);
+            }
+        });
+
         static::deleted(function ($adjustment) {
             \App\Models\Cashbox::where('source', 'Adjustment #' . $adjustment->id)->delete();
         });

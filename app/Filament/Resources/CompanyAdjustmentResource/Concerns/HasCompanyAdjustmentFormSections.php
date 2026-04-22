@@ -62,9 +62,11 @@ trait HasCompanyAdjustmentFormSections
                     ),
 
                 Forms\Components\TextInput::make('referente')
-                    ->label('Referente')
-                    ->placeholder('Es. Marco, Giulia, Negozio Centro...')
+                    ->label('Preso da / Referente')
+                    ->placeholder('Es. Dora, Marco, Negozio Centro...')
                     ->maxLength(255),
+
+                self::primaryWorkerSelect(),
 
                 // Campo status con logica corretta
                 Forms\Components\Select::make('status')
@@ -274,6 +276,8 @@ Forms\Components\Repeater::make('items')
             ->rows(3)
             ->columnSpan(1), // ← CAMBIATO da 2 a 1
 
+        self::workerSelect(),
+
         // NUOVO CAMPO PREZZO
         Forms\Components\TextInput::make('price')
             ->label('Prezzo')
@@ -288,7 +292,7 @@ Forms\Components\Repeater::make('items')
                 CompanyAdjustmentResource::updateCalculations($set, $get)
             ),
     ])
-    ->columns(3)
+    ->columns(4)
     ->addActionLabel('Aggiungi aggiusto')
     ->defaultItems(1)
     ->collapsible()
@@ -298,6 +302,75 @@ Forms\Components\Repeater::make('items')
         CompanyAdjustmentResource::updateCalculations($set, $get)
     ),
             ]);
+    }
+
+    protected static function primaryWorkerSelect(): Forms\Components\Select
+    {
+        return Forms\Components\Select::make('primary_worker_id')
+            ->label('Operaio principale')
+            ->relationship(
+                name: 'primaryWorker',
+                titleAttribute: 'name',
+                modifyQueryUsing: fn ($query) => $query->where('active', true)->orderBy('name'),
+            )
+            ->searchable()
+            ->preload()
+            ->live()
+            ->helperText('Compila le righe vuote con lo stesso operaio. Puoi sempre cambiarlo sul singolo lavoro.')
+            ->createOptionForm(self::workerCreateForm())
+            ->afterStateUpdated(fn ($state, Set $set, Get $get) => self::fillEmptyItemWorkers($state, $set, $get));
+    }
+
+    protected static function workerSelect(): Forms\Components\Select
+    {
+        return Forms\Components\Select::make('worker_id')
+            ->label('Lavorato da')
+            ->relationship(
+                name: 'worker',
+                titleAttribute: 'name',
+                modifyQueryUsing: fn ($query) => $query->where('active', true)->orderBy('name'),
+            )
+            ->searchable()
+            ->preload()
+            ->createOptionForm(self::workerCreateForm())
+            ->default(fn (Get $get) => $get('../../primary_worker_id'))
+            ->columnSpan(1);
+    }
+
+    protected static function workerCreateForm(): array
+    {
+        return [
+            Forms\Components\TextInput::make('name')
+                ->label('Nome operaio')
+                ->required()
+                ->maxLength(255)
+                ->unique(table: \App\Models\Worker::class, column: 'name'),
+
+            Forms\Components\Toggle::make('active')
+                ->label('Attivo')
+                ->default(true),
+        ];
+    }
+
+    protected static function fillEmptyItemWorkers($workerId, Set $set, Get $get): void
+    {
+        if (! $workerId) {
+            return;
+        }
+
+        $items = $get('items') ?? [];
+
+        if (! is_array($items)) {
+            return;
+        }
+
+        foreach ($items as $key => $item) {
+            if (blank($item['worker_id'] ?? null)) {
+                $items[$key]['worker_id'] = $workerId;
+            }
+        }
+
+        $set('items', $items);
     }
 
     /**

@@ -51,7 +51,13 @@ class CompanyCompletatiResource extends Resource
                     ->weight('bold'),
 
                 Tables\Columns\TextColumn::make('referente')
-                    ->label('Referente')
+                    ->label('Preso da')
+                    ->searchable()
+                    ->placeholder('N/D')
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('primaryWorker.name')
+                    ->label('Operaio principale')
                     ->searchable()
                     ->placeholder('N/D')
                     ->toggleable(),
