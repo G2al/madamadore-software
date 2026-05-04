@@ -1,289 +1,74 @@
 @extends('pdf.layouts.dress-document', ['title' => 'Preventivo Abito #' . $dress->id])
 
 @php
-    $frontImage = $document['overview_front_image_path'] ?? $document['design_image_path'] ?? null;
-    $backImage = $document['overview_back_image_path'] ?? null;
+    $approvedFrontImage = $document['approved_front_image_path'] ?? $document['design_image_path'] ?? null;
+    $approvedBackImage = $document['approved_back_image_path'] ?? null;
+    $logoPath = file_exists(public_path('logo_madamadore_pdf.jpg'))
+        ? public_path('logo_madamadore_pdf.jpg')
+        : (file_exists(public_path('logo_madamadore.png')) ? public_path('logo_madamadore.png') : null);
+    $finalSheetImage = null;
+
+    foreach ([$dress->final_image ?? null, $dress->drawing_image ?? null, $dress->sketch_image ?? null] as $candidateImage) {
+        if (blank($candidateImage)) {
+            continue;
+        }
+
+        $absoluteCandidateImage = storage_path('app/public/' . ltrim((string) $candidateImage, '/'));
+
+        if (file_exists($absoluteCandidateImage)) {
+            $finalSheetImage = $absoluteCandidateImage;
+            break;
+        }
+    }
+
+    $secondPageImage = $finalSheetImage ?? $approvedFrontImage ?? $approvedBackImage;
 @endphp
 
 @section('content')
-    <div class="document-page">
-        <div class="page-title">Scheda Cliente</div>
-        <div class="page-subtitle">Preventivo cliente e bozzetto approvativo</div>
+    <div class="document-page" style="border: 2px solid #111; padding: 0; position: relative; overflow: hidden;">
+        <div style="position: absolute; top: 54mm; left: 10%; width: 80%; text-align: center;">
+            @if($logoPath)
+                <img src="{{ $logoPath }}" alt="MadamaDore" style="width: 84mm; height: auto; display: block; margin: 0 auto;">
+            @else
+                <div style="font-size: 38px; font-weight: bold;">MadamaDore</div>
+            @endif
 
-        <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-                <td style="width: 42%; vertical-align: top; padding-right: 3mm;">
-                    <table class="meta-table small-text">
-                        <tr>
-                            <td class="label">Preventivo Nr.</td>
-                            <td>{{ $dress->id }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Nome e cognome</td>
-                            <td>{{ $dress->customer_name }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Telefono</td>
-                            <td>{{ $dress->phone_number }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Cerimonia</td>
-                            <td>{{ $dress->ceremony_type ?: '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Intestatario cerimonia</td>
-                            <td>{{ $dress->ceremony_holder ?: '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Data cerimonia</td>
-                            <td>{{ $dress->ceremony_date?->format('d/m/Y') ?: '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Data consegna</td>
-                            <td>{{ $dress->delivery_date?->format('d/m/Y') ?: '-' }}</td>
-                        </tr>
-                    </table>
+            <div style="margin-top: 5mm; margin-bottom: 8mm; font-size: 15px; font-style: italic;">
+                Scheda cliente
+            </div>
 
-                    <div class="spacer-sm"></div>
-                    <div class="section-title">Descrizione abito</div>
-                    <div class="box small-text" style="min-height: 38mm;">
-                        <div class="paragraph-list">
-                            @forelse($document['description_paragraphs'] as $paragraph)
-                                <p>{{ $paragraph }}</p>
-                            @empty
-                                <div class="writing-lines">
-                                    @for($i = 0; $i < 4; $i++)
-                                        <div></div>
-                                    @endfor
-                                </div>
-                            @endforelse
-                        </div>
-                    </div>
-
-                    <div class="spacer-sm"></div>
-                    <div class="section-title">Note cliente</div>
-                    <div class="box small-text" style="min-height: 28mm;">
-                        <div class="paragraph-list">
-                            @forelse($document['client_notes_paragraphs'] as $paragraph)
-                                <p>{{ $paragraph }}</p>
-                            @empty
-                                <div class="writing-lines">
-                                    @for($i = 0; $i < 3; $i++)
-                                        <div></div>
-                                    @endfor
-                                </div>
-                            @endforelse
-                        </div>
-                    </div>
-                </td>
-
-                <td style="width: 58%; vertical-align: top; padding-left: 3mm;">
-                    <div class="section-title">Bozzetto approvato</div>
-                    <table class="image-grid">
-                        <tr>
-                            <td style="width: {{ $backImage ? '50%' : '100%' }}; padding-right: {{ $backImage ? '2mm' : '0' }};">
-                                <div class="image-frame image-frame--portrait" style="height: 144mm;">
-                                    @if($frontImage)
-                                        <img src="{{ $frontImage }}" alt="Disegno preventivo davanti">
-                                    @else
-                                        <div class="image-placeholder">Disegno non disponibile</div>
-                                    @endif
-                                </div>
-                            </td>
-
-                            @if($backImage)
-                                <td style="width: 50%; padding-left: 2mm;">
-                                    <div class="image-frame image-frame--portrait" style="height: 144mm;">
-                                        <img src="{{ $backImage }}" alt="Disegno preventivo dietro">
-                                    </div>
-                                </td>
-                            @endif
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
-
-        <div class="footer-note">
-            MadamaDore di Dora Maione - Scheda cliente abito su misura
+            <table style="width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 13px; color: #222;">
+                <tr>
+                    <td style="border: 1px solid #c6c6c6; padding: 6mm 4mm; width: 50%; font-style: italic; vertical-align: middle;">Preventivo Nr.</td>
+                    <td style="border: 1px solid #c6c6c6; padding: 6mm 4mm; width: 50%; vertical-align: middle;">{{ $dress->id }}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #c6c6c6; padding: 6mm 4mm; font-style: italic; vertical-align: middle;">Nome e cognome</td>
+                    <td style="border: 1px solid #c6c6c6; padding: 6mm 4mm; vertical-align: middle;">{{ $dress->customer_name }}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #c6c6c6; padding: 6mm 4mm; font-style: italic; vertical-align: middle;">Telefono</td>
+                    <td style="border: 1px solid #c6c6c6; padding: 6mm 4mm; vertical-align: middle;">{{ $dress->phone_number }}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #c6c6c6; padding: 6mm 4mm; font-style: italic; vertical-align: middle;">Data di consegna</td>
+                    <td style="border: 1px solid #c6c6c6; padding: 6mm 4mm; vertical-align: middle;">{{ $dress->delivery_date?->format('d/m/Y') ?: '-' }}</td>
+                </tr>
+            </table>
         </div>
     </div>
 
     <div class="page-break"></div>
-    <div class="document-page">
-        <div class="page-title">Misure Cliente</div>
-        <div class="page-subtitle">Misure standard e bozzetto collegati al preventivo</div>
-
-        <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-                <td style="width: 40%; vertical-align: top; padding-right: 3mm;">
-                    @include('pdf.partials.dress-measure-table', [
-                        'title' => 'Misure',
-                        'measurements' => $document['measurements'],
-                        'customMeasurements' => $document['custom_measurements'],
-                    ])
-
-                    <div class="spacer-sm"></div>
-                    <div class="section-title">Riepilogo capo</div>
-                    <table class="meta-table small-text">
-                        <tr>
-                            <td class="label">Modello</td>
-                            <td>{{ $document['model_name'] }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Linea</td>
-                            <td>{{ $document['line_name'] }}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">Tipologia capo</td>
-                            <td>{{ $document['garment_type'] }}</td>
-                        </tr>
-                    </table>
-                </td>
-                <td style="width: 60%; vertical-align: top; padding-left: 3mm;">
-                    <div class="section-title">Bozzetto approvato</div>
-                    <table class="image-grid">
-                        <tr>
-                            <td style="width: {{ $backImage ? '50%' : '100%' }}; padding-right: {{ $backImage ? '2mm' : '0' }};">
-                                <div class="image-frame image-frame--portrait" style="height: 154mm;">
-                                    @if($frontImage)
-                                        <img src="{{ $frontImage }}" alt="Disegno preventivo misure davanti">
-                                    @else
-                                        <div class="image-placeholder">Disegno non disponibile</div>
-                                    @endif
-                                </div>
-                            </td>
-
-                            @if($backImage)
-                                <td style="width: 50%; padding-left: 2mm;">
-                                    <div class="image-frame image-frame--portrait" style="height: 154mm;">
-                                        <img src="{{ $backImage }}" alt="Disegno preventivo misure dietro">
-                                    </div>
-                                </td>
-                            @endif
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
-    </div>
-
-    <div class="page-break"></div>
-    <div class="document-page">
-        <div class="page-title">Condizioni Generali</div>
-        <div class="page-subtitle">Riepilogo materiali, extra e condizioni economiche concordate</div>
-
-        <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-                <td style="width: 58%; vertical-align: top; padding-right: 3mm;">
-                    <div class="section-title">Tessuti</div>
-                    <div class="box small-text">
-                        @if(! empty($document['fabrics']))
-                            <ul class="bullet-list">
-                                @foreach($document['fabrics'] as $fabric)
-                                    <li>
-                                        {{ $fabric['name'] }}
-                                        @if($fabric['type'] !== '')
-                                            - {{ $fabric['type'] }}
-                                        @endif
-                                        @if($fabric['color_code'] !== '')
-                                            - Codice {{ $fabric['color_code'] }}
-                                        @endif
-                                        - {{ $fabric['meters'] }} m
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <span class="muted">Nessun tessuto inserito.</span>
-                        @endif
-                    </div>
-
-                    <div class="spacer-sm"></div>
-                    <div class="section-title">Extra e accessori</div>
-                    <div class="box small-text">
-                        @if(! empty($document['accessories']))
-                            <ul class="bullet-list">
-                                @foreach($document['accessories'] as $accessory)
-                                    <li>{{ $accessory }}</li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <span class="muted">Nessun extra aggiuntivo.</span>
-                        @endif
-                    </div>
-
-                    <div class="spacer-sm"></div>
-                    <div class="section-title">Annotazioni generali</div>
-                    <div class="box small-text" style="min-height: 36mm;">
-                        <div class="paragraph-list">
-                            @forelse($document['technical_description_paragraphs'] as $paragraph)
-                                <p>{{ $paragraph }}</p>
-                            @empty
-                                <div class="writing-lines">
-                                    @for($i = 0; $i < 4; $i++)
-                                        <div></div>
-                                    @endfor
-                                </div>
-                            @endforelse
-                        </div>
-                    </div>
-                </td>
-
-                <td style="width: 42%; vertical-align: top; padding-left: 3mm;">
-                    <div class="section-title">Riepilogo economico</div>
-                    <table class="grid-table small-text">
-                        <tr>
-                            <th>Costo totale</th>
-                            <td style="text-align: right;">EUR {{ number_format($dress->total_client_price ?? 0, 2, ',', '.') }}</td>
-                        </tr>
-                        <tr>
-                            <th>Acconto</th>
-                            <td style="text-align: right;">EUR {{ number_format($dress->deposit ?? 0, 2, ',', '.') }}</td>
-                        </tr>
-                        <tr>
-                            <th>Saldo finale</th>
-                            <td style="text-align: right;">EUR {{ number_format($dress->remaining ?? 0, 2, ',', '.') }}</td>
-                        </tr>
-                    </table>
-
-                    <div class="spacer-sm"></div>
-                    <div class="section-title">Campioni tessuto</div>
-                    @for($i = 0; $i < 3; $i++)
-                        @php($sample = $document['fabric_samples'][$i] ?? null)
-                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 3mm;">
-                            <tr>
-                                <td style="width: 42%; vertical-align: top; padding-right: 2mm;">
-                                    <div class="sample-image">
-                                        @if($sample && $sample['photo_absolute_path'])
-                                            <img src="{{ $sample['photo_absolute_path'] }}" alt="Campione {{ $sample['name'] }}">
-                                        @endif
-                                    </div>
-                                </td>
-                                <td style="width: 58%; vertical-align: top;" class="small-text">
-                                    <strong>Tessuto {{ $i + 1 }}</strong><br>
-                                    {{ $sample['summary'] ?? '' }}
-                                </td>
-                            </tr>
-                        </table>
-                    @endfor
-
-                    <div class="spacer-sm"></div>
-                    <div class="section-title">Tabella acconti</div>
-                    <table class="grid-table small-text">
-                        <tr>
-                            <th style="width: 40%;">Acconto</th>
-                            <th>Data</th>
-                        </tr>
-                        @for($i = 0; $i < 4; $i++)
-                            <tr>
-                                <td style="height: 10mm;"></td>
-                                <td></td>
-                            </tr>
-                        @endfor
-                    </table>
-                </td>
-            </tr>
-        </table>
+    <div class="document-page" style="padding: 0; overflow: hidden; border: none;">
+        <div style="height: 270mm; display: table; width: 100%;">
+            <div style="display: table-cell; vertical-align: middle; text-align: center;">
+                @if($secondPageImage)
+                    <img src="{{ $secondPageImage }}" alt="Abito definitivo" style="display: block; width: 100%; height: auto; max-height: 270mm; margin: 0 auto;">
+                @else
+                    <div class="image-placeholder">Abito definitivo non disponibile</div>
+                @endif
+            </div>
+        </div>
     </div>
 
     <div class="page-break"></div>
@@ -373,6 +158,86 @@
                         Firma del Fornitore<br><br><br>
                         _______________________________
                     </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="page-break"></div>
+    <div class="document-page">
+        <div class="page-title">Riepilogo Economico</div>
+        <div class="page-subtitle">Acconti, descrizione abito e riepilogo finale</div>
+
+        <table style="width: 100%; border-collapse: collapse; height: 240mm; table-layout: fixed;">
+            <tr>
+                <td style="width: 58%; height: 120mm; vertical-align: top; padding-right: 3mm; padding-bottom: 2mm;">
+                    <div class="section-title">Descrizione abito</div>
+                    <div class="box small-text" style="height: 110mm; overflow: hidden;">
+                        <div class="paragraph-list">
+                            @forelse($document['description_paragraphs'] as $paragraph)
+                                <p>{{ $paragraph }}</p>
+                            @empty
+                                <div class="writing-lines">
+                                    @for($i = 0; $i < 9; $i++)
+                                        <div></div>
+                                    @endfor
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </td>
+
+                <td style="width: 42%; height: 122mm; vertical-align: top; padding-left: 3mm; padding-bottom: 2mm;">
+                    <div class="section-title">Riepilogo economico</div>
+                    <table class="grid-table small-text" style="height: 110mm;">
+                        <tr>
+                            <th style="height: 34mm;">Costo totale</th>
+                            <td style="text-align: right; height: 34mm;">EUR {{ number_format($dress->total_client_price ?? 0, 2, ',', '.') }}</td>
+                        </tr>
+                        <tr>
+                            <th style="height: 34mm;">Acconto</th>
+                            <td style="text-align: right; height: 34mm;">EUR {{ number_format($dress->deposit ?? 0, 2, ',', '.') }}</td>
+                        </tr>
+                        <tr>
+                            <th style="height: 34mm;">Saldo finale</th>
+                            <td style="text-align: right; height: 34mm;">EUR {{ number_format($dress->remaining ?? 0, 2, ',', '.') }}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+
+            <tr>
+                <td style="width: 58%; height: 120mm; vertical-align: top; padding-right: 3mm; padding-top: 2mm;">
+                    <div class="section-title">Note cliente</div>
+                    <div class="box small-text" style="height: 110mm; overflow: hidden;">
+                        <div class="paragraph-list">
+                            @forelse($document['client_notes_paragraphs'] as $paragraph)
+                                <p>{{ $paragraph }}</p>
+                            @empty
+                                <div class="writing-lines">
+                                    @for($i = 0; $i < 9; $i++)
+                                        <div></div>
+                                    @endfor
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </td>
+
+                <td style="width: 42%; height: 120mm; vertical-align: top; padding-left: 3mm; padding-top: 2mm;">
+                    <div class="section-title">Tabella acconti</div>
+                    <table class="grid-table small-text" style="height: 110mm;">
+                        <tr>
+                            <th style="width: 40%;">Acconto</th>
+                            <th>Data</th>
+                        </tr>
+                        @for($i = 0; $i < 6; $i++)
+                            <tr>
+                                <td style="height: 15.5mm;"></td>
+                                <td></td>
+                            </tr>
+                        @endfor
+                    </table>
                 </td>
             </tr>
         </table>

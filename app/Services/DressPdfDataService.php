@@ -33,6 +33,8 @@ class DressPdfDataService
 
         return [
             'design_image_path' => $this->resolvePrimaryDesignImagePath($dress, $technicalSheet),
+            'approved_front_image_path' => $this->resolveApprovedFrontImagePath($dress, $technicalSheet),
+            'approved_back_image_path' => $this->resolveApprovedBackImagePath($dress, $technicalSheet),
             'overview_front_image_path' => $this->resolveStoredImagePath($technicalSheet?->front_view_image)
                 ?? $this->resolvePrimaryDesignImagePath($dress, $technicalSheet),
             'overview_back_image_path' => $this->resolveStoredImagePath($technicalSheet?->back_view_image),
@@ -277,7 +279,7 @@ class DressPdfDataService
      */
     private function splitLines(string $text): array
     {
-        $items = preg_split('/\R+|•+/u', $text) ?: [];
+        $items = preg_split('/\R+|\x{2022}+/u', $text) ?: [];
 
         return collect($items)
             ->map(fn (string $item): string => trim($item, " \t\n\r\0\x0B-"))
@@ -455,6 +457,40 @@ class DressPdfDataService
 
         foreach (['drawing_image', 'final_image', 'sketch_image'] as $field) {
             $absolutePath = $this->resolveStoredImagePath($dress->{$field} ?? null);
+
+            if ($absolutePath !== null) {
+                return $absolutePath;
+            }
+        }
+
+        return null;
+    }
+
+    private function resolveApprovedFrontImagePath(Dress $dress, ?DressTechnicalSheet $technicalSheet): ?string
+    {
+        foreach ([
+            $technicalSheet?->front_view_image,
+            $dress->final_image ?? null,
+            $dress->drawing_image ?? null,
+            $dress->sketch_image ?? null,
+        ] as $path) {
+            $absolutePath = $this->resolveStoredImagePath($path);
+
+            if ($absolutePath !== null) {
+                return $absolutePath;
+            }
+        }
+
+        return null;
+    }
+
+    private function resolveApprovedBackImagePath(Dress $dress, ?DressTechnicalSheet $technicalSheet): ?string
+    {
+        foreach ([
+            $technicalSheet?->back_view_image,
+            $dress->final_image ?? null,
+        ] as $path) {
+            $absolutePath = $this->resolveStoredImagePath($path);
 
             if ($absolutePath !== null) {
                 return $absolutePath;

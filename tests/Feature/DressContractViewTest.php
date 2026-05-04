@@ -84,8 +84,10 @@ class DressContractViewTest extends TestCase
         ])->render();
 
         $this->assertStringNotContainsString('Fornitore Riservato', $html);
-        $this->assertStringContainsString('Scheda Cliente', $html);
-        $this->assertStringContainsString('Bozzetto approvato', $html);
+        $this->assertStringContainsString('Scheda cliente', $html);
+        $this->assertStringContainsString('Abito Definitivo', $html);
+        $this->assertStringContainsString('Contratto di Vendita', $html);
+        $this->assertStringContainsString('Riepilogo Economico', $html);
         $this->assertStringContainsString('Campioni tessuto', $html);
         $this->assertStringContainsString($this->absolutePhotoPath(), $html);
         $this->assertSame(3, substr_count($html, '<div class="page-break">'));
