@@ -26,6 +26,22 @@ class PdfController extends Controller
         return PdfResponseService::streamPdf($pdf, "preventivo-abito-{$dress->id}.pdf");
     }
 
+    public function productionSheet(Dress $dress)
+    {
+        $service = app(\App\Services\DressReceiptService::class);
+        $pdf = $service->generateProductionSheet($dress);
+
+        return PdfResponseService::streamPdf($pdf, "scheda-produzione-abito-{$dress->id}.pdf");
+    }
+
+    public function technicalSheet(Dress $dress)
+    {
+        $service = app(\App\Services\DressReceiptService::class);
+        $pdf = $service->generateTechnicalSheet($dress);
+
+        return PdfResponseService::streamPdf($pdf, "scheda-tecnica-abito-{$dress->id}.pdf");
+    }
+
     /**
      * PDF con tutti gli abiti da consegnare in un determinato mese.
      *

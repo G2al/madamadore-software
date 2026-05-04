@@ -7,23 +7,19 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class DressContractService
 {
+    public function __construct(
+        private readonly DressPdfDataService $dressPdfDataService,
+    ) {
+    }
+
     /**
-     * Genera il PDF del contratto per un Dress.
-     *
-     * @param  \App\Models\Dress  $dress
-     * @return \Barryvdh\DomPDF\PDF
+     * Genera il PDF del preventivo per un Dress.
      */
     public function generateContract(Dress $dress)
     {
-        $dress->loadMissing([
-            'measurements',
-            'customMeasurements',
-            'fabrics',
-            'extras',
-        ]);
-
-        return Pdf::loadView('pdf.dress-contract', [
+        return Pdf::loadView('pdf.dress-preventivo', [
             'dress' => $dress,
-        ]);
+            'document' => $this->dressPdfDataService->build($dress),
+        ])->setPaper('a4', 'portrait');
     }
 }

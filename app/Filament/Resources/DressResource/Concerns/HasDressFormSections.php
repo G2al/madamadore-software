@@ -310,11 +310,212 @@ private static function imagesSection(): Forms\Components\Section
     {
         return Forms\Components\Section::make('Note')
             ->schema([
+                Forms\Components\Textarea::make('description')
+                    ->label('Descrizione Abito')
+                    ->rows(5)
+                    ->helperText('Descrizione generale del capo da usare come base per preventivo e schede interne.'),
+
                 Forms\Components\Textarea::make('notes')
                     ->label('Note')
-                    ->rows(4),
+                    ->rows(4)
+                    ->helperText('Note generali di lavorazione o accordi interni.'),
             ])
             ->columnSpanFull();
+    }
+
+    private static function technicalSheetSection(): Forms\Components\Section
+    {
+        return Forms\Components\Section::make('Scheda Tecnica')
+            ->description('Questi campi alimentano il nuovo preventivo cliente e le schede interne stile Dora.')
+            ->relationship('technicalSheet')
+            ->schema([
+                Forms\Components\Grid::make(3)
+                    ->schema([
+                        Forms\Components\TextInput::make('model_name')
+                            ->label('Modello')
+                            ->maxLength(255),
+
+                        Forms\Components\TextInput::make('line_name')
+                            ->label('Linea')
+                            ->maxLength(255),
+
+                        Forms\Components\TextInput::make('garment_type')
+                            ->label('Tipologia Capo')
+                            ->maxLength(255),
+                    ]),
+
+                Forms\Components\Grid::make(2)
+                    ->schema([
+                        Forms\Components\Textarea::make('client_notes')
+                            ->label('Note Cliente')
+                            ->rows(5)
+                            ->helperText('Usa un paragrafo per riga o lascia righe vuote per separare i blocchi.'),
+
+                        Forms\Components\Textarea::make('technical_description')
+                            ->label('Descrizione Tecnica del Capo')
+                            ->rows(5)
+                            ->helperText('Testo principale da stampare nella scheda produzione.'),
+                    ]),
+
+                Forms\Components\Grid::make(3)
+                    ->schema([
+                        Forms\Components\Textarea::make('production_notes')
+                            ->label('Note Produzione')
+                            ->rows(6)
+                            ->helperText('Una nota per riga.'),
+
+                        Forms\Components\Textarea::make('materials_notes')
+                            ->label('Materiali')
+                            ->rows(6)
+                            ->helperText('Un materiale per riga.'),
+
+                        Forms\Components\Textarea::make('accessories_notes')
+                            ->label('Accessori')
+                            ->rows(6)
+                            ->helperText('Un accessorio per riga.'),
+                    ]),
+
+                Forms\Components\Grid::make(2)
+                    ->schema([
+                        Forms\Components\Textarea::make('construction_notes')
+                            ->label('Note Costruttive')
+                            ->rows(5)
+                            ->helperText('Una nota per riga.'),
+
+                        Forms\Components\Textarea::make('nb_notes')
+                            ->label('N.B.')
+                            ->rows(5),
+                    ]),
+
+                Forms\Components\Grid::make(2)
+                    ->schema([
+                        Forms\Components\TextInput::make('measurements_responsible')
+                            ->label('Responsabile Misure')
+                            ->maxLength(255),
+
+                        Forms\Components\TextInput::make('closure_details')
+                            ->label('Chiusura')
+                            ->maxLength(255)
+                            ->helperText('Esempio: Zip invisibile al centro dietro.'),
+                    ]),
+
+                Forms\Components\Grid::make(2)
+                    ->schema([
+                        Forms\Components\Fieldset::make('Tessuto Principale')
+                            ->schema([
+                                Forms\Components\TextInput::make('main_fabric_name')
+                                    ->label('Tessuto')
+                                    ->maxLength(255),
+                                Forms\Components\TextInput::make('main_fabric_composition')
+                                    ->label('Composizione')
+                                    ->maxLength(255),
+                                Forms\Components\TextInput::make('main_fabric_color')
+                                    ->label('Colore')
+                                    ->maxLength(255),
+                            ]),
+
+                        Forms\Components\Fieldset::make('Tessuto Manica / Secondario')
+                            ->schema([
+                                Forms\Components\TextInput::make('sleeve_fabric_name')
+                                    ->label('Tessuto')
+                                    ->maxLength(255),
+                                Forms\Components\TextInput::make('sleeve_fabric_composition')
+                                    ->label('Composizione')
+                                    ->maxLength(255),
+                                Forms\Components\TextInput::make('sleeve_fabric_color')
+                                    ->label('Colore')
+                                    ->maxLength(255),
+                            ]),
+                    ]),
+
+                Forms\Components\Grid::make(2)
+                    ->schema([
+                        Forms\Components\Textarea::make('neckline_details')
+                            ->label('Dettaglio Scollo')
+                            ->rows(4),
+
+                        Forms\Components\Textarea::make('sleeve_details')
+                            ->label('Dettaglio Maniche')
+                            ->rows(4),
+
+                        Forms\Components\Textarea::make('bodice_details')
+                            ->label('Dettaglio Corpino')
+                            ->rows(4),
+
+                        Forms\Components\Textarea::make('back_details')
+                            ->label('Dettaglio Dietro')
+                            ->rows(4),
+                    ]),
+
+                Forms\Components\Fieldset::make('Immagini Tecniche')
+                    ->schema([
+                        Forms\Components\FileUpload::make('front_view_image')
+                            ->label('Foto / Disegno Davanti')
+                            ->image()
+                            ->disk('public')
+                            ->directory('dress-technical/front')
+                            ->visibility('public')
+                            ->downloadable()
+                            ->imageEditor(),
+
+                        Forms\Components\FileUpload::make('back_view_image')
+                            ->label('Foto / Disegno Dietro')
+                            ->image()
+                            ->disk('public')
+                            ->directory('dress-technical/back')
+                            ->visibility('public')
+                            ->downloadable()
+                            ->imageEditor(),
+
+                        Forms\Components\FileUpload::make('neckline_detail_image')
+                            ->label('Dettaglio Scollo')
+                            ->image()
+                            ->disk('public')
+                            ->directory('dress-technical/details')
+                            ->visibility('public')
+                            ->downloadable()
+                            ->imageEditor(),
+
+                        Forms\Components\FileUpload::make('sleeve_detail_image')
+                            ->label('Dettaglio Maniche')
+                            ->image()
+                            ->disk('public')
+                            ->directory('dress-technical/details')
+                            ->visibility('public')
+                            ->downloadable()
+                            ->imageEditor(),
+
+                        Forms\Components\FileUpload::make('bodice_detail_image')
+                            ->label('Dettaglio Corpino')
+                            ->image()
+                            ->disk('public')
+                            ->directory('dress-technical/details')
+                            ->visibility('public')
+                            ->downloadable()
+                            ->imageEditor(),
+
+                        Forms\Components\FileUpload::make('back_detail_image')
+                            ->label('Dettaglio Dietro')
+                            ->image()
+                            ->disk('public')
+                            ->directory('dress-technical/details')
+                            ->visibility('public')
+                            ->downloadable()
+                            ->imageEditor(),
+
+                        Forms\Components\FileUpload::make('closure_detail_image')
+                            ->label('Dettaglio Chiusura')
+                            ->image()
+                            ->disk('public')
+                            ->directory('dress-technical/details')
+                            ->visibility('public')
+                            ->downloadable()
+                            ->imageEditor(),
+                    ])
+                    ->columns(2),
+            ])
+            ->columnSpanFull()
+            ->collapsible();
     }
 
     private static function expenseSection(): Forms\Components\Section

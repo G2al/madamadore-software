@@ -133,6 +133,12 @@ protected static function tableRowActions(): array
 return [
     self::getDownloadReceiptAction(),
     self::getDownloadContractAction(),
+    Tables\Actions\ActionGroup::make([
+        self::getDownloadProductionSheetAction(),
+        self::getDownloadTechnicalSheetAction(),
+    ])->label('Schede')
+      ->icon('heroicon-o-document-duplicate')
+      ->button(),
 ];
 }
 
@@ -292,6 +298,26 @@ private static function getDownloadContractAction(): Tables\Actions\Action
         ->icon('heroicon-o-document-text')
         ->color('warning')
         ->url(fn($record) => route('pdf.preventivo', $record))
+        ->openUrlInNewTab();
+}
+
+private static function getDownloadProductionSheetAction(): Tables\Actions\Action
+{
+    return Tables\Actions\Action::make('download_production_sheet')
+        ->label('Scheda Produzione')
+        ->icon('heroicon-o-clipboard-document-list')
+        ->color('gray')
+        ->url(fn($record) => route('pdf.modellino.production', $record))
+        ->openUrlInNewTab();
+}
+
+private static function getDownloadTechnicalSheetAction(): Tables\Actions\Action
+{
+    return Tables\Actions\Action::make('download_technical_sheet')
+        ->label('Scheda Tecnica')
+        ->icon('heroicon-o-swatch')
+        ->color('gray')
+        ->url(fn($record) => route('pdf.modellino.technical', $record))
         ->openUrlInNewTab();
 }
 

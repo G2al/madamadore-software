@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Dress;
+use App\Models\DressExpense;
 use App\Models\DressExtra;
 use App\Models\DressFabric;
+use App\Models\DressTechnicalSheet;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
@@ -29,12 +31,13 @@ class DressContractViewTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_preventivo_hides_supplier_shows_fabric_photo_and_keeps_four_pages(): void
+    public function test_preventivo_cliente_hides_supplier_shows_fabric_photo_and_keeps_four_pages(): void
     {
         $dress = new Dress([
             'customer_name' => 'Chiara Test',
             'phone_number' => '3331234567',
             'notes' => 'Preventivo con campione tessuto.',
+            'description' => 'Abito lungo con corpino sagomato.',
             'deposit' => 120,
             'remaining' => 180,
             'manufacturing_price' => 0,
@@ -44,10 +47,22 @@ class DressContractViewTest extends TestCase
         $dress->delivery_date = Carbon::parse('2026-05-20');
         $dress->setRelation('measurements', null);
         $dress->setRelation('customMeasurements', new Collection());
+        $dress->setRelation('corsets', new Collection());
+        $dress->setRelation('technicalSheet', new DressTechnicalSheet([
+            'client_notes' => "Cliente vuole linea pulita\nPriorita alla vestibilita",
+            'front_view_image' => null,
+            'back_view_image' => null,
+        ]));
         $dress->setRelation('extras', collect([
             new DressExtra([
                 'description' => 'Applicazione pizzo',
                 'cost' => 35,
+            ]),
+        ]));
+        $dress->setRelation('expenses', collect([
+            new DressExpense([
+                'name' => 'Zip invisibile',
+                'price' => 12,
             ]),
         ]));
         $dress->setRelation('fabrics', collect([
@@ -63,11 +78,14 @@ class DressContractViewTest extends TestCase
             ]),
         ]));
 
-        $html = view('pdf.dress-contract', [
+        $html = view('pdf.dress-preventivo', [
             'dress' => $dress,
+            'document' => app(\App\Services\DressPdfDataService::class)->build($dress),
         ])->render();
 
         $this->assertStringNotContainsString('Fornitore Riservato', $html);
+        $this->assertStringContainsString('Scheda Cliente', $html);
+        $this->assertStringContainsString('Bozzetto approvato', $html);
         $this->assertStringContainsString('Campioni tessuto', $html);
         $this->assertStringContainsString($this->absolutePhotoPath(), $html);
         $this->assertSame(3, substr_count($html, '<div class="page-break">'));

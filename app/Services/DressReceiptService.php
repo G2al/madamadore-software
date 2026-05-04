@@ -7,16 +7,41 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class DressReceiptService
 {
+    public function __construct(
+        private readonly DressPdfDataService $dressPdfDataService,
+    ) {
+    }
+
     /**
-     * Genera il PDF della ricevuta per un Dress.
-     *
-     * @param  \App\Models\Dress  $dress
-     * @return \Barryvdh\DomPDF\PDF
+     * Genera il PDF del modellino completo per un Dress.
      */
     public function generateReceipt(Dress $dress)
     {
         return Pdf::loadView('pdf.dress-receipt', [
             'dress' => $dress,
-        ]);
+            'document' => $this->dressPdfDataService->build($dress),
+        ])->setPaper('a4', 'portrait');
+    }
+
+    /**
+     * Genera la scheda produzione singola.
+     */
+    public function generateProductionSheet(Dress $dress)
+    {
+        return Pdf::loadView('pdf.dress-model-production', [
+            'dress' => $dress,
+            'document' => $this->dressPdfDataService->build($dress),
+        ])->setPaper('a4', 'portrait');
+    }
+
+    /**
+     * Genera la scheda tecnica singola.
+     */
+    public function generateTechnicalSheet(Dress $dress)
+    {
+        return Pdf::loadView('pdf.dress-model-technical', [
+            'dress' => $dress,
+            'document' => $this->dressPdfDataService->build($dress),
+        ])->setPaper('a4', 'portrait');
     }
 }

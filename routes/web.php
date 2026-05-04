@@ -60,6 +60,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pdf/preventivo/{dress}', [PdfController::class, 'preventivo'])
         ->name('pdf.preventivo');
 
+    Route::get('/pdf/modellino/{dress}/produzione', [PdfController::class, 'productionSheet'])
+        ->name('pdf.modellino.production');
+
+    Route::get('/pdf/modellino/{dress}/tecnica', [PdfController::class, 'technicalSheet'])
+        ->name('pdf.modellino.technical');
+
     // 📄 PDF Abiti per mese (consegna)
     Route::get('/pdf/dresses/monthly/{year}/{month}', [PdfController::class, 'monthlyDresses'])
         ->whereNumber('year')

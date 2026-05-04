@@ -48,6 +48,7 @@ class DressResource extends Resource
             self::contactSection(),
             self::imagesSection(),
             self::notesSection(),
+            self::technicalSheetSection(),
             self::expenseSection(),
             self::quoteSection(),
             self::measurementsSection(),

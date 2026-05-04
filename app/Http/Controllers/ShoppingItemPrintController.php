@@ -3,11 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\ShoppingItem;
+use App\Services\UnifiedShoppingListPdfService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class ShoppingItemPrintController extends Controller
 {
+    public function __construct(
+        private readonly UnifiedShoppingListPdfService $shoppingListPdfService,
+    ) {
+    }
+
     /**
      * 📄 Stampa singolo elemento della lista della spesa
      */
@@ -31,13 +37,12 @@ class ShoppingItemPrintController extends Controller
      */
     public function printAll(Request $request)
     {
-        $items = ShoppingItem::orderByDesc('created_at')->get();
+        $pdf = Pdf::loadView(
+            'pdf.shopping-list-unified',
+            $this->shoppingListPdfService->buildUnified(),
+        );
 
-        $pdf = Pdf::loadView('pdf.shopping-item-all', [
-            'items' => $items,
-        ]);
-
-        $filename = 'lista-della-spesa.pdf';
+        $filename = 'lista-della-spesa-unica.pdf';
 
         if ($request->boolean('autoPrint')) {
             return $this->autoPrint($pdf, $filename);
@@ -60,18 +65,18 @@ class ShoppingItemPrintController extends Controller
             ->values()
             ->all();
 
-        $items = ShoppingItem::query()
-            ->when(
-                filled($ids),
-                fn ($query) => $query->whereIn('id', $ids),
-                fn ($query) => $query->whereRaw('1 = 0'),
-            )
-            ->orderByDesc('created_at')
-            ->get();
+        $payload = filled($ids)
+            ? $this->shoppingListPdfService->buildManualOnly($ids)
+            : [
+                'title' => 'Lista della Spesa',
+                'subtitle' => 'Nessuna voce selezionata',
+                'generatedAt' => now()->format('d/m/Y H:i'),
+                'supplierGroups' => collect(),
+                'overallTotalCost' => 0,
+                'overallRows' => 0,
+            ];
 
-        $pdf = Pdf::loadView('pdf.shopping-item-all', [
-            'items' => $items,
-        ]);
+        $pdf = Pdf::loadView('pdf.shopping-list-unified', $payload);
 
         $filename = 'lista-della-spesa-selezionati.pdf';
 

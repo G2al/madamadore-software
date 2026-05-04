@@ -22,6 +22,7 @@ class Dress extends Model
         'final_image',
         'drawing_pad',
         'drawing_image',
+        'description',
         'notes',
         'estimated_time',
         'manufacturing_price',
@@ -70,6 +71,11 @@ class Dress extends Model
     public function measurements(): HasOne
     {
         return $this->hasOne(DressMeasurement::class);
+    }
+
+    public function technicalSheet(): HasOne
+    {
+        return $this->hasOne(DressTechnicalSheet::class);
     }
 
     public function customMeasurements(): HasMany
