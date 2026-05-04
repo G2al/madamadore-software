@@ -3,9 +3,17 @@
 @php
     $approvedFrontImage = $document['approved_front_image_path'] ?? $document['design_image_path'] ?? null;
     $approvedBackImage = $document['approved_back_image_path'] ?? null;
-    $logoPath = file_exists(public_path('logo_madamadore_pdf.jpg'))
-        ? public_path('logo_madamadore_pdf.jpg')
-        : (file_exists(public_path('logo_madamadore.png')) ? public_path('logo_madamadore.png') : null);
+    $logoPath = file_exists(public_path('logo_madamadore_dora_maione_pdf.jpg'))
+        ? public_path('logo_madamadore_dora_maione_pdf.jpg')
+        : (
+            file_exists(public_path('logo_madamadore_dora_maione.png'))
+                ? public_path('logo_madamadore_dora_maione.png')
+                : (
+                    file_exists(public_path('logo_madamadore_pdf.jpg'))
+                        ? public_path('logo_madamadore_pdf.jpg')
+                        : (file_exists(public_path('logo_madamadore.png')) ? public_path('logo_madamadore.png') : null)
+                )
+        );
     $finalSheetImage = null;
 
     foreach ([$dress->final_image ?? null, $dress->drawing_image ?? null, $dress->sketch_image ?? null] as $candidateImage) {
@@ -26,33 +34,33 @@
 
 @section('content')
     <div class="document-page" style="border: 2px solid #ddcabc; padding: 0; position: relative; overflow: hidden;">
-        <div style="position: absolute; top: 54mm; left: 10%; width: 80%; text-align: center;">
+        <div style="position: absolute; top: 46mm; left: 10%; width: 80%; text-align: center;">
             @if($logoPath)
-                <img src="{{ $logoPath }}" alt="MadamaDore" style="width: 84mm; height: auto; display: block; margin: 0 auto;">
+                <img src="{{ $logoPath }}" alt="MadamaDore" style="width: 96mm; height: auto; display: block; margin: 0 auto;">
             @else
                 <div style="font-size: 38px; font-weight: bold;">MadamaDore</div>
             @endif
 
-            <div style="margin-top: 5mm; margin-bottom: 8mm; font-size: 15px; font-style: italic;">
+            <div style="margin-top: 4mm; margin-bottom: 8mm; font-size: 15px; font-style: italic;">
                 Scheda cliente
             </div>
 
             <table style="width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 13px; color: #222;">
                 <tr>
-                    <td style="border: 1px solid #c6c6c6; padding: 6mm 4mm; width: 50%; font-style: italic; vertical-align: middle;">Preventivo Nr.</td>
-                    <td style="border: 1px solid #c6c6c6; padding: 6mm 4mm; width: 50%; vertical-align: middle;">{{ $dress->id }}</td>
+                    <td style="border: 1px solid #ddcabc; padding: 6mm 4mm; width: 50%; font-style: italic; vertical-align: middle;">Preventivo Nr.</td>
+                    <td style="border: 1px solid #ddcabc; padding: 6mm 4mm; width: 50%; vertical-align: middle;">{{ $dress->id }}</td>
                 </tr>
                 <tr>
-                    <td style="border: 1px solid #c6c6c6; padding: 6mm 4mm; font-style: italic; vertical-align: middle;">Nome e cognome</td>
-                    <td style="border: 1px solid #c6c6c6; padding: 6mm 4mm; vertical-align: middle;">{{ $dress->customer_name }}</td>
+                    <td style="border: 1px solid #ddcabc; padding: 6mm 4mm; font-style: italic; vertical-align: middle;">Nome e cognome</td>
+                    <td style="border: 1px solid #ddcabc; padding: 6mm 4mm; vertical-align: middle;">{{ $dress->customer_name }}</td>
                 </tr>
                 <tr>
-                    <td style="border: 1px solid #c6c6c6; padding: 6mm 4mm; font-style: italic; vertical-align: middle;">Telefono</td>
-                    <td style="border: 1px solid #c6c6c6; padding: 6mm 4mm; vertical-align: middle;">{{ $dress->phone_number }}</td>
+                    <td style="border: 1px solid #ddcabc; padding: 6mm 4mm; font-style: italic; vertical-align: middle;">Telefono</td>
+                    <td style="border: 1px solid #ddcabc; padding: 6mm 4mm; vertical-align: middle;">{{ $dress->phone_number }}</td>
                 </tr>
                 <tr>
-                    <td style="border: 1px solid #c6c6c6; padding: 6mm 4mm; font-style: italic; vertical-align: middle;">Data di consegna</td>
-                    <td style="border: 1px solid #c6c6c6; padding: 6mm 4mm; vertical-align: middle;">{{ $dress->delivery_date?->format('d/m/Y') ?: '-' }}</td>
+                    <td style="border: 1px solid #ddcabc; padding: 6mm 4mm; font-style: italic; vertical-align: middle;">Data di consegna</td>
+                    <td style="border: 1px solid #ddcabc; padding: 6mm 4mm; vertical-align: middle;">{{ $dress->delivery_date?->format('d/m/Y') ?: '-' }}</td>
                 </tr>
             </table>
         </div>
