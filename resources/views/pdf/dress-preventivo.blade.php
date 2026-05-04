@@ -25,7 +25,7 @@
 @endphp
 
 @section('content')
-    <div class="document-page" style="border: 2px solid #111; padding: 0; position: relative; overflow: hidden;">
+    <div class="document-page" style="border: 2px solid #ddcabc; padding: 0; position: relative; overflow: hidden;">
         <div style="position: absolute; top: 54mm; left: 10%; width: 80%; text-align: center;">
             @if($logoPath)
                 <img src="{{ $logoPath }}" alt="MadamaDore" style="width: 84mm; height: auto; display: block; margin: 0 auto;">
