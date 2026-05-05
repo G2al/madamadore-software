@@ -4,233 +4,162 @@
     $sleeveFabric = $document['sleeve_fabric'];
     $detailSections = $document['detail_sections'] ?? [];
     $frontImage = $document['front_view_image_path'] ?? $document['design_image_path'] ?? null;
-    $backImage = $document['back_view_image_path'] ?? null;
+    $backImage = $document['back_view_image_path'] ?? $frontImage;
+    $backDetailText = array_values(array_unique(array_merge(
+        $detailSections['dietro']['text'] ?? [],
+        $detailSections['chiusura']['text'] ?? [],
+    )));
+    $backDetailImage = $detailSections['dietro']['image_path']
+        ?? ($detailSections['chiusura']['image_path'] ?? null);
+    $detailBlocks = [
+        [
+            'title' => 'Dettaglio scollo',
+            'image' => $detailSections['scollo']['image_path'] ?? null,
+            'text' => $detailSections['scollo']['text'] ?? [],
+            'height' => '28mm',
+        ],
+        [
+            'title' => 'Dettaglio maniche',
+            'image' => $detailSections['maniche']['image_path'] ?? null,
+            'text' => $detailSections['maniche']['text'] ?? [],
+            'height' => '28mm',
+        ],
+        [
+            'title' => 'Dettaglio corpino',
+            'image' => $detailSections['corpino']['image_path'] ?? null,
+            'text' => $detailSections['corpino']['text'] ?? [],
+            'height' => '28mm',
+        ],
+        [
+            'title' => 'Dettaglio dietro',
+            'image' => $backDetailImage,
+            'text' => $backDetailText,
+            'height' => '28mm',
+        ],
+    ];
 @endphp
 
-<div class="document-page">
-    <div class="page-title">Scheda Tecnica</div>
-    <div class="page-subtitle">Dettagli costruttivi, immagini dedicate e misure di riferimento</div>
-
-    <table style="width: 100%; border-collapse: collapse;">
+<!-- Scheda Tecnica -->
+<div class="document-page" style="padding-top: 5mm;">
+    <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
         <tr>
-            <td style="width: 68%; vertical-align: top; padding-right: 3mm;">
-                <table class="image-grid">
+            <td style="width: 42%; vertical-align: top; padding-right: 4mm;">
+                <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
                     <tr>
-                        <td style="width: {{ $backImage ? '50%' : '100%' }}; padding-right: {{ $backImage ? '2mm' : '0' }};">
-                            <div class="section-title">Davanti</div>
-                            <div class="image-frame image-frame--portrait" style="height: 60mm;">
-                                @if($frontImage)
-                                    <img src="{{ $frontImage }}" alt="Vista davanti">
-                                @else
-                                    <div class="image-placeholder">Vista davanti non disponibile</div>
-                                @endif
-                            </div>
+                        <td style="width: 50%; padding-right: 2mm; vertical-align: top;">
+                            @if($frontImage)
+                                <img src="{{ $frontImage }}" alt="Vista davanti" style="display: block; width: 100%; height: auto; max-height: 92mm; margin: 0 auto;">
+                            @else
+                                <div class="image-placeholder" style="padding: 34mm 4mm;">Vista davanti non disponibile</div>
+                            @endif
                         </td>
-
-                        @if($backImage)
-                            <td style="width: 50%; padding-left: 2mm;">
-                                <div class="section-title">Dietro</div>
-                                <div class="image-frame image-frame--portrait" style="height: 60mm;">
-                                    <img src="{{ $backImage }}" alt="Vista dietro">
-                                </div>
-                            </td>
-                        @endif
-                    </tr>
-                </table>
-
-                <div class="spacer-sm"></div>
-
-                <table style="width: 100%; border-collapse: collapse;">
-                    <tr>
-                        <td style="width: 50%; vertical-align: top; padding-right: 2mm;">
-                            <div class="section-title">Dettaglio scollo</div>
-                            <div class="detail-card small-text">
-                                <div class="sample-image">
-                                    @if(! empty($detailSections['scollo']['image_path']))
-                                        <img src="{{ $detailSections['scollo']['image_path'] }}" alt="Dettaglio scollo">
-                                    @endif
-                                </div>
-
-                                @if(! empty($detailSections['scollo']['text']))
-                                    <ul class="bullet-list">
-                                        @foreach($detailSections['scollo']['text'] as $detailLine)
-                                            <li>{{ $detailLine }}</li>
-                                        @endforeach
-                                    </ul>
-                                @else
-                                    <div class="writing-lines">
-                                        @for($i = 0; $i < 2; $i++)
-                                            <div></div>
-                                        @endfor
-                                    </div>
-                                @endif
-                            </div>
-                        </td>
-                        <td style="width: 50%; vertical-align: top; padding-left: 2mm;">
-                            <div class="section-title">Dettaglio maniche</div>
-                            <div class="detail-card small-text">
-                                <div class="sample-image">
-                                    @if(! empty($detailSections['maniche']['image_path']))
-                                        <img src="{{ $detailSections['maniche']['image_path'] }}" alt="Dettaglio maniche">
-                                    @endif
-                                </div>
-
-                                @if(! empty($detailSections['maniche']['text']))
-                                    <ul class="bullet-list">
-                                        @foreach($detailSections['maniche']['text'] as $detailLine)
-                                            <li>{{ $detailLine }}</li>
-                                        @endforeach
-                                    </ul>
-                                @else
-                                    <div class="writing-lines">
-                                        @for($i = 0; $i < 2; $i++)
-                                            <div></div>
-                                        @endfor
-                                    </div>
-                                @endif
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="width: 50%; vertical-align: top; padding-right: 2mm; padding-top: 3mm;">
-                            <div class="section-title">Dettaglio corpino</div>
-                            <div class="detail-card small-text">
-                                <div class="sample-image">
-                                    @if(! empty($detailSections['corpino']['image_path']))
-                                        <img src="{{ $detailSections['corpino']['image_path'] }}" alt="Dettaglio corpino">
-                                    @endif
-                                </div>
-
-                                @if(! empty($detailSections['corpino']['text']))
-                                    <ul class="bullet-list">
-                                        @foreach($detailSections['corpino']['text'] as $detailLine)
-                                            <li>{{ $detailLine }}</li>
-                                        @endforeach
-                                    </ul>
-                                @else
-                                    <div class="writing-lines">
-                                        @for($i = 0; $i < 2; $i++)
-                                            <div></div>
-                                        @endfor
-                                    </div>
-                                @endif
-                            </div>
-                        </td>
-                        <td style="width: 50%; vertical-align: top; padding-left: 2mm; padding-top: 3mm;">
-                            <div class="section-title">Dettaglio dietro</div>
-                            <div class="detail-card small-text">
-                                <div class="sample-image">
-                                    @if(! empty($detailSections['dietro']['image_path']))
-                                        <img src="{{ $detailSections['dietro']['image_path'] }}" alt="Dettaglio dietro">
-                                    @endif
-                                </div>
-
-                                @if(! empty($detailSections['dietro']['text']))
-                                    <ul class="bullet-list">
-                                        @foreach($detailSections['dietro']['text'] as $detailLine)
-                                            <li>{{ $detailLine }}</li>
-                                        @endforeach
-                                    </ul>
-                                @else
-                                    <div class="writing-lines">
-                                        @for($i = 0; $i < 2; $i++)
-                                            <div></div>
-                                        @endfor
-                                    </div>
-                                @endif
-                            </div>
+                        <td style="width: 50%; padding-left: 2mm; vertical-align: top;">
+                            @if($backImage)
+                                <img src="{{ $backImage }}" alt="Vista dietro" style="display: block; width: 100%; height: auto; max-height: 92mm; margin: 0 auto;">
+                            @else
+                                <div class="image-placeholder" style="padding: 34mm 4mm;">Vista dietro non disponibile</div>
+                            @endif
                         </td>
                     </tr>
                 </table>
 
                 <div class="spacer-sm"></div>
 
-                <table style="width: 100%; border-collapse: collapse;">
+                <div class="section-title">Tessuto principale</div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 8px; margin-bottom: 4mm;">
                     <tr>
-                        <td style="width: 56%; vertical-align: top; padding-right: 2mm;">
-                            <table style="width: 100%; border-collapse: collapse;">
-                                <tr>
-                                    <td style="width: 50%; vertical-align: top; padding-right: 2mm;">
-                                        <div class="section-title">Tessuto principale</div>
-                                        <div class="box small-text">
-                                            <strong>Tessuto:</strong> {{ $mainFabric['name'] ?? '' }}<br>
-                                            <strong>Composizione:</strong> {{ $mainFabric['composition'] ?? '' }}<br>
-                                            <strong>Colore:</strong> {{ $mainFabric['color'] ?? '' }}
-                                        </div>
-                                    </td>
-                                    <td style="width: 50%; vertical-align: top; padding-left: 2mm;">
-                                        <div class="section-title">Manica</div>
-                                        <div class="box small-text">
-                                            <strong>Tessuto:</strong> {{ $sleeveFabric['name'] ?? '' }}<br>
-                                            <strong>Composizione:</strong> {{ $sleeveFabric['composition'] ?? '' }}<br>
-                                            <strong>Colore:</strong> {{ $sleeveFabric['color'] ?? '' }}
-                                        </div>
-                                    </td>
-                                </tr>
-                            </table>
-
-                            <div class="spacer-sm"></div>
-                            <div class="section-title">Note costruttive</div>
-                            <div class="box small-text" style="min-height: 26mm;">
-                                @if(! empty($document['construction_notes']))
-                                    <ul class="bullet-list">
-                                        @foreach($document['construction_notes'] as $note)
-                                            <li>{{ $note }}</li>
-                                        @endforeach
-                                    </ul>
-                                @else
-                                    <div class="writing-lines">
-                                        @for($i = 0; $i < 3; $i++)
-                                            <div></div>
-                                        @endfor
-                                    </div>
-                                @endif
-                            </div>
-                        </td>
-
-                        <td style="width: 44%; vertical-align: top; padding-left: 2mm;">
-                            <div class="section-title">Chiusura</div>
-                            <div class="detail-card small-text">
-                                <div class="sample-image" style="height: 24mm;">
-                                    @if(! empty($detailSections['chiusura']['image_path']))
-                                        <img src="{{ $detailSections['chiusura']['image_path'] }}" alt="Dettaglio chiusura">
-                                    @endif
-                                </div>
-
-                                @if(! empty($detailSections['chiusura']['text']))
-                                    <ul class="bullet-list">
-                                        @foreach($detailSections['chiusura']['text'] as $detailLine)
-                                            <li>{{ $detailLine }}</li>
-                                        @endforeach
-                                    </ul>
-                                @elseif(! empty($document['closure_details']))
-                                    <div class="paragraph-list">
-                                        <p>{{ $document['closure_details'] }}</p>
-                                    </div>
-                                @else
-                                    <div class="writing-lines">
-                                        @for($i = 0; $i < 2; $i++)
-                                            <div></div>
-                                        @endfor
-                                    </div>
-                                @endif
-                            </div>
-                        </td>
+                        <td style="width: 32%; padding: 0 0 3mm 0;">Tessuto:</td>
+                        <td style="padding: 0 0 3mm 2mm; border-bottom: 1px solid #d8ccc5;">{{ $mainFabric['name'] ?? '' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3mm 0;">Composizione:</td>
+                        <td style="padding: 3mm 0 3mm 2mm; border-bottom: 1px solid #d8ccc5;">{{ $mainFabric['composition'] ?? '' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3mm 0;">Colore:</td>
+                        <td style="padding: 3mm 0 3mm 2mm; border-bottom: 1px solid #d8ccc5;">{{ $mainFabric['color'] ?? '' }}</td>
                     </tr>
                 </table>
+
+                <div class="section-title">Manica</div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 8px; margin-bottom: 4mm;">
+                    <tr>
+                        <td style="width: 32%; padding: 0 0 3mm 0;">Tessuto:</td>
+                        <td style="padding: 0 0 3mm 2mm; border-bottom: 1px solid #d8ccc5;">{{ $sleeveFabric['name'] ?? '' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3mm 0;">Composizione:</td>
+                        <td style="padding: 3mm 0 3mm 2mm; border-bottom: 1px solid #d8ccc5;">{{ $sleeveFabric['composition'] ?? '' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3mm 0;">Colore:</td>
+                        <td style="padding: 3mm 0 3mm 2mm; border-bottom: 1px solid #d8ccc5;">{{ $sleeveFabric['color'] ?? '' }}</td>
+                    </tr>
+                </table>
+
+                <div class="section-title">Note costruttive</div>
+                <div class="small-text" style="line-height: 1.38;">
+                    @if(! empty($document['construction_notes']))
+                        <ul class="bullet-list" style="padding-left: 5mm;">
+                            @foreach($document['construction_notes'] as $note)
+                                <li style="margin-bottom: 1.2mm;">{{ $note }}</li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <div class="writing-lines">
+                            @for($i = 0; $i < 5; $i++)
+                                <div></div>
+                            @endfor
+                        </div>
+                    @endif
+                </div>
             </td>
 
-            <td style="width: 32%; vertical-align: top; padding-left: 3mm;">
+            <td style="width: 31%; vertical-align: top; padding: 0 4mm;">
+                @foreach($detailBlocks as $index => $block)
+                    <div class="section-title">{{ $block['title'] }}</div>
+                    <table style="width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: {{ $index < 3 ? '4mm' : '0' }};">
+                        <tr>
+                            <td style="width: 44%; vertical-align: top; padding-right: 3mm;">
+                                <div style="height: {{ $block['height'] }}; overflow: hidden; text-align: center;">
+                                    @if($block['image'])
+                                        <img src="{{ $block['image'] }}" alt="{{ $block['title'] }}" style="display: block; width: 100%; height: auto; max-height: {{ $block['height'] }}; margin: 0 auto;">
+                                    @else
+                                        <div class="image-placeholder" style="padding: 10mm 2mm;">Immagine non disponibile</div>
+                                    @endif
+                                </div>
+                            </td>
+                            <td style="width: 56%; vertical-align: top;" class="small-text">
+                                @if(! empty($block['text']))
+                                    <ul class="bullet-list" style="padding-left: 4mm; margin-top: 0;">
+                                        @foreach($block['text'] as $detailLine)
+                                            <li style="margin-bottom: 1.3mm;">{{ $detailLine }}</li>
+                                        @endforeach
+                                    </ul>
+                                @else
+                                    <div class="writing-lines">
+                                        @for($i = 0; $i < 2; $i++)
+                                            <div></div>
+                                        @endfor
+                                    </div>
+                                @endif
+                            </td>
+                        </tr>
+                    </table>
+                @endforeach
+            </td>
+
+            <td style="width: 27%; vertical-align: top; padding-left: 4mm;">
                 @include('pdf.partials.dress-measure-table', [
                     'title' => 'Misure',
                     'measurements' => $document['measurements'],
-                    'customMeasurements' => $document['custom_measurements'],
+                    'customMeasurements' => [],
                 ])
 
                 <div class="spacer-sm"></div>
                 <table class="meta-table small-text">
                     <tr>
-                        <td class="label">Responsabile misure</td>
+                        <td class="label">Respon. misure</td>
                         <td>{{ $document['measurements_responsible'] ?: '' }}</td>
                     </tr>
                     <tr>

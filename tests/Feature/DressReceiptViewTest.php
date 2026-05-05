@@ -23,10 +23,11 @@ class DressReceiptViewTest extends TestCase
             'document' => app(\App\Services\DressPdfDataService::class)->build($dress),
         ])->render();
 
+        $this->assertStringContainsString('Scheda cliente', $html);
         $this->assertStringContainsString('Modellino Abito', $html);
         $this->assertStringContainsString('Scheda Produzione', $html);
         $this->assertStringContainsString('Scheda Tecnica', $html);
-        $this->assertSame(2, substr_count($html, '<div class="page-break">'));
+        $this->assertSame(3, substr_count($html, '<div class="page-break">'));
     }
 
     public function test_single_internal_sheets_render_expected_sections(): void

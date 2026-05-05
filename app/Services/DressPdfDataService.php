@@ -33,6 +33,7 @@ class DressPdfDataService
 
         return [
             'design_image_path' => $this->resolvePrimaryDesignImagePath($dress, $technicalSheet),
+            'model_cover_image_path' => $this->resolveModelCoverImagePath($dress, $technicalSheet),
             'approved_front_image_path' => $this->resolveApprovedFrontImagePath($dress, $technicalSheet),
             'approved_back_image_path' => $this->resolveApprovedBackImagePath($dress, $technicalSheet),
             'overview_front_image_path' => $this->resolveStoredImagePath($technicalSheet?->front_view_image)
@@ -457,6 +458,24 @@ class DressPdfDataService
 
         foreach (['drawing_image', 'final_image', 'sketch_image'] as $field) {
             $absolutePath = $this->resolveStoredImagePath($dress->{$field} ?? null);
+
+            if ($absolutePath !== null) {
+                return $absolutePath;
+            }
+        }
+
+        return null;
+    }
+
+    private function resolveModelCoverImagePath(Dress $dress, ?DressTechnicalSheet $technicalSheet): ?string
+    {
+        foreach ([
+            $dress->final_image ?? null,
+            $dress->drawing_image ?? null,
+            $dress->sketch_image ?? null,
+            $technicalSheet?->front_view_image,
+        ] as $path) {
+            $absolutePath = $this->resolveStoredImagePath($path);
 
             if ($absolutePath !== null) {
                 return $absolutePath;
