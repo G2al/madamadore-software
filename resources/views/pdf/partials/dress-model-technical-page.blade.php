@@ -159,7 +159,7 @@
                 <div class="spacer-sm"></div>
                 <table class="meta-table small-text">
                     <tr>
-                        <td class="label">Respon. misure</td>
+                        <td class="label">Respons. misure</td>
                         <td>{{ $document['measurements_responsible'] ?: '' }}</td>
                     </tr>
                     <tr>
