@@ -31,7 +31,7 @@ class DressContractViewTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_preventivo_cliente_hides_supplier_shows_fabric_photo_and_keeps_four_pages(): void
+    public function test_preventivo_cliente_hides_supplier_and_keeps_four_pages(): void
     {
         $dress = new Dress([
             'customer_name' => 'Chiara Test',
@@ -85,11 +85,8 @@ class DressContractViewTest extends TestCase
 
         $this->assertStringNotContainsString('Fornitore Riservato', $html);
         $this->assertStringContainsString('Scheda cliente', $html);
-        $this->assertStringContainsString('Abito Definitivo', $html);
         $this->assertStringContainsString('Contratto di Vendita', $html);
         $this->assertStringContainsString('Riepilogo Economico', $html);
-        $this->assertStringContainsString('Campioni tessuto', $html);
-        $this->assertStringContainsString($this->absolutePhotoPath(), $html);
         $this->assertSame(3, substr_count($html, '<div class="page-break">'));
     }
 

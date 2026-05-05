@@ -11,6 +11,9 @@
     )));
     $backDetailImage = $detailSections['dietro']['image_path']
         ?? ($detailSections['chiusura']['image_path'] ?? null);
+    $signaturePath = file_exists(public_path('firma.png'))
+        ? public_path('firma.png')
+        : null;
     $frontBackImageHeight = '128mm';
     $detailImageHeight = '59mm';
     $detailBlockMinHeight = '53mm';
@@ -42,9 +45,12 @@
                             </div>
                         </td>
                         <td style="width: 50%; padding-left: 2mm; vertical-align: top;">
-                            <div style="height: {{ $frontBackImageHeight }}; text-align: center; overflow: hidden;">
+                            <div style="height: {{ $frontBackImageHeight }}; text-align: center; overflow: hidden; position: relative;">
                                 @if($backImage)
                                     <img src="{{ $backImage }}" alt="Vista dietro" style="display: block; width: 100%; height: auto; max-height: {{ $frontBackImageHeight }}; margin: 0 auto;">
+                                    @if($signaturePath)
+                                        <img src="{{ $signaturePath }}" alt="Firma Dora Maione" style="position: absolute; right: 2mm; bottom: 2mm; width: 26mm; height: auto;">
+                                    @endif
                                 @else
                                     <div class="image-placeholder" style="padding: 32mm 4mm;">Vista dietro non disponibile</div>
                                 @endif

@@ -14,6 +14,9 @@
                         : (file_exists(public_path('logo_madamadore.png')) ? public_path('logo_madamadore.png') : null)
                 )
         );
+    $signaturePath = file_exists(public_path('firma.png'))
+        ? public_path('firma.png')
+        : null;
     $finalSheetImage = null;
 
     foreach ([$dress->final_image ?? null, $dress->drawing_image ?? null, $dress->sketch_image ?? null] as $candidateImage) {
@@ -68,14 +71,17 @@
 
     <div class="page-break"></div>
     <div class="document-page" style="padding: 0; overflow: hidden; border: none;">
-        <div style="height: 270mm; display: table; width: 100%;">
+        <div style="height: 270mm; display: table; width: 100%; position: relative;">
             <div style="display: table-cell; vertical-align: middle; text-align: center;">
                 @if($secondPageImage)
-                    <img src="{{ $secondPageImage }}" alt="Abito definitivo" style="display: block; width: 100%; height: auto; max-height: 270mm; margin: 0 auto;">
+                    <img src="{{ $secondPageImage }}" alt="Abito definitivo" style="display: block; width: 118%; height: auto; max-height: 280mm; margin: 0 0 0 35mm;">
                 @else
                     <div class="image-placeholder">Abito definitivo non disponibile</div>
                 @endif
             </div>
+            @if($secondPageImage && $signaturePath)
+                <img src="{{ $signaturePath }}" alt="Firma Dora Maione" style="position: absolute; right: 8mm; bottom: 8mm; width: 34mm; height: auto;">
+            @endif
         </div>
     </div>
 
