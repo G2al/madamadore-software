@@ -9,6 +9,7 @@ use Filament\Forms\Set;
 use App\Models\DressCorset;
 use App\Models\DressMeasurement;
 use App\Services\DressFabricPhotoService;
+use App\Services\DressTechnicalImageCropService;
 use App\Services\MeasurementRecallService;
 use App\Support\SingleFileUploadState;
 use Filament\Forms\Components\Actions;
@@ -456,7 +457,10 @@ private static function imagesSection(): Forms\Components\Section
                             ->directory('dress-technical/front')
                             ->visibility('public')
                             ->downloadable()
-                            ->imageEditor(),
+                            ->imageEditor()
+                            ->live()
+                            ->helperText('Carica il disegno tecnico davanti: scollo, maniche e corpino verranno ritagliati in automatico da questa immagine.')
+                            ->afterStateUpdated(fn ($state, Set $set) => self::syncFrontTechnicalAutoCrops($state, $set)),
 
                         Forms\Components\FileUpload::make('back_view_image')
                             ->label('Foto / Disegno Dietro')
@@ -465,7 +469,10 @@ private static function imagesSection(): Forms\Components\Section
                             ->directory('dress-technical/back')
                             ->visibility('public')
                             ->downloadable()
-                            ->imageEditor(),
+                            ->imageEditor()
+                            ->live()
+                            ->helperText('Carica il disegno tecnico dietro: dettaglio dietro e chiusura verranno ritagliati in automatico da questa immagine.')
+                            ->afterStateUpdated(fn ($state, Set $set) => self::syncBackTechnicalAutoCrops($state, $set)),
 
                         Forms\Components\FileUpload::make('neckline_detail_image')
                             ->label('Dettaglio Scollo')
@@ -474,7 +481,8 @@ private static function imagesSection(): Forms\Components\Section
                             ->directory('dress-technical/details')
                             ->visibility('public')
                             ->downloadable()
-                            ->imageEditor(),
+                            ->imageEditor()
+                            ->helperText('Puoi lasciarlo automatico oppure sostituirlo a mano.'),
 
                         Forms\Components\FileUpload::make('sleeve_detail_image')
                             ->label('Dettaglio Maniche')
@@ -483,7 +491,8 @@ private static function imagesSection(): Forms\Components\Section
                             ->directory('dress-technical/details')
                             ->visibility('public')
                             ->downloadable()
-                            ->imageEditor(),
+                            ->imageEditor()
+                            ->helperText('Puoi lasciarlo automatico oppure sostituirlo a mano.'),
 
                         Forms\Components\FileUpload::make('bodice_detail_image')
                             ->label('Dettaglio Corpino')
@@ -492,7 +501,8 @@ private static function imagesSection(): Forms\Components\Section
                             ->directory('dress-technical/details')
                             ->visibility('public')
                             ->downloadable()
-                            ->imageEditor(),
+                            ->imageEditor()
+                            ->helperText('Puoi lasciarlo automatico oppure sostituirlo a mano.'),
 
                         Forms\Components\FileUpload::make('back_detail_image')
                             ->label('Dettaglio Dietro')
@@ -501,7 +511,8 @@ private static function imagesSection(): Forms\Components\Section
                             ->directory('dress-technical/details')
                             ->visibility('public')
                             ->downloadable()
-                            ->imageEditor(),
+                            ->imageEditor()
+                            ->helperText('Puoi lasciarlo automatico oppure sostituirlo a mano.'),
 
                         Forms\Components\FileUpload::make('closure_detail_image')
                             ->label('Dettaglio Chiusura')
@@ -510,7 +521,38 @@ private static function imagesSection(): Forms\Components\Section
                             ->directory('dress-technical/details')
                             ->visibility('public')
                             ->downloadable()
-                            ->imageEditor(),
+                            ->imageEditor()
+                            ->helperText('Puoi lasciarlo automatico oppure sostituirlo a mano.'),
+
+                        Actions::make([
+                            Action::make('regenerate_technical_details')
+                                ->label('Rigenera dettagli automatici')
+                                ->icon('heroicon-o-sparkles')
+                                ->color('info')
+                                ->action(function (Get $get, Set $set): void {
+                                    $cropService = app(DressTechnicalImageCropService::class);
+
+                                    if (! $cropService->isAvailable()) {
+                                        Notification::make()
+                                            ->title('Crop automatico non disponibile')
+                                            ->body('Su questo ambiente PHP manca il supporto immagini GD. I dettagli restano modificabili a mano.')
+                                            ->warning()
+                                            ->send();
+
+                                        return;
+                                    }
+
+                                    $updated = self::syncAllTechnicalAutoCrops($get, $set);
+
+                                    Notification::make()
+                                        ->title($updated > 0 ? 'Dettagli rigenerati' : 'Nessun dettaglio rigenerato')
+                                        ->body($updated > 0
+                                            ? 'Il sistema ha aggiornato i ritagli automatici partendo dai disegni tecnici caricati.'
+                                            : 'Carica prima il disegno tecnico davanti o dietro per generare i dettagli.')
+                                        ->{$updated > 0 ? 'success' : 'warning'}()
+                                        ->send();
+                                }),
+                        ])->columnSpanFull(),
                     ])
                     ->columns(2),
             ])
@@ -518,8 +560,55 @@ private static function imagesSection(): Forms\Components\Section
             ->collapsible();
     }
 
+    private static function syncFrontTechnicalAutoCrops(mixed $state, Set $set): int
+    {
+        return self::applyTechnicalAutoCrops(
+            app(DressTechnicalImageCropService::class)->generateFromFront(
+                SingleFileUploadState::toPath($state)
+            ),
+            $set,
+        );
+    }
+
+    private static function syncBackTechnicalAutoCrops(mixed $state, Set $set): int
+    {
+        return self::applyTechnicalAutoCrops(
+            app(DressTechnicalImageCropService::class)->generateFromBack(
+                SingleFileUploadState::toPath($state)
+            ),
+            $set,
+        );
+    }
+
+    private static function syncAllTechnicalAutoCrops(Get $get, Set $set): int
+    {
+        return self::applyTechnicalAutoCrops(
+            app(DressTechnicalImageCropService::class)->generateAll(
+                SingleFileUploadState::toPath($get('front_view_image')),
+                SingleFileUploadState::toPath($get('back_view_image')),
+            ),
+            $set,
+        );
+    }
+
+    private static function applyTechnicalAutoCrops(array $generated, Set $set): int
+    {
+        $updated = 0;
+
+        foreach ($generated as $field => $relativePath) {
+            if (blank($relativePath)) {
+                continue;
+            }
+
+            $set($field, SingleFileUploadState::fromPath($relativePath));
+            $updated++;
+        }
+
+        return $updated;
+    }
+
     private static function expenseSection(): Forms\Components\Section
-{
+    {
     return Forms\Components\Section::make('Lista della spesa')
         ->description('Prodotti o materiali utilizzati per la realizzazione dell’abito (uso interno)')
         ->schema([
