@@ -12,6 +12,7 @@ class UnifiedShoppingListPdfService
     {
         $manualItems = $this->normalizeManualItems(
             ShoppingItem::query()
+                ->whereNull('purchase_date')
                 ->orderBy('supplier')
                 ->orderBy('name')
                 ->orderBy('color_code')
@@ -72,6 +73,8 @@ class UnifiedShoppingListPdfService
                 'unit' => $item->unit_type === 'metri' ? 'mt' : 'pz',
                 'price' => $price,
                 'subtotal' => $this->calculateManualSubtotal($quantity, $price),
+                'photo_path' => $item->photo_path,
+                'purchase_label' => $item->purchase_date?->format('d/m/Y') ?? 'Non saldato',
             ];
         });
     }
@@ -95,6 +98,8 @@ class UnifiedShoppingListPdfService
                 'unit' => 'mt',
                 'price' => $price,
                 'subtotal' => ($quantity ?? 0.0) * ($price ?? 0.0),
+                'photo_path' => $item->photo_path,
+                'purchase_label' => 'Non saldato',
             ];
         });
     }
@@ -108,32 +113,14 @@ class UnifiedShoppingListPdfService
         $supplierGroups = $rows
             ->groupBy('supplier')
             ->map(function (Collection $supplierRows, string $supplierName): array {
-                $itemGroups = $supplierRows
-                    ->groupBy('group_name')
-                    ->map(function (Collection $groupRows, string $groupName): array {
-                        $aggregatedRows = $this->aggregateRows($groupRows)->values();
-                        $subtitles = $groupRows
-                            ->pluck('group_subtitle')
-                            ->filter()
-                            ->unique()
-                            ->values();
-
-                        return [
-                            'name' => $groupName,
-                            'subtitle' => $subtitles->join(' / '),
-                            'rows' => $aggregatedRows->all(),
-                            'unit_totals' => $this->buildUnitTotals($aggregatedRows),
-                            'total_cost' => (float) $aggregatedRows->sum('subtotal'),
-                        ];
-                    })
-                    ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
-                    ->values();
+                $aggregatedRows = $this->aggregateRows($supplierRows)->values();
 
                 return [
                     'name' => $supplierName,
-                    'groups' => $itemGroups->all(),
-                    'unit_totals' => $this->buildUnitTotals($supplierRows),
-                    'total_cost' => (float) $supplierRows->sum('subtotal'),
+                    'rows' => $aggregatedRows->all(),
+                    'unit_totals' => $this->buildUnitTotals($aggregatedRows),
+                    'total_cost' => (float) $aggregatedRows->sum('subtotal'),
+                    'total_rows' => $aggregatedRows->count(),
                 ];
             })
             ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
@@ -160,6 +147,7 @@ class UnifiedShoppingListPdfService
                 $priceKey = $row['price'] === null ? 'null' : number_format((float) $row['price'], 4, '.', '');
 
                 return implode('|', [
+                    mb_strtolower((string) $row['group_name']),
                     mb_strtolower((string) $row['variant']),
                     $row['unit'],
                     $priceKey,
@@ -169,6 +157,13 @@ class UnifiedShoppingListPdfService
                 $hasQuantity = $groupRows->contains(fn (array $row): bool => $row['quantity'] !== null);
 
                 return [
+                    'name' => (string) $groupRows->first()['group_name'],
+                    'subtitle' => $groupRows
+                        ->pluck('group_subtitle')
+                        ->filter()
+                        ->unique()
+                        ->values()
+                        ->join(' / '),
                     'variant' => (string) $groupRows->first()['variant'],
                     'quantity' => $hasQuantity ? (float) $groupRows->sum(fn (array $row): float => (float) ($row['quantity'] ?? 0)) : null,
                     'unit' => (string) $groupRows->first()['unit'],
@@ -176,9 +171,12 @@ class UnifiedShoppingListPdfService
                         ? (float) $groupRows->first()['price']
                         : null,
                     'subtotal' => (float) $groupRows->sum('subtotal'),
+                    'photo_path' => $groupRows->pluck('photo_path')->filter()->first(),
+                    'purchase_label' => (string) ($groupRows->first()['purchase_label'] ?? 'Non saldato'),
+                    'supplier' => (string) $groupRows->first()['supplier'],
                 ];
             })
-            ->sortBy('variant', SORT_NATURAL | SORT_FLAG_CASE);
+            ->sortBy(fn (array $row) => mb_strtolower($row['name'] . '|' . $row['variant']), SORT_NATURAL | SORT_FLAG_CASE);
     }
 
     /**

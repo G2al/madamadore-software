@@ -8,6 +8,10 @@ use RuntimeException;
 
 class DressTechnicalImageCropService
 {
+    private const COMBINED_FRONT_CROP = ['x' => 0.04, 'y' => 0.05, 'w' => 0.42, 'h' => 0.90];
+
+    private const COMBINED_BACK_CROP = ['x' => 0.54, 'y' => 0.05, 'w' => 0.42, 'h' => 0.90];
+
     private const FRONT_CROPS = [
         'neckline_detail_image' => ['x' => 0.22, 'y' => 0.07, 'w' => 0.56, 'h' => 0.20],
         'sleeve_detail_image' => ['x' => 0.00, 'y' => 0.20, 'w' => 0.32, 'h' => 0.42],
@@ -34,6 +38,68 @@ class DressTechnicalImageCropService
         return array_merge(
             $this->generateFromFront($frontRelativePath),
             $this->generateFromBack($backRelativePath),
+        );
+    }
+
+    public function generateFromTechnicalDrawing(?string $relativePath): array
+    {
+        $result = [
+            'front_view_image' => null,
+            'back_view_image' => null,
+            'neckline_detail_image' => null,
+            'sleeve_detail_image' => null,
+            'bodice_detail_image' => null,
+            'back_detail_image' => null,
+            'closure_detail_image' => null,
+        ];
+
+        if (! $this->isAvailable()) {
+            return $result;
+        }
+
+        if (blank($relativePath) || ! Storage::disk('public')->exists($relativePath)) {
+            return $result;
+        }
+
+        $absolutePath = Storage::disk('public')->path($relativePath);
+        $imageInfo = $this->openImage($absolutePath);
+
+        if ($imageInfo === null) {
+            return $result;
+        }
+
+        try {
+            $frontPath = $this->cropAndStore(
+                sourceImage: $imageInfo['resource'],
+                sourceWidth: $imageInfo['width'],
+                sourceHeight: $imageInfo['height'],
+                mimeType: $imageInfo['mime'],
+                field: 'front_view_image',
+                crop: self::COMBINED_FRONT_CROP,
+                targetDirectory: 'dress-technical/front/auto',
+                filenamePrefix: 'front-view',
+            );
+
+            $backPath = $this->cropAndStore(
+                sourceImage: $imageInfo['resource'],
+                sourceWidth: $imageInfo['width'],
+                sourceHeight: $imageInfo['height'],
+                mimeType: $imageInfo['mime'],
+                field: 'back_view_image',
+                crop: self::COMBINED_BACK_CROP,
+                targetDirectory: 'dress-technical/back/auto',
+                filenamePrefix: 'back-view',
+            );
+        } finally {
+            imagedestroy($imageInfo['resource']);
+        }
+
+        $result['front_view_image'] = $frontPath;
+        $result['back_view_image'] = $backPath;
+
+        return array_merge(
+            $result,
+            $this->generateAll($frontPath, $backPath),
         );
     }
 
@@ -118,6 +184,8 @@ class DressTechnicalImageCropService
         string $mimeType,
         string $field,
         array $crop,
+        string $targetDirectory = 'dress-technical/details/auto',
+        ?string $filenamePrefix = null,
     ): ?string {
         $x = max(0, (int) round($sourceWidth * $crop['x']));
         $y = max(0, (int) round($sourceHeight * $crop['y']));
@@ -158,13 +226,14 @@ class DressTechnicalImageCropService
             );
 
             $relativePath = sprintf(
-                'dress-technical/details/auto/%s-%s.%s',
-                str_replace('_image', '', $field),
+                '%s/%s-%s.%s',
+                trim($targetDirectory, '/'),
+                $filenamePrefix ?? str_replace('_image', '', $field),
                 Str::uuid(),
                 $this->extensionForMime($mimeType),
             );
 
-            Storage::disk('public')->makeDirectory('dress-technical/details/auto');
+            Storage::disk('public')->makeDirectory(trim($targetDirectory, '/'));
             $absoluteTargetPath = Storage::disk('public')->path($relativePath);
 
             $this->saveImage($target, $absoluteTargetPath, $mimeType);

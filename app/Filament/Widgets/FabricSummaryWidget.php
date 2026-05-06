@@ -277,7 +277,7 @@ class FabricSummaryWidget extends BaseWidget
             ])
             ->headerActions([
                 Tables\Actions\Action::make('stampa_pdf')
-                    ->label('Stampa Lista Acquisti')
+                    ->label('Stampa Lista della Spesa Unica')
                     ->icon('heroicon-o-printer')
                     ->color('primary')
                     ->url(fn () => route('pdf.fabrics'))

@@ -450,6 +450,19 @@ private static function imagesSection(): Forms\Components\Section
 
                 Forms\Components\Fieldset::make('Immagini Tecniche')
                     ->schema([
+                        Forms\Components\FileUpload::make('technical_drawing_image')
+                            ->label('Disegno Tecnico')
+                            ->image()
+                            ->disk('public')
+                            ->directory('dress-technical/master')
+                            ->visibility('public')
+                            ->downloadable()
+                            ->imageEditor()
+                            ->live()
+                            ->columnSpanFull()
+                            ->helperText('Carica un unico disegno tecnico con davanti e dietro: il sistema ritaglierà automaticamente parte davanti, parte dietro e tutti i dettagli.')
+                            ->afterStateUpdated(fn ($state, Set $set) => self::syncTechnicalDrawingAutoCrops($state, $set)),
+
                         Forms\Components\FileUpload::make('front_view_image')
                             ->label('Foto / Disegno Davanti')
                             ->image()
@@ -459,7 +472,7 @@ private static function imagesSection(): Forms\Components\Section
                             ->downloadable()
                             ->imageEditor()
                             ->live()
-                            ->helperText('Carica il disegno tecnico davanti: scollo, maniche e corpino verranno ritagliati in automatico da questa immagine.')
+                            ->helperText('Puoi caricarlo a mano oppure lasciarlo generare dal campo Disegno Tecnico.')
                             ->afterStateUpdated(fn ($state, Set $set) => self::syncFrontTechnicalAutoCrops($state, $set)),
 
                         Forms\Components\FileUpload::make('back_view_image')
@@ -471,7 +484,7 @@ private static function imagesSection(): Forms\Components\Section
                             ->downloadable()
                             ->imageEditor()
                             ->live()
-                            ->helperText('Carica il disegno tecnico dietro: dettaglio dietro e chiusura verranno ritagliati in automatico da questa immagine.')
+                            ->helperText('Puoi caricarlo a mano oppure lasciarlo generare dal campo Disegno Tecnico.')
                             ->afterStateUpdated(fn ($state, Set $set) => self::syncBackTechnicalAutoCrops($state, $set)),
 
                         Forms\Components\FileUpload::make('neckline_detail_image')
@@ -548,7 +561,7 @@ private static function imagesSection(): Forms\Components\Section
                                         ->title($updated > 0 ? 'Dettagli rigenerati' : 'Nessun dettaglio rigenerato')
                                         ->body($updated > 0
                                             ? 'Il sistema ha aggiornato i ritagli automatici partendo dai disegni tecnici caricati.'
-                                            : 'Carica prima il disegno tecnico davanti o dietro per generare i dettagli.')
+                                            : 'Carica prima il Disegno Tecnico oppure il disegno davanti/dietro per generare i dettagli.')
                                         ->{$updated > 0 ? 'success' : 'warning'}()
                                         ->send();
                                 }),
@@ -558,6 +571,16 @@ private static function imagesSection(): Forms\Components\Section
             ])
             ->columnSpanFull()
             ->collapsible();
+    }
+
+    private static function syncTechnicalDrawingAutoCrops(mixed $state, Set $set): int
+    {
+        return self::applyTechnicalAutoCrops(
+            app(DressTechnicalImageCropService::class)->generateFromTechnicalDrawing(
+                SingleFileUploadState::toPath($state)
+            ),
+            $set,
+        );
     }
 
     private static function syncFrontTechnicalAutoCrops(mixed $state, Set $set): int
@@ -582,6 +605,15 @@ private static function imagesSection(): Forms\Components\Section
 
     private static function syncAllTechnicalAutoCrops(Get $get, Set $set): int
     {
+        $technicalDrawingPath = SingleFileUploadState::toPath($get('technical_drawing_image'));
+
+        if (filled($technicalDrawingPath)) {
+            return self::applyTechnicalAutoCrops(
+                app(DressTechnicalImageCropService::class)->generateFromTechnicalDrawing($technicalDrawingPath),
+                $set,
+            );
+        }
+
         return self::applyTechnicalAutoCrops(
             app(DressTechnicalImageCropService::class)->generateAll(
                 SingleFileUploadState::toPath($get('front_view_image')),

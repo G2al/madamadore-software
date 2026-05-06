@@ -33,6 +33,16 @@ class UnifiedShoppingListPdfViewTest extends TestCase
             'price' => 2.5,
         ]);
 
+        ShoppingItem::query()->create([
+            'name' => 'Gia comprato',
+            'color_code' => null,
+            'quantity' => 1,
+            'unit_type' => 'pezzi',
+            'supplier' => 'Casdit',
+            'price' => 1,
+            'purchase_date' => now(),
+        ]);
+
         $dress = Dress::query()->create([
             'customer_name' => 'Maria Test',
             'phone_number' => '3331234567',
@@ -63,12 +73,16 @@ class UnifiedShoppingListPdfViewTest extends TestCase
 
         $html = view('pdf.shopping-list-unified', $payload)->render();
 
-        $this->assertStringContainsString('Lista della Spesa Unica', $html);
-        $this->assertStringContainsString('FORNITORE: CASDIT', $html);
-        $this->assertStringContainsString('FORNITORE: LUCCI', $html);
-        $this->assertStringContainsString('CANDACE', $html);
-        $this->assertStringContainsString('GANCINI NUDE', $html);
-        $this->assertStringContainsString('4,00 mt', $html);
+        $this->assertStringContainsString('Lista della Spesa', $html);
+        $this->assertStringContainsString('Casdit', $html);
+        $this->assertStringContainsString('Lucci', $html);
+        $this->assertStringContainsString('Candace', $html);
+        $this->assertStringContainsString('Gancini nude', $html);
+        $this->assertStringContainsString('4,00', $html);
+        $this->assertStringContainsString('3,00', $html);
+        $this->assertStringContainsString('5,00 mt', $html);
         $this->assertStringContainsString('3,00 pz', $html);
+        $this->assertStringNotContainsString('Gia comprato', $html);
+        $this->assertStringContainsString('Generato automaticamente dal gestionale', $html);
     }
 }

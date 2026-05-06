@@ -13,6 +13,12 @@ class ListShoppingItems extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('print_unified_shopping_list')
+                ->label('Stampa Lista della Spesa Unica')
+                ->icon('heroicon-o-printer')
+                ->color('primary')
+                ->url(route('shopping-items.print.all'))
+                ->openUrlInNewTab(),
             Actions\CreateAction::make(),
         ];
     }

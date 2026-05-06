@@ -185,12 +185,6 @@ class ShoppingItemResource extends Resource
                     ->icon('heroicon-o-printer')
                     ->color('primary')
                     ->alpineClickHandler('window.open(' . json_encode($printSelectedUrl) . " + '?ids=' + selectedRecords.join(','), '_blank')"),
-                Tables\Actions\BulkAction::make('stampa_tutti')
-                    ->label('Stampa Tutto')
-                    ->icon('heroicon-o-printer')
-                    ->color('info')
-                    ->url(route('shopping-items.print.all'))
-                    ->openUrlInNewTab(),
             ])
             ->defaultSort('created_at', 'desc');
     }

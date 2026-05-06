@@ -34,6 +34,7 @@ class DressTechnicalSheet extends Model
         'sleeve_fabric_name',
         'sleeve_fabric_composition',
         'sleeve_fabric_color',
+        'technical_drawing_image',
         'front_view_image',
         'back_view_image',
         'neckline_detail_image',

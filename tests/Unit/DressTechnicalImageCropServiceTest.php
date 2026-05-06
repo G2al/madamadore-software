@@ -43,6 +43,28 @@ class DressTechnicalImageCropServiceTest extends TestCase
         $this->assertGeneratedImage($result['closure_detail_image'] ?? null, 220, 864);
     }
 
+    public function test_it_generates_front_back_and_detail_crops_from_combined_technical_drawing(): void
+    {
+        if (! function_exists('imagecreatefromstring') || ! function_exists('imagecreatetruecolor')) {
+            $this->markTestSkipped('GD non disponibile in questo ambiente di test.');
+        }
+
+        Storage::fake('public');
+
+        $sourcePath = 'dress-technical/master/master-technical.png';
+        $this->createCombinedTechnicalImage(Storage::disk('public')->path($sourcePath), 2000, 1600);
+
+        $result = app(DressTechnicalImageCropService::class)->generateFromTechnicalDrawing($sourcePath);
+
+        $this->assertGeneratedImage($result['front_view_image'] ?? null, 840, 1440);
+        $this->assertGeneratedImage($result['back_view_image'] ?? null, 840, 1440);
+        $this->assertGeneratedImage($result['neckline_detail_image'] ?? null, 470, 288);
+        $this->assertGeneratedImage($result['sleeve_detail_image'] ?? null, 269, 605);
+        $this->assertGeneratedImage($result['bodice_detail_image'] ?? null, 504, 490);
+        $this->assertGeneratedImage($result['back_detail_image'] ?? null, 521, 605);
+        $this->assertGeneratedImage($result['closure_detail_image'] ?? null, 185, 778);
+    }
+
     private function assertGeneratedImage(?string $relativePath, int $expectedWidth, int $expectedHeight): void
     {
         $this->assertNotNull($relativePath);
@@ -70,6 +92,31 @@ class DressTechnicalImageCropServiceTest extends TestCase
         imagefilledrectangle($image, 0, 0, $width, $height, $background);
         imagefilledellipse($image, (int) ($width * 0.5), (int) ($height * 0.2), 420, 320, $accent);
         imagefilledrectangle($image, (int) ($width * 0.18), (int) ($height * 0.25), (int) ($width * 0.82), (int) ($height * 0.72), $accent);
+
+        imagepng($image, $path);
+        imagedestroy($image);
+    }
+
+    private function createCombinedTechnicalImage(string $path, int $width, int $height): void
+    {
+        $directory = dirname($path);
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+
+        $image = imagecreatetruecolor($width, $height);
+        $background = imagecolorallocate($image, 255, 255, 255);
+        $frontAccent = imagecolorallocate($image, 220, 120, 120);
+        $backAccent = imagecolorallocate($image, 120, 150, 220);
+
+        imagefilledrectangle($image, 0, 0, $width, $height, $background);
+
+        imagefilledellipse($image, 500, 320, 260, 260, $frontAccent);
+        imagefilledrectangle($image, 280, 420, 720, 1450, $frontAccent);
+
+        imagefilledellipse($image, 1500, 320, 260, 260, $backAccent);
+        imagefilledrectangle($image, 1280, 420, 1720, 1450, $backAccent);
 
         imagepng($image, $path);
         imagedestroy($image);
