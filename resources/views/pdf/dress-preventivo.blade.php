@@ -186,8 +186,8 @@
             <tr>
                 <td style="width: 58%; height: 120mm; vertical-align: top; padding-right: 3mm; padding-bottom: 2mm;">
                     <div class="section-title">Descrizione abito</div>
-                    <div class="box small-text" style="height: 110mm; overflow: hidden;">
-                        <div class="paragraph-list">
+                    <div class="box small-text" style="height: 110mm; overflow: hidden; font-size: 12px; line-height: 1.5;">
+                        <div class="paragraph-list" style="font-size: 12px; line-height: 1.5;">
                             @forelse($document['description_paragraphs'] as $paragraph)
                                 <p>{{ $paragraph }}</p>
                             @empty
@@ -223,8 +223,8 @@
             <tr>
                 <td style="width: 58%; height: 120mm; vertical-align: top; padding-right: 3mm; padding-top: 2mm;">
                     <div class="section-title">Note cliente</div>
-                    <div class="box small-text" style="height: 110mm; overflow: hidden;">
-                        <div class="paragraph-list">
+                    <div class="box small-text" style="height: 110mm; overflow: hidden; font-size: 12px; line-height: 1.5;">
+                        <div class="paragraph-list" style="font-size: 12px; line-height: 1.5;">
                             @forelse($document['client_notes_paragraphs'] as $paragraph)
                                 <p>{{ $paragraph }}</p>
                             @empty

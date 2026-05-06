@@ -38,4 +38,24 @@ class DressCorsetTest extends TestCase
         $this->assertSame(7.6, DressCorset::calculateLineaSottoSenoSuggerita(96.0));
         $this->assertSame(8.3, DressCorset::calculateLineaSottoSenoSuggerita(108.0));
     }
+
+    public function test_calculates_riprese_vita(): void
+    {
+        $result = DressCorset::calculateRipreseVita(90.0, 70.0);
+
+        $this->assertSame(10.0, $result['base']);
+        $this->assertSame(0.625, $result['davanti']);
+        $this->assertSame(2.5, $result['lato']);
+        $this->assertSame(0.625, $result['dietro']);
+    }
+
+    public function test_calculates_riprese_fianchi(): void
+    {
+        $result = DressCorset::calculateRipreseFianchi(110.0, 90.0);
+
+        $this->assertSame(10.0, $result['base']);
+        $this->assertSame(0.0, $result['davanti']);
+        $this->assertSame(2.5, $result['lato']);
+        $this->assertSame(1.25, $result['dietro']);
+    }
 }

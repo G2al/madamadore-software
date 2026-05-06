@@ -98,16 +98,16 @@ Forms\Components\DatePicker::make('delivery_date')
             $count = $dressesOnDate->count();
 
             if ($count === 0) {
-                $helper = '🟢 Giornata libera - Perfetto per la consegna!';
+                $helper = 'ðŸŸ¢ Giornata libera - Perfetto per la consegna!';
             } elseif ($count <= 2) {
                 $customers = $dressesOnDate->pluck('customer_name')->take(2)->join(', ');
-                $helper = "🟡 {$count} abiti già previsti: {$customers}" . ($count > 2 ? ' e altri...' : '');
+                $helper = "ðŸŸ¡ {$count} abiti giÃ  previsti: {$customers}" . ($count > 2 ? ' e altri...' : '');
             } elseif ($count <= 4) {
                 $customers = $dressesOnDate->pluck('customer_name')->take(2)->join(', ');
-                $helper = "🟠 GIORNATA IMPEGNATIVA - {$count} abiti: {$customers}" . ($count > 2 ? ' e altri...' : '');
+                $helper = "ðŸŸ  GIORNATA IMPEGNATIVA - {$count} abiti: {$customers}" . ($count > 2 ? ' e altri...' : '');
             } else {
                 $customers = $dressesOnDate->pluck('customer_name')->take(2)->join(', ');
-                $helper = "🔴 ATTENZIONE: GIORNATA SOVRACCARICA! {$count} abiti: {$customers} e altri...";
+                $helper = "ðŸ”´ ATTENZIONE: GIORNATA SOVRACCARICA! {$count} abiti: {$customers} e altri...";
             }
 
             $set('delivery_date_helper', $helper);
@@ -192,7 +192,7 @@ Forms\Components\DatePicker::make('delivery_date')
         }
     }'
 ])
-    ->helperText('🟢 Verde = libera, 🟡 Arancione = 1 abito, 🔴 Rosso = 2+ abiti'),
+    ->helperText('ðŸŸ¢ Verde = libera, ðŸŸ¡ Arancione = 1 abito, ðŸ”´ Rosso = 2+ abiti'),
 
 // Aggiungi il Placeholder helper dinamico subito dopo
 Forms\Components\Placeholder::make('delivery_date_helper')
@@ -236,7 +236,7 @@ private static function imagesSection(): Forms\Components\Section
             // Row 2: Bottoni di visualizzazione
             Forms\Components\Actions::make([
                 Forms\Components\Actions\Action::make('view_sketch')
-                    ->label('🔍 Visualizza Bozza')
+                    ->label('ðŸ” Visualizza Bozza')
                     ->icon('heroicon-o-eye')
                     ->color('info')
                     ->modalHeading('Visualizza Bozza')
@@ -248,7 +248,7 @@ private static function imagesSection(): Forms\Components\Section
                     ->visible(fn($record) => $record?->sketch_image),
 
                 Forms\Components\Actions\Action::make('view_final')
-                    ->label('🔍 Visualizza Definitivo')
+                    ->label('ðŸ” Visualizza Definitivo')
                     ->icon('heroicon-o-eye')
                     ->color('success')
                     ->modalHeading('Visualizza Definitivo')
@@ -260,7 +260,7 @@ private static function imagesSection(): Forms\Components\Section
                     ->visible(fn($record) => $record?->final_image),
 
                 Forms\Components\Actions\Action::make('view_drawing')
-                    ->label('🔍 Visualizza Disegno')
+                    ->label('ðŸ” Visualizza Disegno')
                     ->icon('heroicon-o-eye')
                     ->color('warning')
                     ->modalHeading('Visualizza Disegno')
@@ -285,7 +285,7 @@ private static function imagesSection(): Forms\Components\Section
                 ->undoable()
                 ->clearable()
                 ->confirmable()
-                ->helperText('Disegna e premi "Done" per fissare lo schizzo. Verrà salvato come immagine.')
+                ->helperText('Disegna e premi "Done" per fissare lo schizzo. VerrÃ  salvato come immagine.')
                 ->columnSpan('full'),
 
             // Row 3: Preview salvato (full width)
@@ -610,7 +610,7 @@ private static function imagesSection(): Forms\Components\Section
     private static function expenseSection(): Forms\Components\Section
     {
     return Forms\Components\Section::make('Lista della spesa')
-        ->description('Prodotti o materiali utilizzati per la realizzazione dell’abito (uso interno)')
+        ->description('Prodotti o materiali utilizzati per la realizzazione dellâ€™abito (uso interno)')
         ->schema([
             Forms\Components\Repeater::make('expenses')
                 ->label('Articoli')
@@ -628,9 +628,9 @@ private static function imagesSection(): Forms\Components\Section
                         ->imageEditor(),
                     
                     Forms\Components\TextInput::make('price')
-                        ->label('Costo interno (€)')
+                        ->label('Costo interno (â‚¬)')
                         ->numeric()
-                        ->prefix('€')
+                        ->prefix('â‚¬')
                         ->default(0)
                         ->helperText('Non influisce sul prezzo cliente.'),
                 ])
@@ -657,7 +657,7 @@ private static function imagesSection(): Forms\Components\Section
                     ->label('Prezzo Manifattura')
                     ->numeric()
                     ->step(0.01)
-                    ->prefix('€')
+                    ->prefix('â‚¬')
                     ->default(0)
                     ->live(debounce: 300)
                     ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get)),
@@ -711,7 +711,7 @@ private static function imagesSection(): Forms\Components\Section
                             ->label('Prezzo Acquisto')
                             ->numeric()
                             ->step(0.01)
-                            ->prefix('€')
+                            ->prefix('â‚¬')
                             ->live(debounce: 300)
                             ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get))
                             ->hidden()
@@ -721,7 +721,7 @@ private static function imagesSection(): Forms\Components\Section
                             ->label('Prezzo Cliente')
                             ->numeric()
                             ->step(0.01)
-                            ->prefix('€')
+                            ->prefix('â‚¬')
                             ->live(debounce: 300)
                             ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get))
                             ->hidden()
@@ -758,7 +758,7 @@ private static function imagesSection(): Forms\Components\Section
                             ->label('Costo')
                             ->numeric()
                             ->step(0.01)
-                            ->prefix('€')
+                            ->prefix('â‚¬')
                             ->live(debounce: 300)
                             ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get)),
                     ])
@@ -868,7 +868,7 @@ private static function imagesSection(): Forms\Components\Section
                 ->helperText('Seleziona il cliente da cui importare le ultime misure.'),
 
             Forms\Components\Radio::make('mode')
-                ->label('Modalità di import')
+                ->label('ModalitÃ  di import')
                 ->options([
                     'replace' => 'Sostituisci tutto',
                     'fill'    => 'Completa solo i campi vuoti',
@@ -908,12 +908,12 @@ private static function imagesSection(): Forms\Components\Section
             $currentCorsets,
         );
 
-        // ✔ Importa misure
+        // âœ” Importa misure
         $set('measurements', $result['measurements']);
         $set('customMeasurements', $result['customMeasurements']);
         $set('corsets', $result['corsets']);
 
-        // ✔ Importa anche NOME e TELEFONO
+        // âœ” Importa anche NOME e TELEFONO
         if ($result['sourceCustomerName']) {
             $set('customer_name', $result['sourceCustomerName']);
             $set('phone_number', $result['sourcePhoneNumber']);
@@ -949,7 +949,7 @@ private static function imagesSection(): Forms\Components\Section
         $ordered = DressMeasurement::ORDERED_MEASURES;
 
         // Definizione dei gruppi (in termini di nomi colonna)
-        // NOTA: l'ordine qui sotto è quello delle tabs; dentro ogni tab
+        // NOTA: l'ordine qui sotto Ã¨ quello delle tabs; dentro ogni tab
         // i campi vengono presi nell'ordine esatto definito in ORDERED_MEASURES.
         $groups = [
             '1) Collo & Busto' => [
@@ -1017,8 +1017,8 @@ private static function imagesSection(): Forms\Components\Section
                 continue;
             }
 
-            // Suffix: "°" solo per inclinazione_spalle, altrimenti "cm"
-            $suffix = $field === 'inclinazione_spalle' ? '°' : 'cm';
+            // Suffix: "Â°" solo per inclinazione_spalle, altrimenti "cm"
+            $suffix = $field === 'inclinazione_spalle' ? 'Â°' : 'cm';
 
             $inputs[] = self::buildMeasureInput($field, $label, $suffix);
         }
@@ -1048,33 +1048,33 @@ private static function imagesSection(): Forms\Components\Section
                         Forms\Components\Grid::make(4)->schema([
                             Forms\Components\TextInput::make('total_purchase_cost')
                                 ->label('Costo Totale (per te)')
-                                ->prefix('€')
+                                ->prefix('â‚¬')
                                 ->disabled()
                                 ->dehydrated(false),
 
                             Forms\Components\TextInput::make('total_client_price')
                                 ->label('Prezzo Cliente')
-                                ->prefix('€')
+                                ->prefix('â‚¬')
                                 ->disabled()
                                 ->dehydrated(false),
 
                             Forms\Components\TextInput::make('total_profit')
                                 ->label('Guadagno')
-                                ->prefix('€')
+                                ->prefix('â‚¬')
                                 ->disabled()
                                 ->dehydrated(false),
 
                             Forms\Components\TextInput::make('remaining')
                                 ->label('Rimanente da Pagare')
-                                ->prefix('€')
+                                ->prefix('â‚¬')
                                 ->disabled()
                                 ->dehydrated(true),
                         ]),
 
                         Forms\Components\Grid::make(2)->schema([
                             Forms\Components\TextInput::make('manual_client_price')
-                                ->label('Prezzo Manuale (deciso da Madamadorè)')
-                                ->prefix('€')
+                                ->label('Prezzo Manuale (deciso da MadamadorÃ¨)')
+                                ->prefix('â‚¬')
                                 ->numeric()
                                 ->step(0.01)
                                 ->placeholder('Es: 600')
@@ -1096,7 +1096,7 @@ private static function imagesSection(): Forms\Components\Section
                         ->label('Acconto')
                         ->numeric()
                         ->step(0.01)
-                        ->prefix('€')
+                        ->prefix('â‚¬')
                         ->default(0)
                         ->live(debounce: 300)
                         ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get)),
@@ -1162,12 +1162,16 @@ private static function imagesSection(): Forms\Components\Section
         $rows = [];
 
         foreach (DressCorset::DIMENSIONAL_MEASUREMENTS as $field => $label) {
+            $isFianchiField = $field === 'circonferenza_fianchi_15_cm';
+
             $rows[] = Forms\Components\Grid::make(4)
                 ->schema([
                     self::corsetLabelPlaceholder("{$field}_label", $label),
                     self::corsetMeasurementInput($field),
                     self::corsetDerivedValuePlaceholder("{$field}_half", $field, 2),
-                    self::corsetDerivedValuePlaceholder("{$field}_quarter", $field, 4),
+                    $isFianchiField
+                        ? self::corsetEmptyPlaceholder("{$field}_quarter_empty")
+                        : self::corsetDerivedValuePlaceholder("{$field}_quarter", $field, 4),
                 ]);
         }
 
@@ -1182,7 +1186,9 @@ private static function imagesSection(): Forms\Components\Section
             $rows[] = Forms\Components\Grid::make(2)
                 ->schema([
                     self::corsetLabelPlaceholder("{$field}_label", $label),
-                    self::corsetMeasurementInput($field, $field === 'linea_sotto_seno'),
+                    $field === 'linea_sotto_seno'
+                        ? self::corsetCalculatedMeasurementInput($field)
+                        : self::corsetMeasurementInput($field),
                 ]);
         }
 
@@ -1193,29 +1199,25 @@ private static function imagesSection(): Forms\Components\Section
     {
         return Forms\Components\Fieldset::make('Supporto calcolo linea sotto il seno')
             ->schema([
-                Forms\Components\Placeholder::make('corset_larghezza_seno_formula')
-                    ->label('Formula larghezza seno')
-                    ->content(fn (Get $get) => self::buildLarghezzaSenoFormulaSummary(
-                        self::nullableFloat($get('circonferenza_seno'))
-                    )),
-
-                Forms\Components\Placeholder::make('corset_larghezza_seno_value')
-                    ->label('Larghezza seno suggerita')
-                    ->content(fn (Get $get) => self::formatCorsetValue(
-                        DressCorset::calculateLarghezzaSeno(self::nullableFloat($get('circonferenza_seno')))
-                    )),
-
                 Forms\Components\Placeholder::make('corset_linea_sotto_seno_formula')
                     ->label('Formula linea sotto il seno')
                     ->content('1/2 Larghezza seno - 1/40 Circonferenza seno'),
 
+                Forms\Components\Placeholder::make('corset_larghezza_seno_summary')
+                    ->label('Calcolo larghezza seno')
+                    ->content(fn (Get $get) => self::buildLarghezzaSenoRangeSummary(
+                        self::nullableFloat($get('circonferenza_seno'))
+                    ))
+                    ->columnSpanFull(),
+
                 Forms\Components\Placeholder::make('corset_linea_sotto_seno_value')
-                    ->label('Linea sotto il seno suggerita')
+                    ->label('Linea sotto il seno calcolata')
                     ->content(fn (Get $get) => self::formatCorsetValue(
                         DressCorset::calculateLineaSottoSenoSuggerita(self::nullableFloat($get('circonferenza_seno')))
-                    )),
+                    ))
+                    ->columnSpanFull(),
             ])
-            ->columns(2);
+            ->columns(1);
     }
 
     private static function corsetRipreseFieldset(string $group): Forms\Components\Fieldset
@@ -1224,18 +1226,21 @@ private static function imagesSection(): Forms\Components\Section
         $fields = [];
 
         foreach ($groupDefinition['fields'] as $field => $label) {
-            $fields[] = Forms\Components\TextInput::make($field)
-                ->label($label)
-                ->numeric()
-                ->step(0.1)
-                ->suffix('cm');
+            $fields[] = self::corsetCalculatedMeasurementInput($field)
+                ->label($label);
         }
 
         array_unshift(
             $fields,
+            Forms\Components\Placeholder::make("riprese_{$group}_base")
+                ->label('Risultato formula')
+                ->content(fn (Get $get) => self::formatCorsetValue(
+                    self::calculateRipresaValues($group, $get)['base']
+                ))
+                ->columnSpanFull(),
             Forms\Components\Placeholder::make("riprese_{$group}_formula")
                 ->label('')
-                ->content(new HtmlString('<span class="text-sm text-gray-600">' . e($groupDefinition['formula']) . '</span>'))
+                ->content(new HtmlString('<span class="text-sm text-gray-700 dark:text-gray-200">' . e($groupDefinition['formula']) . '</span>'))
                 ->columnSpanFull(),
         );
 
@@ -1258,6 +1263,13 @@ private static function imagesSection(): Forms\Components\Section
             ->content($label);
     }
 
+    private static function corsetEmptyPlaceholder(string $name): Forms\Components\Placeholder
+    {
+        return Forms\Components\Placeholder::make($name)
+            ->label('')
+            ->content('—');
+    }
+
     private static function corsetMeasurementInput(string $field, bool $withCalculatedHelper = false): Forms\Components\TextInput
     {
         $input = Forms\Components\TextInput::make($field)
@@ -1266,6 +1278,18 @@ private static function imagesSection(): Forms\Components\Section
             ->step(0.1)
             ->suffix('cm');
 
+        if (in_array($field, [
+            'circonferenza_seno',
+            'circonferenza_sotto_seno',
+            'circonferenza_vita',
+            'circonferenza_fianchi_15_cm',
+        ], true)) {
+            $input = $input
+                ->live(onBlur: true)
+                ->afterStateHydrated(fn (Set $set, Get $get) => self::syncCorsetCalculatedFields($set, $get))
+                ->afterStateUpdated(fn (Set $set, Get $get) => self::syncCorsetCalculatedFields($set, $get));
+        }
+
         if (! $withCalculatedHelper) {
             return $input;
         }
@@ -1273,6 +1297,17 @@ private static function imagesSection(): Forms\Components\Section
         return $input->helperText(fn (Get $get) => self::buildLineaSottoSenoHelperText(
             self::nullableFloat($get('circonferenza_seno'))
         ));
+    }
+
+    private static function corsetCalculatedMeasurementInput(string $field): Forms\Components\TextInput
+    {
+        return Forms\Components\TextInput::make($field)
+            ->label('')
+            ->numeric()
+            ->step(0.001)
+            ->suffix('cm')
+            ->readOnly()
+            ->dehydrated(true);
     }
 
     private static function corsetDerivedValuePlaceholder(
@@ -1307,6 +1342,35 @@ private static function imagesSection(): Forms\Components\Section
         return $formula;
     }
 
+    private static function buildLarghezzaSenoRangeSummary(?float $circSeno): HtmlString
+    {
+        $formula = DressCorset::larghezzaSenoFormulaFor($circSeno);
+        $larghezzaSeno = DressCorset::calculateLarghezzaSeno($circSeno);
+
+        $range = 'Disponibile per circonferenza seno tra 80 e 116 cm';
+
+        if ($circSeno !== null) {
+            $range = $circSeno <= 100
+                ? '80 <= CS <= 100'
+                : '100 < CS <= 116';
+        }
+
+        return new HtmlString(
+            '<table style="width:100%; border-collapse:collapse; font-size:11px;">'
+            . '<tr>'
+            . '<th style="border:1px solid #d1d5db; padding:6px; text-align:left;">Circ. seno</th>'
+            . '<th style="border:1px solid #d1d5db; padding:6px; text-align:left;">Formula</th>'
+            . '<th style="border:1px solid #d1d5db; padding:6px; text-align:left;">Larghezza seno</th>'
+            . '</tr>'
+            . '<tr>'
+            . '<td style="border:1px solid #d1d5db; padding:6px;">' . e($range) . '</td>'
+            . '<td style="border:1px solid #d1d5db; padding:6px;">' . e($formula ?? '—') . '</td>'
+            . '<td style="border:1px solid #d1d5db; padding:6px;">' . e(self::formatCorsetValue($larghezzaSeno)) . '</td>'
+            . '</tr>'
+            . '</table>'
+        );
+    }
+
     private static function buildLineaSottoSenoHelperText(?float $circSeno): string
     {
         $suggestedValue = DressCorset::calculateLineaSottoSenoSuggerita($circSeno);
@@ -1318,13 +1382,48 @@ private static function imagesSection(): Forms\Components\Section
         return 'Valore suggerito: ' . self::formatCorsetValue($suggestedValue);
     }
 
+    private static function syncCorsetCalculatedFields(Set $set, Get $get): void
+    {
+        $circSeno = self::nullableFloat($get('circonferenza_seno'));
+        $circSottoSeno = self::nullableFloat($get('circonferenza_sotto_seno'));
+        $circVita = self::nullableFloat($get('circonferenza_vita'));
+        $circFianchi = self::nullableFloat($get('circonferenza_fianchi_15_cm'));
+
+        $set('linea_sotto_seno', DressCorset::calculateLineaSottoSenoSuggerita($circSeno));
+
+        $ripreseVita = DressCorset::calculateRipreseVita($circSottoSeno, $circVita);
+        $set('ripresa_vita_davanti', $ripreseVita['davanti']);
+        $set('ripresa_vita_lato', $ripreseVita['lato']);
+        $set('ripresa_vita_dietro', $ripreseVita['dietro']);
+
+        $ripreseFianchi = DressCorset::calculateRipreseFianchi($circFianchi, $circSottoSeno);
+        $set('ripresa_fianchi_davanti', $ripreseFianchi['davanti']);
+        $set('ripresa_fianchi_lato', $ripreseFianchi['lato']);
+        $set('ripresa_fianchi_dietro', $ripreseFianchi['dietro']);
+    }
+
+    private static function calculateRipresaValues(string $group, Get $get): array
+    {
+        return match ($group) {
+            'vita' => DressCorset::calculateRipreseVita(
+                self::nullableFloat($get('circonferenza_sotto_seno')),
+                self::nullableFloat($get('circonferenza_vita')),
+            ),
+            'fianchi' => DressCorset::calculateRipreseFianchi(
+                self::nullableFloat($get('circonferenza_fianchi_15_cm')),
+                self::nullableFloat($get('circonferenza_sotto_seno')),
+            ),
+            default => ['base' => null, 'davanti' => null, 'lato' => null, 'dietro' => null],
+        };
+    }
+
     private static function formatCorsetValue(?float $value): string
     {
         if ($value === null) {
             return '—';
         }
 
-        return number_format($value, 1, ',', '.') . ' cm';
+        return rtrim(rtrim(number_format($value, 3, ',', '.'), '0'), ',') . ' cm';
     }
 
     private static function nullableFloat(mixed $value): ?float
@@ -1344,7 +1443,7 @@ private static function imagesSection(): Forms\Components\Section
             ->extraAttributes(['style' => 'display:none'])
             ->dehydrated(false)
             ->afterStateHydrated(function (Set $set, Get $get) {
-                // 🚦 Early exit: evita loop e calcoli inutili
+                // ðŸš¦ Early exit: evita loop e calcoli inutili
                 static $done = false;
                 if ($done) {
                     return;
@@ -1356,3 +1455,4 @@ private static function imagesSection(): Forms\Components\Section
     }
 
 }
+

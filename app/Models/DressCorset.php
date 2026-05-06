@@ -123,4 +123,50 @@ class DressCorset extends Model
 
         return round(($larghezzaSeno / 2) - ($circSeno / 40), 1);
     }
+
+    public static function calculateRipreseVita(?float $circSottoSeno, ?float $circVita): array
+    {
+        if ($circSottoSeno === null || $circVita === null) {
+            return [
+                'base' => null,
+                'davanti' => null,
+                'lato' => null,
+                'dietro' => null,
+            ];
+        }
+
+        $base = ($circSottoSeno - $circVita) / 2;
+        $latoIniziale = $base / 2;
+        $estremiIniziali = $latoIniziale / 2;
+
+        return [
+            'base' => round($base, 3),
+            'davanti' => round($estremiIniziali / 4, 3),
+            'lato' => round($latoIniziale / 2, 3),
+            'dietro' => round($estremiIniziali / 4, 3),
+        ];
+    }
+
+    public static function calculateRipreseFianchi(?float $circFianchi, ?float $circSottoSeno): array
+    {
+        if ($circFianchi === null || $circSottoSeno === null) {
+            return [
+                'base' => null,
+                'davanti' => null,
+                'lato' => null,
+                'dietro' => null,
+            ];
+        }
+
+        $base = ($circFianchi - $circSottoSeno) / 2;
+        $latoIniziale = $base / 2;
+        $dietroIniziale = $base / 2;
+
+        return [
+            'base' => round($base, 3),
+            'davanti' => 0.0,
+            'lato' => round($latoIniziale / 2, 3),
+            'dietro' => round($dietroIniziale / 4, 3),
+        ];
+    }
 }
