@@ -98,16 +98,16 @@ Forms\Components\DatePicker::make('delivery_date')
             $count = $dressesOnDate->count();
 
             if ($count === 0) {
-                $helper = 'ðŸŸ¢ Giornata libera - Perfetto per la consegna!';
+                $helper = 'Giornata libera - Perfetto per la consegna!';
             } elseif ($count <= 2) {
                 $customers = $dressesOnDate->pluck('customer_name')->take(2)->join(', ');
-                $helper = "ðŸŸ¡ {$count} abiti giÃ  previsti: {$customers}" . ($count > 2 ? ' e altri...' : '');
+                $helper = "{$count} abiti già previsti: {$customers}" . ($count > 2 ? ' e altri...' : '');
             } elseif ($count <= 4) {
                 $customers = $dressesOnDate->pluck('customer_name')->take(2)->join(', ');
-                $helper = "ðŸŸ  GIORNATA IMPEGNATIVA - {$count} abiti: {$customers}" . ($count > 2 ? ' e altri...' : '');
+                $helper = "GIORNATA IMPEGNATIVA - {$count} abiti: {$customers}" . ($count > 2 ? ' e altri...' : '');
             } else {
                 $customers = $dressesOnDate->pluck('customer_name')->take(2)->join(', ');
-                $helper = "ðŸ”´ ATTENZIONE: GIORNATA SOVRACCARICA! {$count} abiti: {$customers} e altri...";
+                $helper = "ATTENZIONE: GIORNATA SOVRACCARICA! {$count} abiti: {$customers} e altri...";
             }
 
             $set('delivery_date_helper', $helper);
@@ -192,7 +192,7 @@ Forms\Components\DatePicker::make('delivery_date')
         }
     }'
 ])
-    ->helperText('ðŸŸ¢ Verde = libera, ðŸŸ¡ Arancione = 1 abito, ðŸ”´ Rosso = 2+ abiti'),
+    ->helperText('Verde = libera, Arancione = 1 abito, Rosso = 2+ abiti'),
 
 // Aggiungi il Placeholder helper dinamico subito dopo
 Forms\Components\Placeholder::make('delivery_date_helper')
@@ -236,7 +236,7 @@ private static function imagesSection(): Forms\Components\Section
             // Row 2: Bottoni di visualizzazione
             Forms\Components\Actions::make([
                 Forms\Components\Actions\Action::make('view_sketch')
-                    ->label('ðŸ” Visualizza Bozza')
+                    ->label('Visualizza Bozza')
                     ->icon('heroicon-o-eye')
                     ->color('info')
                     ->modalHeading('Visualizza Bozza')
@@ -248,7 +248,7 @@ private static function imagesSection(): Forms\Components\Section
                     ->visible(fn($record) => $record?->sketch_image),
 
                 Forms\Components\Actions\Action::make('view_final')
-                    ->label('ðŸ” Visualizza Definitivo')
+                    ->label('Visualizza Definitivo')
                     ->icon('heroicon-o-eye')
                     ->color('success')
                     ->modalHeading('Visualizza Definitivo')
@@ -260,7 +260,7 @@ private static function imagesSection(): Forms\Components\Section
                     ->visible(fn($record) => $record?->final_image),
 
                 Forms\Components\Actions\Action::make('view_drawing')
-                    ->label('ðŸ” Visualizza Disegno')
+                    ->label('Visualizza Disegno')
                     ->icon('heroicon-o-eye')
                     ->color('warning')
                     ->modalHeading('Visualizza Disegno')
@@ -285,7 +285,7 @@ private static function imagesSection(): Forms\Components\Section
                 ->undoable()
                 ->clearable()
                 ->confirmable()
-                ->helperText('Disegna e premi "Done" per fissare lo schizzo. VerrÃ  salvato come immagine.')
+                ->helperText('Disegna e premi "Done" per fissare lo schizzo. Verrà salvato come immagine.')
                 ->columnSpan('full'),
 
             // Row 3: Preview salvato (full width)
@@ -610,7 +610,7 @@ private static function imagesSection(): Forms\Components\Section
     private static function expenseSection(): Forms\Components\Section
     {
     return Forms\Components\Section::make('Lista della spesa')
-        ->description('Prodotti o materiali utilizzati per la realizzazione dellâ€™abito (uso interno)')
+        ->description("Prodotti o materiali utilizzati per la realizzazione dell'abito (uso interno)")
         ->schema([
             Forms\Components\Repeater::make('expenses')
                 ->label('Articoli')
@@ -628,9 +628,9 @@ private static function imagesSection(): Forms\Components\Section
                         ->imageEditor(),
                     
                     Forms\Components\TextInput::make('price')
-                        ->label('Costo interno (â‚¬)')
+                        ->label('Costo interno (€)')
                         ->numeric()
-                        ->prefix('â‚¬')
+                        ->prefix('€')
                         ->default(0)
                         ->helperText('Non influisce sul prezzo cliente.'),
                 ])
@@ -657,7 +657,7 @@ private static function imagesSection(): Forms\Components\Section
                     ->label('Prezzo Manifattura')
                     ->numeric()
                     ->step(0.01)
-                    ->prefix('â‚¬')
+                    ->prefix('€')
                     ->default(0)
                     ->live(debounce: 300)
                     ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get)),
@@ -711,7 +711,7 @@ private static function imagesSection(): Forms\Components\Section
                             ->label('Prezzo Acquisto')
                             ->numeric()
                             ->step(0.01)
-                            ->prefix('â‚¬')
+                            ->prefix('€')
                             ->live(debounce: 300)
                             ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get))
                             ->hidden()
@@ -721,7 +721,7 @@ private static function imagesSection(): Forms\Components\Section
                             ->label('Prezzo Cliente')
                             ->numeric()
                             ->step(0.01)
-                            ->prefix('â‚¬')
+                            ->prefix('€')
                             ->live(debounce: 300)
                             ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get))
                             ->hidden()
@@ -758,7 +758,7 @@ private static function imagesSection(): Forms\Components\Section
                             ->label('Costo')
                             ->numeric()
                             ->step(0.01)
-                            ->prefix('â‚¬')
+                            ->prefix('€')
                             ->live(debounce: 300)
                             ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get)),
                     ])
@@ -868,7 +868,7 @@ private static function imagesSection(): Forms\Components\Section
                 ->helperText('Seleziona il cliente da cui importare le ultime misure.'),
 
             Forms\Components\Radio::make('mode')
-                ->label('ModalitÃ  di import')
+                ->label('Modalità di import')
                 ->options([
                     'replace' => 'Sostituisci tutto',
                     'fill'    => 'Completa solo i campi vuoti',
@@ -908,12 +908,12 @@ private static function imagesSection(): Forms\Components\Section
             $currentCorsets,
         );
 
-        // âœ” Importa misure
+        // Importa misure
         $set('measurements', $result['measurements']);
         $set('customMeasurements', $result['customMeasurements']);
         $set('corsets', $result['corsets']);
 
-        // âœ” Importa anche NOME e TELEFONO
+        // Importa anche NOME e TELEFONO
         if ($result['sourceCustomerName']) {
             $set('customer_name', $result['sourceCustomerName']);
             $set('phone_number', $result['sourcePhoneNumber']);
@@ -949,7 +949,7 @@ private static function imagesSection(): Forms\Components\Section
         $ordered = DressMeasurement::ORDERED_MEASURES;
 
         // Definizione dei gruppi (in termini di nomi colonna)
-        // NOTA: l'ordine qui sotto Ã¨ quello delle tabs; dentro ogni tab
+        // NOTA: l'ordine qui sotto è quello delle tabs; dentro ogni tab
         // i campi vengono presi nell'ordine esatto definito in ORDERED_MEASURES.
         $groups = [
             '1) Collo & Busto' => [
@@ -1017,8 +1017,8 @@ private static function imagesSection(): Forms\Components\Section
                 continue;
             }
 
-            // Suffix: "Â°" solo per inclinazione_spalle, altrimenti "cm"
-            $suffix = $field === 'inclinazione_spalle' ? 'Â°' : 'cm';
+            // Suffix: "°" solo per inclinazione_spalle, altrimenti "cm"
+            $suffix = $field === 'inclinazione_spalle' ? '°' : 'cm';
 
             $inputs[] = self::buildMeasureInput($field, $label, $suffix);
         }
@@ -1048,33 +1048,33 @@ private static function imagesSection(): Forms\Components\Section
                         Forms\Components\Grid::make(4)->schema([
                             Forms\Components\TextInput::make('total_purchase_cost')
                                 ->label('Costo Totale (per te)')
-                                ->prefix('â‚¬')
+                                ->prefix('€')
                                 ->disabled()
                                 ->dehydrated(false),
 
                             Forms\Components\TextInput::make('total_client_price')
                                 ->label('Prezzo Cliente')
-                                ->prefix('â‚¬')
+                                ->prefix('€')
                                 ->disabled()
                                 ->dehydrated(false),
 
                             Forms\Components\TextInput::make('total_profit')
                                 ->label('Guadagno')
-                                ->prefix('â‚¬')
+                                ->prefix('€')
                                 ->disabled()
                                 ->dehydrated(false),
 
                             Forms\Components\TextInput::make('remaining')
                                 ->label('Rimanente da Pagare')
-                                ->prefix('â‚¬')
+                                ->prefix('€')
                                 ->disabled()
                                 ->dehydrated(true),
                         ]),
 
                         Forms\Components\Grid::make(2)->schema([
                             Forms\Components\TextInput::make('manual_client_price')
-                                ->label('Prezzo Manuale (deciso da MadamadorÃ¨)')
-                                ->prefix('â‚¬')
+                                ->label('Prezzo Manuale (deciso da Madamadorè)')
+                                ->prefix('€')
                                 ->numeric()
                                 ->step(0.01)
                                 ->placeholder('Es: 600')
@@ -1096,7 +1096,7 @@ private static function imagesSection(): Forms\Components\Section
                         ->label('Acconto')
                         ->numeric()
                         ->step(0.01)
-                        ->prefix('â‚¬')
+                        ->prefix('€')
                         ->default(0)
                         ->live(debounce: 300)
                         ->afterStateUpdated(fn (Set $set, Get $get) => self::updateCalculations($set, $get)),
@@ -1443,7 +1443,7 @@ private static function imagesSection(): Forms\Components\Section
             ->extraAttributes(['style' => 'display:none'])
             ->dehydrated(false)
             ->afterStateHydrated(function (Set $set, Get $get) {
-                // ðŸš¦ Early exit: evita loop e calcoli inutili
+                // Early exit: evita loop e calcoli inutili
                 static $done = false;
                 if ($done) {
                     return;
