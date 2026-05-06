@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\DressResource\Concerns;
 
 use App\Models\Fabric;
+use App\Models\Supplier;
 use Filament\Forms;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
@@ -763,9 +764,12 @@ private static function imagesSection(): Forms\Components\Section
                             ->label('Codice Colore')
                             ->maxLength(255),
 
-                        Forms\Components\TextInput::make('supplier')
+                        Forms\Components\Select::make('supplier_id')
                             ->label('Fornitore')
-                            ->maxLength(255),
+                            ->relationship('supplierRecord', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->getOptionLabelFromRecordUsing(fn (Supplier $record): string => $record->name),
                     ])
                     ->columns(3)
                     ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
@@ -825,7 +829,7 @@ private static function imagesSection(): Forms\Components\Section
         $set('purchase_price', $fabric->purchase_price);
         $set('client_price', $fabric->client_price);
         $set('color_code', $fabric->color_code);
-        $set('supplier', $fabric->supplier);
+        $set('supplier_id', $fabric->supplier_id);
         $set('photo_path', SingleFileUploadState::fromPath(
             app(DressFabricPhotoService::class)->copyFromInventory($fabric)
         ));

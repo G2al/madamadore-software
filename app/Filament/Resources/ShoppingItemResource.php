@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ShoppingItemResource\Pages;
 use App\Models\Fabric;
 use App\Models\ShoppingItem;
+use App\Models\Supplier;
 use App\Services\ShoppingItemInventoryService;
 use App\Support\SingleFileUploadState;
 use Filament\Forms;
@@ -75,9 +76,13 @@ class ShoppingItemResource extends Resource
                     ->default('pezzi')
                     ->required(),
 
-                Forms\Components\TextInput::make('supplier')
+                Forms\Components\Select::make('supplier_id')
                     ->label('Fornitore')
-                    ->maxLength(255),
+                    ->relationship('supplierRecord', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->getOptionLabelFromRecordUsing(fn (Supplier $record): string => $record->name)
+                    ->helperText('Seleziona un fornitore esistente dalla nuova anagrafica fornitori.'),
 
                 Forms\Components\FileUpload::make('photo_path')
                     ->label('Foto')
@@ -129,8 +134,9 @@ class ShoppingItemResource extends Resource
                     ->label('Quantità')
                     ->formatStateUsing(fn($state, $record) => $state . ' ' . ($record->unit_type === 'metri' ? 'mt' : 'pz')),
 
-                Tables\Columns\TextColumn::make('supplier')
+                Tables\Columns\TextColumn::make('supplier_name')
                     ->label('Fornitore')
+                    ->state(fn (ShoppingItem $record): string => $record->supplierRecord?->name ?? $record->supplier ?? '-')
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('purchase_date')
@@ -206,7 +212,7 @@ class ShoppingItemResource extends Resource
         $set('name', $payload['name'] ?? null);
         $set('color_code', $payload['color_code'] ?? null);
         $set('price', $payload['price'] ?? null);
-        $set('supplier', $payload['supplier'] ?? null);
+        $set('supplier_id', $payload['supplier_id'] ?? null);
         $set('unit_type', $payload['unit_type'] ?? 'metri');
         $set('photo_path', SingleFileUploadState::fromPath($payload['photo_path'] ?? null));
     }

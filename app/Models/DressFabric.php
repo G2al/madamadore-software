@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Builder;
 
 class DressFabric extends Model
 {
@@ -17,7 +17,8 @@ class DressFabric extends Model
 
     protected $fillable = [
         'dress_id',
-        'fabric_id',       // 👈 aggiunto
+        'fabric_id',
+        'supplier_id',
         'name',
         'type',
         'meters',
@@ -34,18 +35,21 @@ class DressFabric extends Model
         'client_price' => 'decimal:2',
     ];
 
-    // Relationships
     public function dress(): BelongsTo
     {
         return $this->belongsTo(Dress::class);
     }
 
-    public function fabric(): BelongsTo   // 👈 nuovo collegamento
+    public function fabric(): BelongsTo
     {
         return $this->belongsTo(Fabric::class);
     }
 
-    // --- Accessors utili (per singolo tessuto) ---
+    public function supplierRecord(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id');
+    }
+
     public function getProfitAttribute(): float
     {
         return (float) ($this->client_price ?? 0) - (float) ($this->purchase_price ?? 0);
@@ -61,7 +65,6 @@ class DressFabric extends Model
         return (float) ($this->meters ?? 0) * (float) ($this->client_price ?? 0);
     }
 
-    // --- Scopes ---
     public function scopeForDressStatus(Builder $query, string $status): Builder
     {
         return $query->whereHas('dress', fn ($q) => $q->where('status', $status));
@@ -77,9 +80,22 @@ class DressFabric extends Model
         return $query->forDressStatus('in_lavorazione');
     }
 
-    // --- Hooks: ricalcolo automatico dei totali dell'abito ---
     protected static function booted(): void
     {
+        static::saving(function (self $fabric): void {
+            if (! $fabric->supplier_id) {
+                return;
+            }
+
+            $supplier = $fabric->relationLoaded('supplierRecord')
+                ? $fabric->supplierRecord
+                : Supplier::query()->find($fabric->supplier_id);
+
+            if ($supplier) {
+                $fabric->supplier = $supplier->name;
+            }
+        });
+
         static::saved(function (self $fabric) {
             $dress = $fabric->dress;
             if ($dress) {

@@ -7,11 +7,16 @@ use App\Models\CompanyAdjustment;
 use App\Http\Controllers\ShoppingItemPrintController;
 use App\Http\Controllers\SpecialDressPdfController;
 use App\Http\Controllers\PdfController;
+use App\Http\Controllers\SupplierShoppingListController;
 
 // Redirect alla dashboard admin
 Route::get('/', function () {
     return redirect('/admin');
 });
+
+Route::get('/suppliers/{supplier}/shopping-list/shared', [SupplierShoppingListController::class, 'shared'])
+    ->middleware('signed')
+    ->name('suppliers.shopping-list.shared');
 
 // ===============================================
 // 🧾 RICEVUTE AGGIUSTI
@@ -97,6 +102,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/shopping-items/print/selected', [ShoppingItemPrintController::class, 'printSelected'])
         ->name('shopping-items.print.selected');
+
+    Route::get('/suppliers/{supplier}/shopping-list/print', [SupplierShoppingListController::class, 'print'])
+        ->name('suppliers.shopping-list.print');
 
     // 🗓️ API per calendario consegne
     Route::get('/api/delivery-calendar', [App\Http\Controllers\Api\DeliveryCalendarController::class, 'getDeliveryDates'])

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\DressFabric;
 use App\Models\ShoppingItem;
+use App\Models\Supplier;
 use Illuminate\Support\Collection;
 
 class UnifiedShoppingListPdfService
@@ -13,6 +14,7 @@ class UnifiedShoppingListPdfService
         $manualItems = $this->normalizeManualItems(
             ShoppingItem::query()
                 ->whereNull('purchase_date')
+                ->with('supplierRecord')
                 ->orderBy('supplier')
                 ->orderBy('name')
                 ->orderBy('color_code')
@@ -22,7 +24,7 @@ class UnifiedShoppingListPdfService
         $automaticItems = $this->normalizeAutomaticItems(
             DressFabric::query()
                 ->pendingPurchase()
-                ->with('dress:id,customer_name')
+                ->with(['dress:id,customer_name', 'supplierRecord'])
                 ->orderBy('supplier')
                 ->orderBy('name')
                 ->orderBy('color_code')
@@ -41,6 +43,7 @@ class UnifiedShoppingListPdfService
         $manualItems = $this->normalizeManualItems(
             ShoppingItem::query()
                 ->whereIn('id', $shoppingItemIds)
+                ->with('supplierRecord')
                 ->orderBy('supplier')
                 ->orderBy('name')
                 ->orderBy('color_code')
@@ -51,6 +54,35 @@ class UnifiedShoppingListPdfService
             $manualItems,
             'Lista della Spesa',
             'Voci manuali selezionate',
+        );
+    }
+
+    public function buildForSupplier(Supplier $supplier): array
+    {
+        $manualItems = $this->normalizeManualItems(
+            ShoppingItem::query()
+                ->whereNull('purchase_date')
+                ->where('supplier_id', $supplier->id)
+                ->with('supplierRecord')
+                ->orderBy('name')
+                ->orderBy('color_code')
+                ->get(),
+        );
+
+        $automaticItems = $this->normalizeAutomaticItems(
+            DressFabric::query()
+                ->pendingPurchase()
+                ->where('supplier_id', $supplier->id)
+                ->with(['dress:id,customer_name', 'supplierRecord'])
+                ->orderBy('name')
+                ->orderBy('color_code')
+                ->get(),
+        );
+
+        return $this->buildPayload(
+            $manualItems->merge($automaticItems),
+            'Lista della Spesa',
+            'Riepilogo acquisti per fornitore',
         );
     }
 
@@ -65,7 +97,7 @@ class UnifiedShoppingListPdfService
             $price = $item->price !== null ? (float) $item->price : null;
 
             return [
-                'supplier' => $this->normalizeSupplier($item->supplier),
+                'supplier' => $this->normalizeSupplier($item->supplierRecord?->name ?? $item->supplier),
                 'group_name' => $item->name ?: 'Articolo senza nome',
                 'group_subtitle' => null,
                 'variant' => $item->color_code ?: 'Senza codice',
@@ -90,7 +122,7 @@ class UnifiedShoppingListPdfService
             $price = $item->purchase_price !== null ? (float) $item->purchase_price : null;
 
             return [
-                'supplier' => $this->normalizeSupplier($item->supplier),
+                'supplier' => $this->normalizeSupplier($item->supplierRecord?->name ?? $item->supplier),
                 'group_name' => $item->name ?: 'Tessuto senza nome',
                 'group_subtitle' => $item->type ?: null,
                 'variant' => $item->color_code ?: 'Senza codice',

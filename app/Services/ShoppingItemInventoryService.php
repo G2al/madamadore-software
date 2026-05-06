@@ -21,6 +21,7 @@ class ShoppingItemInventoryService
             'name' => $fabric->name,
             'color_code' => $fabric->color_code,
             'price' => $fabric->purchase_price !== null ? (float) $fabric->purchase_price : null,
+            'supplier_id' => $fabric->supplier_id,
             'supplier' => $fabric->supplier,
             'unit_type' => 'metri',
             'photo_path' => $this->photoService->copyToDirectory($fabric, 'shopping-items'),

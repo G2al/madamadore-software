@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\FabricResource\Pages;
 use App\Models\Fabric;
+use App\Models\Supplier;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -39,9 +40,12 @@ public static function form(Forms\Form $form): Forms\Form
                                 ->label('Codice Colore')
                                 ->maxLength(255),
 
-                            Forms\Components\TextInput::make('supplier')
+                            Forms\Components\Select::make('supplier_id')
                                 ->label('Fornitore')
-                                ->maxLength(255),
+                                ->relationship('supplierRecord', 'name')
+                                ->searchable()
+                                ->preload()
+                                ->getOptionLabelFromRecordUsing(fn (Supplier $record): string => $record->name),
 
                             Forms\Components\TextInput::make('purchase_price')
                                 ->label('Prezzo Acquisto')
@@ -129,8 +133,9 @@ public static function form(Forms\Form $form): Forms\Form
                     ->label('Tipologia')
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('supplier')
-                    ->label('Fornitore'),
+                Tables\Columns\TextColumn::make('supplier_name')
+                    ->label('Fornitore')
+                    ->state(fn (Fabric $record): string => $record->supplierRecord?->name ?? $record->supplier ?? '-'),
             ])
             ->filters([])
             ->actions([

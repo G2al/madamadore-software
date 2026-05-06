@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Dress;
 use App\Models\DressFabric;
 use App\Models\ShoppingItem;
+use App\Models\Supplier;
 use App\Services\UnifiedShoppingListPdfService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -15,7 +16,18 @@ class UnifiedShoppingListPdfViewTest extends TestCase
 
     public function test_unified_print_merges_manual_and_automatic_items_by_supplier(): void
     {
+        $casdit = Supplier::query()->create([
+            'name' => 'Casdit',
+            'phone_number' => '+393331234567',
+        ]);
+
+        $lucci = Supplier::query()->create([
+            'name' => 'Lucci',
+            'phone_number' => '+393339999999',
+        ]);
+
         ShoppingItem::query()->create([
+            'supplier_id' => $casdit->id,
             'name' => 'Candace',
             'color_code' => 'X2',
             'quantity' => 1.5,
@@ -25,6 +37,7 @@ class UnifiedShoppingListPdfViewTest extends TestCase
         ]);
 
         ShoppingItem::query()->create([
+            'supplier_id' => $lucci->id,
             'name' => 'Gancini nude',
             'color_code' => null,
             'quantity' => 3,
@@ -34,6 +47,7 @@ class UnifiedShoppingListPdfViewTest extends TestCase
         ]);
 
         ShoppingItem::query()->create([
+            'supplier_id' => $casdit->id,
             'name' => 'Gia comprato',
             'color_code' => null,
             'quantity' => 1,
@@ -51,6 +65,7 @@ class UnifiedShoppingListPdfViewTest extends TestCase
 
         DressFabric::query()->create([
             'dress_id' => $dress->id,
+            'supplier_id' => $casdit->id,
             'name' => 'Candace',
             'type' => 'Tulle',
             'meters' => 2.5,
@@ -61,6 +76,7 @@ class UnifiedShoppingListPdfViewTest extends TestCase
 
         DressFabric::query()->create([
             'dress_id' => $dress->id,
+            'supplier_id' => $casdit->id,
             'name' => 'Candace',
             'type' => 'Tulle',
             'meters' => 1.0,
@@ -84,5 +100,46 @@ class UnifiedShoppingListPdfViewTest extends TestCase
         $this->assertStringContainsString('3,00 pz', $html);
         $this->assertStringNotContainsString('Gia comprato', $html);
         $this->assertStringContainsString('Generato automaticamente dal gestionale', $html);
+    }
+
+    public function test_supplier_print_contains_only_selected_supplier_rows(): void
+    {
+        $casdit = Supplier::query()->create([
+            'name' => 'Casdit',
+            'phone_number' => '+393331234567',
+        ]);
+
+        $lucci = Supplier::query()->create([
+            'name' => 'Lucci',
+            'phone_number' => '+393339999999',
+        ]);
+
+        ShoppingItem::query()->create([
+            'supplier_id' => $casdit->id,
+            'name' => 'Candace',
+            'color_code' => 'X2',
+            'quantity' => 1.5,
+            'unit_type' => 'metri',
+            'supplier' => 'Casdit',
+            'price' => 60,
+        ]);
+
+        ShoppingItem::query()->create([
+            'supplier_id' => $lucci->id,
+            'name' => 'Gancini nude',
+            'color_code' => null,
+            'quantity' => 3,
+            'unit_type' => 'pezzi',
+            'supplier' => 'Lucci',
+            'price' => 2.5,
+        ]);
+
+        $payload = app(UnifiedShoppingListPdfService::class)->buildForSupplier($casdit);
+        $html = view('pdf.shopping-list-unified', $payload)->render();
+
+        $this->assertStringContainsString('Casdit', $html);
+        $this->assertStringContainsString('Candace', $html);
+        $this->assertStringNotContainsString('Lucci', $html);
+        $this->assertStringNotContainsString('Gancini nude', $html);
     }
 }

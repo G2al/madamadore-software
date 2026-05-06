@@ -12,6 +12,7 @@ class ShoppingItem extends Model
 
     protected $fillable = [
         'fabric_id',
+        'supplier_id',
         'name',
         'color_code',
         'price',
@@ -28,6 +29,23 @@ class ShoppingItem extends Model
         'purchase_date' => 'datetime',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (self $shoppingItem): void {
+            if (! $shoppingItem->supplier_id) {
+                return;
+            }
+
+            $supplier = $shoppingItem->relationLoaded('supplierRecord')
+                ? $shoppingItem->supplierRecord
+                : Supplier::query()->find($shoppingItem->supplier_id);
+
+            if ($supplier) {
+                $shoppingItem->supplier = $supplier->name;
+            }
+        });
+    }
+
     public function isPaid(): bool
     {
         return !is_null($this->purchase_date);
@@ -36,5 +54,10 @@ class ShoppingItem extends Model
     public function fabric(): BelongsTo
     {
         return $this->belongsTo(Fabric::class);
+    }
+
+    public function supplierRecord(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id');
     }
 }
