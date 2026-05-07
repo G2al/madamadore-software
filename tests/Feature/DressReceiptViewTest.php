@@ -48,7 +48,7 @@ class DressReceiptViewTest extends TestCase
         $this->assertStringContainsString('Consumo tessuti', $productionHtml);
         $this->assertStringContainsString('Campioni tessuto', $productionHtml);
         $this->assertStringContainsString('Dettaglio scollo', $technicalHtml);
-        $this->assertStringContainsString('Respons. misure', $technicalHtml);
+        $this->assertStringContainsString('Resp.', $technicalHtml);
     }
 
     private function makeDress(): Dress

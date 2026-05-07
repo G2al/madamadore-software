@@ -1,5 +1,8 @@
 @php
     $document = $document ?? app(\App\Services\DressPdfDataService::class)->build($dress);
+    $mainFabric = $document['main_fabric'] ?? null;
+    $sleeveFabric = $document['sleeve_fabric'] ?? null;
+    $constructionNotes = $document['construction_notes'] ?? [];
 @endphp
 
 <!-- Scheda Produzione -->
@@ -121,24 +124,71 @@
                     @php($sample = $document['fabric_samples'][$i] ?? null)
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: {{ $i < 2 ? '7mm' : '0' }};">
                         <tr>
-                            <td style="width: 42%; vertical-align: top; padding-right: 3mm;">
-                                <div class="sample-image" style="height: 33mm;">
+                            <td style="width: 38%; vertical-align: top; padding-right: 3mm;">
+                                <div class="sample-image" style="height: 20mm;">
                                     @if($sample && $sample['photo_absolute_path'])
                                         <img src="{{ $sample['photo_absolute_path'] }}" alt="Campione {{ $sample['name'] }}">
                                     @endif
                                 </div>
                             </td>
-                            <td style="width: 58%; vertical-align: top;" class="small-text">
+                            <td style="width: 62%; vertical-align: top;" class="small-text">
                                 <strong>Tessuto {{ $i + 1 }}:</strong><br>
                                 {{ $sample['summary'] ?? '' }}
-                                <div class="writing-lines" style="margin-top: 3mm;">
-                                    <div style="height: 5mm;"></div>
-                                    <div style="height: 5mm;"></div>
+                                <div class="writing-lines" style="margin-top: 2mm;">
+                                    <div style="height: 4mm;"></div>
+                                    <div style="height: 4mm;"></div>
                                 </div>
                             </td>
                         </tr>
                     </table>
                 @endfor
+
+                <div class="section-title" style="margin-top: 5mm;">Tessuto principale</div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 9px; margin-bottom: 4mm;">
+                    <tr>
+                        <td style="width: 34%; padding: 0 0 2.2mm 0;">Tessuto:</td>
+                        <td style="padding: 0 0 2.2mm 2mm; border-bottom: 1px solid #d8ccc5;">{{ $mainFabric['name'] ?? '' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 2.2mm 0;">Composizione:</td>
+                        <td style="padding: 2.2mm 0 2.2mm 2mm; border-bottom: 1px solid #d8ccc5;">{{ $mainFabric['composition'] ?? '' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 2.2mm 0;">Colore:</td>
+                        <td style="padding: 2.2mm 0 2.2mm 2mm; border-bottom: 1px solid #d8ccc5;">{{ $mainFabric['color'] ?? '' }}</td>
+                    </tr>
+                </table>
+
+                <div class="section-title">Manica</div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 9px; margin-bottom: 4mm;">
+                    <tr>
+                        <td style="width: 34%; padding: 0 0 2.2mm 0;">Tessuto:</td>
+                        <td style="padding: 0 0 2.2mm 2mm; border-bottom: 1px solid #d8ccc5;">{{ $sleeveFabric['name'] ?? '' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 2.2mm 0;">Composizione:</td>
+                        <td style="padding: 2.2mm 0 2.2mm 2mm; border-bottom: 1px solid #d8ccc5;">{{ $sleeveFabric['composition'] ?? '' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 2.2mm 0;">Colore:</td>
+                        <td style="padding: 2.2mm 0 2.2mm 2mm; border-bottom: 1px solid #d8ccc5;">{{ $sleeveFabric['color'] ?? '' }}</td>
+                    </tr>
+                </table>
+
+                <div class="section-title">Note costruttive</div>
+                <div class="small-text" style="line-height: 1.25; font-size: 9px; min-height: 30mm;">
+                    @if(! empty($constructionNotes))
+                        <ul class="bullet-list" style="padding-left: 5mm; margin: 0;">
+                            @foreach($constructionNotes as $note)
+                                <li style="margin-bottom: 1mm;">{{ $note }}</li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <div class="writing-lines">
+                            @for($i = 0; $i < 3; $i++)<div></div>@endfor
+                        </div>
+                    @endif
+                </div>
             </td>
         </tr>
     </table>

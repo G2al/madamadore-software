@@ -1,7 +1,5 @@
 @php
     $document = $document ?? app(\App\Services\DressPdfDataService::class)->build($dress);
-    $mainFabric = $document['main_fabric'];
-    $sleeveFabric = $document['sleeve_fabric'];
     $bodyFontSize = '10px';
     $detailSections = $document['detail_sections'] ?? [];
     $frontImage = $document['front_view_image_path']
@@ -20,8 +18,8 @@
     $signaturePath = file_exists(public_path('firma.png'))
         ? public_path('firma.png')
         : null;
-    $technicalFrontHeight = '51mm';
-    $technicalBackHeight = '51mm';
+    $technicalFrontHeight = '76mm';
+    $technicalBackHeight = '76mm';
     $detailImageHeight = '28mm';
     $detailBlockMinHeight = '55mm';
     $detailBlocks = [
@@ -47,11 +45,11 @@
     <table style="width: 100%; height: 234mm; border-collapse: collapse; table-layout: fixed;">
         <tr>
 
-            {{-- COLONNA 1: front/retro + tessuti + note (43%) --}}
+            {{-- COLONNA 1: front + retro (43%) --}}
             <td style="width: 43%; height: 234mm; vertical-align: top; padding-right: 3mm;">
-                <div style="margin-bottom: 4mm;">
+                <div>
                     <div class="section-title" style="margin-bottom: 1.5mm;">Front</div>
-                    <div style="height: {{ $technicalFrontHeight }}; margin-bottom: 3mm; text-align: center; overflow: hidden;">
+                    <div style="height: {{ $technicalFrontHeight }}; margin-bottom: 6mm; text-align: center; overflow: hidden;">
                         @if($frontImage)
                             <img src="{{ $frontImage }}" alt="Front" style="display: block; width: auto; max-width: 100%; height: auto; max-height: {{ $technicalFrontHeight }}; margin: 0 auto;">
 
@@ -71,53 +69,6 @@
                             <div class="image-placeholder" style="padding: 14mm 4mm;">Retro non disponibile</div>
                         @endif
                     </div>
-                </div>
-
-                <div class="section-title">Tessuto principale</div>
-                <table style="width: 100%; border-collapse: collapse; font-size: {{ $bodyFontSize }}; margin-bottom: 5mm;">
-                    <tr>
-                        <td style="width: 32%; padding: 0 0 3mm 0;">Tessuto:</td>
-                        <td style="padding: 0 0 3mm 2mm; border-bottom: 1px solid #d8ccc5;">{{ $mainFabric['name'] ?? '' }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 3mm 0;">Composizione:</td>
-                        <td style="padding: 3mm 0 3mm 2mm; border-bottom: 1px solid #d8ccc5;">{{ $mainFabric['composition'] ?? '' }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 3mm 0;">Colore:</td>
-                        <td style="padding: 3mm 0 3mm 2mm; border-bottom: 1px solid #d8ccc5;">{{ $mainFabric['color'] ?? '' }}</td>
-                    </tr>
-                </table>
-
-                <div class="section-title">Manica</div>
-                <table style="width: 100%; border-collapse: collapse; font-size: {{ $bodyFontSize }}; margin-bottom: 5mm;">
-                    <tr>
-                        <td style="width: 32%; padding: 0 0 3mm 0;">Tessuto:</td>
-                        <td style="padding: 0 0 3mm 2mm; border-bottom: 1px solid #d8ccc5;">{{ $sleeveFabric['name'] ?? '' }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 3mm 0;">Composizione:</td>
-                        <td style="padding: 3mm 0 3mm 2mm; border-bottom: 1px solid #d8ccc5;">{{ $sleeveFabric['composition'] ?? '' }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 3mm 0;">Colore:</td>
-                        <td style="padding: 3mm 0 3mm 2mm; border-bottom: 1px solid #d8ccc5;">{{ $sleeveFabric['color'] ?? '' }}</td>
-                    </tr>
-                </table>
-
-                <div class="section-title">Note costruttive</div>
-                <div class="small-text" style="line-height: 1.3; font-size: {{ $bodyFontSize }}; min-height: 64mm;">
-                    @if(! empty($document['construction_notes']))
-                        <ul class="bullet-list" style="padding-left: 5mm; margin: 0;">
-                            @foreach($document['construction_notes'] as $note)
-                                <li style="margin-bottom: 1.4mm;">{{ $note }}</li>
-                            @endforeach
-                        </ul>
-                    @else
-                        <div class="writing-lines">
-                            @for($i = 0; $i < 7; $i++)<div></div>@endfor
-                        </div>
-                    @endif
                 </div>
             </td>
 
@@ -155,16 +106,12 @@
                     'measurements'       => $allMeasurements,
                     'customMeasurements' => [],
                 ])
-                <table class="meta-table small-text" style="margin-top: 4mm; font-size: {{ $bodyFontSize }};">
-                    <tr>
-                        <td class="label">Respons. misure</td>
-                        <td>{{ $document['measurements_responsible'] ?: '' }}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">N.B.</td>
-                        <td>{{ $document['nb_notes'] ?: '' }}</td>
-                    </tr>
-                </table>
+                <div class="small-text" style="margin-top: 4mm; font-size: {{ $bodyFontSize }}; line-height: 1.35;">
+                    <div style="margin-bottom: 2mm;"><strong>Resp.</strong> {{ $document['measurements_responsible'] ?: '' }}</div>
+                    @if(! empty($document['nb_notes']))
+                        <div style="font-style: italic;">{{ $document['nb_notes'] }}</div>
+                    @endif
+                </div>
             </td>
 
         </tr>

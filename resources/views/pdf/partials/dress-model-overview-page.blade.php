@@ -8,7 +8,7 @@
 
 <!-- Modellino Abito -->
 <div class="document-page" style="padding: 0; overflow: hidden;">
-    <div style="height: 270mm; display: table; width: 100%; position: relative;">
+    <div style="height: 188mm; display: table; width: 100%; position: relative;">
         <div style="display: table-cell; vertical-align: middle; text-align: center;">
             @if($coverImage)
                 <img src="{{ $coverImage }}" alt="Abito definitivo modellino" style="display: block; width: 118%; height: auto; max-height: 280mm; margin: 0 0 0 35mm;">
@@ -17,7 +17,7 @@
             @endif
         </div>
         @if($coverImage && $signaturePath)
-            <img src="{{ $signaturePath }}" alt="Firma Dora Maione" style="position: absolute; right: 8mm; bottom: 8mm; width: 34mm; height: auto;">
+            <img src="{{ $signaturePath }}" alt="Firma Dora Maione" style="position: absolute; right: 8mm; bottom: -80mm; width: 34mm; height: auto;">
         @endif
     </div>
 </div>
