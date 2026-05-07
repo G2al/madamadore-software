@@ -202,7 +202,7 @@ class DressPdfDataService
         $fallback = collect($fabrics)
             ->map(fn (array $fabric): string => $fabric['summary'])
             ->merge(
-                $dress->expenses
+                collect($dress->expenses)
                     ->map(fn ($expense): ?string => $this->classifyExpenseAsMaterial($expense->name))
                     ->filter()
             )
@@ -219,7 +219,7 @@ class DressPdfDataService
     {
         $manual = $this->splitLines((string) ($technicalSheet?->accessories_notes ?? ''));
 
-        $fallback = $dress->extras
+        $fallback = collect($dress->extras)
             ->map(function ($extra): string {
                 $description = trim((string) ($extra->description ?? ''));
                 $cost = $extra->cost ?? null;
@@ -235,7 +235,7 @@ class DressPdfDataService
                 return $description;
             })
             ->merge(
-                $dress->expenses
+                collect($dress->expenses)
                     ->map(fn ($expense): string => trim((string) $expense->name))
                     ->filter(fn (string $name): bool => $this->classifyExpenseAsMaterial($name) === null)
             )
