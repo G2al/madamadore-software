@@ -33,6 +33,7 @@ class DressPdfDataService
 
         return [
             'design_image_path' => $this->resolvePrimaryDesignImagePath($dress, $technicalSheet),
+            'technical_drawing_image_path' => $this->resolveStoredImagePath($technicalSheet?->technical_drawing_image),
             'model_cover_image_path' => $this->resolveModelCoverImagePath($dress, $technicalSheet),
             'approved_front_image_path' => $this->resolveApprovedFrontImagePath($dress, $technicalSheet),
             'approved_back_image_path' => $this->resolveApprovedBackImagePath($dress, $technicalSheet),
@@ -85,7 +86,7 @@ class DressPdfDataService
 
                 return [
                     'label' => $label,
-                    'value' => blank($value) ? '' : $this->formatDecimal($value),
+                    'value' => blank($value) ? '' : $this->formatMeasurementValue($value),
                     'unit' => $field === 'inclinazione_spalle' ? 'gradi' : 'cm',
                 ];
             })
@@ -102,7 +103,7 @@ class DressPdfDataService
             ->map(function ($measurement): array {
                 $value = blank($measurement->value)
                     ? ''
-                    : trim($this->formatDecimal($measurement->value) . ' ' . ($measurement->unit ?? ''));
+                    : trim($this->formatMeasurementValue($measurement->value) . ' ' . ($measurement->unit ?? ''));
 
                 return [
                     'label' => (string) ($measurement->label ?? 'Misura personalizzata'),
@@ -542,6 +543,15 @@ class DressPdfDataService
     private function formatDecimal(mixed $value): string
     {
         return number_format((float) $value, 2, ',', '.');
+    }
+
+    private function formatMeasurementValue(mixed $value): string
+    {
+        $formatted = $this->formatDecimal($value);
+        $formatted = preg_replace('/,00$/', '', $formatted) ?? $formatted;
+        $formatted = preg_replace('/(\,\d)0$/', '$1', $formatted) ?? $formatted;
+
+        return $formatted;
     }
 
     private function formatCurrencyValue(mixed $value): string
