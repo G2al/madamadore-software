@@ -36,6 +36,8 @@
     $sideBlockHeight = '126mm';
     $sideImageHeight = '106mm';
     $retroTopSpacing = '22mm';
+    $retroImageTopOffset = '6mm';
+$retroImageMaxHeight = '100mm';
 
     $detailBlockHeight = '63mm';
     $detailImageHeight = '30mm';
@@ -130,28 +132,29 @@
                     <tr>
                         <td style="height: {{ $sideBlockHeight }}; vertical-align: top; padding-top: {{ $retroTopSpacing }};">
                             <div class="section-title" style="margin-bottom: 1.5mm;">Retro</div>
-
                             <div style="height: {{ $sideImageHeight }}; text-align: center; overflow: visible; position: relative;">
-                                @if($backImage)
-                                    <img
-                                        src="{{ $backImage }}"
-                                        alt="Retro"
-                                        style="display: block; width: auto; height: auto; max-width: 100%; max-height: {{ $sideImageHeight }}; margin: 0 auto;"
-                                    >
+    @if($backImage)
+        <div style="height: {{ $sideImageHeight }}; padding-top: {{ $retroImageTopOffset }}; box-sizing: border-box;">
+            <img
+                src="{{ $backImage }}"
+                alt="Retro"
+                style="display: block; width: auto; height: auto; max-width: 100%; max-height: {{ $retroImageMaxHeight }}; margin: 0 auto;"
+            >
+        </div>
 
-                                    @if($signaturePath)
-                                        <img
-                                            src="{{ $signaturePath }}"
-                                            alt="Firma Dora Maione"
-                                            style="position: absolute; right: 2mm; bottom: 1mm; width: 26mm; height: auto;"
-                                        >
-                                    @endif
-                                @else
-                                    <div class="image-placeholder" style="height: {{ $sideImageHeight }}; padding: 34mm 4mm 0 4mm;">
-                                        Retro non disponibile
-                                    </div>
-                                @endif
-                            </div>
+        @if($signaturePath)
+            <img
+                src="{{ $signaturePath }}"
+                alt="Firma Dora Maione"
+                style="position: absolute; right: 2mm; bottom: 1mm; width: 26mm; height: auto;"
+            >
+        @endif
+    @else
+        <div class="image-placeholder" style="height: {{ $sideImageHeight }}; padding: 34mm 4mm 0 4mm;">
+            Retro non disponibile
+        </div>
+    @endif
+</div>
                         </td>
                     </tr>
                 </table>
