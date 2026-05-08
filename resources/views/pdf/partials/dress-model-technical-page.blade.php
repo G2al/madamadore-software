@@ -34,7 +34,8 @@
     $pageContentHeight = '252mm';
 
     $sideBlockHeight = '126mm';
-    $sideImageHeight = '114mm';
+    $sideImageHeight = '106mm';
+    $retroTopSpacing = '22mm';
 
     $detailBlockHeight = '63mm';
     $detailImageHeight = '30mm';
@@ -110,12 +111,12 @@
                         <td style="height: {{ $sideBlockHeight }}; vertical-align: top;">
                             <div class="section-title" style="margin-bottom: 1.5mm;">Front</div>
 
-                            <div style="height: {{ $sideImageHeight }}; text-align: center; overflow: hidden;">
+                            <div style="height: {{ $sideImageHeight }}; text-align: center; overflow: visible;">
                                 @if($frontImage)
                                     <img
                                         src="{{ $frontImage }}"
                                         alt="Front"
-                                        style="display: block; width: auto; height: {{ $sideImageHeight }}; max-width: 100%; margin: 0 auto;"
+                                        style="display: block; width: auto; height: auto; max-width: 100%; max-height: {{ $sideImageHeight }}; margin: 0 auto;"
                                     >
                                 @else
                                     <div class="image-placeholder" style="height: {{ $sideImageHeight }}; padding: 34mm 4mm 0 4mm;">
@@ -127,15 +128,15 @@
                     </tr>
 
                     <tr>
-                        <td style="height: {{ $sideBlockHeight }}; vertical-align: top;">
+                        <td style="height: {{ $sideBlockHeight }}; vertical-align: top; padding-top: {{ $retroTopSpacing }};">
                             <div class="section-title" style="margin-bottom: 1.5mm;">Retro</div>
 
-                            <div style="height: {{ $sideImageHeight }}; text-align: center; overflow: hidden; position: relative;">
+                            <div style="height: {{ $sideImageHeight }}; text-align: center; overflow: visible; position: relative;">
                                 @if($backImage)
                                     <img
                                         src="{{ $backImage }}"
                                         alt="Retro"
-                                        style="display: block; width: auto; height: {{ $sideImageHeight }}; max-width: 100%; margin: 0 auto;"
+                                        style="display: block; width: auto; height: auto; max-width: 100%; max-height: {{ $sideImageHeight }}; margin: 0 auto;"
                                     >
 
                                     @if($signaturePath)
