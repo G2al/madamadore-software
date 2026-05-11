@@ -176,19 +176,17 @@
                     @php($sample = $document['fabric_samples'][$i] ?? null)
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: {{ $i < 2 ? '7mm' : '0' }};">
                         <tr>
-                            <td style="width: 38%; vertical-align: top; padding-right: 3mm;">
+                            <td style="width: 34%; vertical-align: top; padding-right: 3mm;">
                                 <div class="sample-image" style="height: 20mm;">
                                     @if($sample && $sample['photo_absolute_path'])
                                         <img src="{{ $sample['photo_absolute_path'] }}" alt="Campione {{ $sample['name'] }}">
                                     @endif
                                 </div>
                             </td>
-                            <td style="width: 62%; vertical-align: top;" class="small-text">
+                            <td style="width: 66%; vertical-align: top;" class="small-text">
                                 <strong>Tessuto {{ $i + 1 }}:</strong><br>
-                                {{ $sample['summary'] ?? '' }}
-                                <div class="writing-lines" style="margin-top: 2mm;">
-                                    <div style="height: 4mm;"></div>
-                                    <div style="height: 4mm;"></div>
+                                <div style="margin-top: 1.2mm; line-height: 1.38;">
+                                    {{ $sample['summary'] ?? '' }}
                                 </div>
                             </td>
                         </tr>
