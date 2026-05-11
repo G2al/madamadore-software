@@ -69,16 +69,7 @@ $retroImageMaxHeight = '100mm';
         ],
     ];
 
-    $allMeasurements = array_merge(
-        $document['measurements'] ?? [],
-        collect($document['custom_measurements'] ?? [])
-            ->map(fn (array $measurement): array => [
-                'label' => $measurement['label'],
-                'value' => $measurement['value'],
-                'unit' => '',
-            ])
-            ->all(),
-    );
+    $allMeasurements = $document['measurements'] ?? [];
 
     $measurementCount = max(count($allMeasurements), 1);
 

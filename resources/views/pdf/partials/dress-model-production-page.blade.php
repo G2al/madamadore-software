@@ -1,8 +1,13 @@
 @php
     $document = $document ?? app(\App\Services\DressPdfDataService::class)->build($dress);
-    $mainFabric = $document['main_fabric'] ?? null;
     $sleeveFabric = $document['sleeve_fabric'] ?? null;
     $constructionNotes = $document['construction_notes'] ?? [];
+    $customMeasurements = $document['custom_measurements'] ?? [];
+    $corsetSummary = $document['corset_summary'] ?? [
+        'linea_sotto_seno' => '',
+        'riprese_vita' => ['davanti' => '', 'lato' => '', 'dietro' => ''],
+        'riprese_fianchi' => ['davanti' => '', 'lato' => '', 'dietro' => ''],
+    ];
 @endphp
 
 <!-- Scheda Produzione -->
@@ -59,25 +64,72 @@
             </td>
 
             <td style="width: 33.33%; vertical-align: top; padding: 0 4mm; border-right: 1px solid #e0d7d1;">
-                <div class="section-title">Materiali</div>
-                <div class="small-text" style="min-height: 138mm; line-height: 1.42;">
-                    @if(! empty($document['materials']))
-                        <ul class="bullet-list" style="padding-left: 5mm;">
-                            @foreach($document['materials'] as $material)
-                                <li style="margin-bottom: 4mm;">{{ $material }}</li>
+                <div class="section-title">Misure personalizzate</div>
+                <div class="small-text" style="line-height: 1.36; min-height: 66mm; margin-bottom: 6mm;">
+                    @if(! empty($customMeasurements))
+                        <table style="width: 100%; border-collapse: collapse; font-size: 8.6px;">
+                            @foreach($customMeasurements as $measurement)
+                                <tr>
+                                    <td style="width: 58%; padding: 1.4mm 0; border-bottom: 1px solid #ece4df; vertical-align: top;">
+                                        {{ $measurement['label'] }}
+                                    </td>
+                                    <td style="width: 42%; padding: 1.4mm 0; border-bottom: 1px solid #ece4df; text-align: right; vertical-align: top;">
+                                        {{ $measurement['value'] }}
+                                    </td>
+                                </tr>
                             @endforeach
-                        </ul>
+                        </table>
                     @else
                         <div class="writing-lines">
-                            @for($i = 0; $i < 8; $i++)
+                            @for($i = 0; $i < 5; $i++)
                                 <div></div>
                             @endfor
                         </div>
                     @endif
                 </div>
 
-                <div class="section-title" style="margin-top: 6mm;">Accessori</div>
-                <div class="small-text" style="line-height: 1.42; min-height: 72mm;">
+                <div class="section-title">Misure corsetto</div>
+                <div class="small-text" style="line-height: 1.3; min-height: 62mm; margin-bottom: 6mm;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 8.4px; margin-bottom: 3mm;">
+                        <tr>
+                            <td style="width: 58%; padding: 1.5mm 0; border-bottom: 1px solid #ece4df;">Linea sotto il seno</td>
+                            <td style="width: 42%; padding: 1.5mm 0; border-bottom: 1px solid #ece4df; text-align: right;">
+                                {{ $corsetSummary['linea_sotto_seno'] }}
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div style="font-weight: bold; margin-bottom: 1.2mm;">Riprese vita</div>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 8.2px; margin-bottom: 3mm;">
+                        <tr>
+                            <td style="width: 33.33%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df;">Davanti</td>
+                            <td style="width: 33.33%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df; text-align: center;">Lato</td>
+                            <td style="width: 33.34%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df; text-align: right;">Dietro</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df;">{{ $corsetSummary['riprese_vita']['davanti'] }}</td>
+                            <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df; text-align: center;">{{ $corsetSummary['riprese_vita']['lato'] }}</td>
+                            <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df; text-align: right;">{{ $corsetSummary['riprese_vita']['dietro'] }}</td>
+                        </tr>
+                    </table>
+
+                    <div style="font-weight: bold; margin-bottom: 1.2mm;">Riprese fianchi</div>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 8.2px;">
+                        <tr>
+                            <td style="width: 33.33%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df;">Davanti</td>
+                            <td style="width: 33.33%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df; text-align: center;">Lato</td>
+                            <td style="width: 33.34%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df; text-align: right;">Dietro</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df;">{{ $corsetSummary['riprese_fianchi']['davanti'] }}</td>
+                            <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df; text-align: center;">{{ $corsetSummary['riprese_fianchi']['lato'] }}</td>
+                            <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df; text-align: right;">{{ $corsetSummary['riprese_fianchi']['dietro'] }}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="section-title">Accessori</div>
+                <div class="small-text" style="line-height: 1.42; min-height: 76mm;">
                     @if(! empty($document['accessories']))
                         <ul class="bullet-list" style="padding-left: 5mm;">
                             @foreach($document['accessories'] as $accessory)
@@ -143,23 +195,7 @@
                     </table>
                 @endfor
 
-                <div class="section-title" style="margin-top: 5mm;">Tessuto principale</div>
-                <table style="width: 100%; border-collapse: collapse; font-size: 9px; margin-bottom: 4mm;">
-                    <tr>
-                        <td style="width: 34%; padding: 0 0 2.2mm 0;">Tessuto:</td>
-                        <td style="padding: 0 0 2.2mm 2mm; border-bottom: 1px solid #d8ccc5;">{{ $mainFabric['name'] ?? '' }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 2.2mm 0;">Composizione:</td>
-                        <td style="padding: 2.2mm 0 2.2mm 2mm; border-bottom: 1px solid #d8ccc5;">{{ $mainFabric['composition'] ?? '' }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 2.2mm 0;">Colore:</td>
-                        <td style="padding: 2.2mm 0 2.2mm 2mm; border-bottom: 1px solid #d8ccc5;">{{ $mainFabric['color'] ?? '' }}</td>
-                    </tr>
-                </table>
-
-                <div class="section-title">Manica</div>
+                <div class="section-title" style="margin-top: 5mm;">Manica</div>
                 <table style="width: 100%; border-collapse: collapse; font-size: 9px; margin-bottom: 4mm;">
                     <tr>
                         <td style="width: 34%; padding: 0 0 2.2mm 0;">Tessuto:</td>

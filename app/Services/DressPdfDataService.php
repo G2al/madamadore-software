@@ -25,6 +25,20 @@ class DressPdfDataService
 
         $technicalSheet = $dress->technicalSheet;
         $fabrics = $this->buildFabrics($dress);
+        $corset = $dress->corsets->first();
+        $measurementRows = $this->buildMeasurementRows($dress);
+        $customMeasurementRows = $this->buildCustomMeasurementRows($dress);
+        $combinedModelMeasurements = array_merge(
+            $measurementRows,
+            collect($customMeasurementRows)
+                ->map(fn (array $measurement): array => [
+                    'label' => $measurement['label'],
+                    'value' => preg_replace('/\s*cm$/u', '', $measurement['value']),
+                    'unit' => 'cm',
+                ])
+                ->all(),
+        );
+        [$modelMeasurementsPrimary, $modelMeasurementsOverflow] = $this->splitModelMeasurements($combinedModelMeasurements);
         $mainFabric = $this->buildPrimaryFabricData($technicalSheet, $fabrics, 0);
         $sleeveFabric = $this->buildPrimaryFabricData($technicalSheet, $fabrics, 1);
         $clientDescription = $this->buildClientDescription($dress, $technicalSheet);
@@ -48,8 +62,10 @@ class DressPdfDataService
             'bodice_detail_image_path' => $this->resolveStoredImagePath($technicalSheet?->bodice_detail_image),
             'back_detail_image_path' => $this->resolveStoredImagePath($technicalSheet?->back_detail_image),
             'closure_detail_image_path' => $this->resolveStoredImagePath($technicalSheet?->closure_detail_image),
-            'measurements' => $this->buildMeasurementRows($dress),
-            'custom_measurements' => $this->buildCustomMeasurementRows($dress),
+            'measurements' => $measurementRows,
+            'custom_measurements' => $customMeasurementRows,
+            'model_measurements_primary' => $modelMeasurementsPrimary,
+            'model_measurements_overflow' => $modelMeasurementsOverflow,
             'fabrics' => $fabrics,
             'fabric_samples' => array_slice($fabrics, 0, 3),
             'materials' => $this->buildMaterials($dress, $technicalSheet, $fabrics),
@@ -69,6 +85,7 @@ class DressPdfDataService
             'closure_details' => trim((string) ($technicalSheet?->closure_details ?? '')),
             'main_fabric' => $mainFabric,
             'sleeve_fabric' => $sleeveFabric,
+            'corset_summary' => $this->buildCorsetSummary($corset),
         ];
     }
 
@@ -200,13 +217,9 @@ class DressPdfDataService
     private function buildMaterials(Dress $dress, ?DressTechnicalSheet $technicalSheet, array $fabrics): array
     {
         $manual = $this->splitLines((string) ($technicalSheet?->materials_notes ?? ''));
-        $fallback = collect($fabrics)
-            ->map(fn (array $fabric): string => $fabric['summary'])
-            ->merge(
-                collect($dress->expenses)
-                    ->map(fn ($expense): ?string => $this->classifyExpenseAsMaterial($expense->name))
-                    ->filter()
-            )
+        $fallback = collect($dress->expenses)
+            ->map(fn ($expense): ?string => $this->classifyExpenseAsMaterial($expense->name))
+            ->filter()
             ->values()
             ->all();
 
@@ -557,6 +570,46 @@ class DressPdfDataService
     private function formatCurrencyValue(mixed $value): string
     {
         return number_format((float) $value, 2, ',', '.');
+    }
+
+    /**
+     * @return array{
+     *   linea_sotto_seno: string,
+     *   riprese_vita: array{davanti: string, lato: string, dietro: string},
+     *   riprese_fianchi: array{davanti: string, lato: string, dietro: string}
+     * }
+     */
+    private function buildCorsetSummary(?DressCorset $corset): array
+    {
+        return [
+            'linea_sotto_seno' => blank($corset?->linea_sotto_seno)
+                ? ''
+                : $this->formatMeasurementValue($corset->linea_sotto_seno) . ' cm',
+            'riprese_vita' => [
+                'davanti' => blank($corset?->ripresa_vita_davanti) ? '' : $this->formatMeasurementValue($corset->ripresa_vita_davanti) . ' cm',
+                'lato' => blank($corset?->ripresa_vita_lato) ? '' : $this->formatMeasurementValue($corset->ripresa_vita_lato) . ' cm',
+                'dietro' => blank($corset?->ripresa_vita_dietro) ? '' : $this->formatMeasurementValue($corset->ripresa_vita_dietro) . ' cm',
+            ],
+            'riprese_fianchi' => [
+                'davanti' => blank($corset?->ripresa_fianchi_davanti) ? '' : $this->formatMeasurementValue($corset->ripresa_fianchi_davanti) . ' cm',
+                'lato' => blank($corset?->ripresa_fianchi_lato) ? '' : $this->formatMeasurementValue($corset->ripresa_fianchi_lato) . ' cm',
+                'dietro' => blank($corset?->ripresa_fianchi_dietro) ? '' : $this->formatMeasurementValue($corset->ripresa_fianchi_dietro) . ' cm',
+            ],
+        ];
+    }
+
+    /**
+     * @param  array<int, array{label: string, value: string, unit: string}>  $measurements
+     * @return array{0: array<int, array{label: string, value: string, unit: string}>, 1: array<int, array{label: string, value: string, unit: string}>}
+     */
+    private function splitModelMeasurements(array $measurements): array
+    {
+        $primaryLimit = 29;
+
+        return [
+            array_slice($measurements, 0, $primaryLimit),
+            array_slice($measurements, $primaryLimit),
+        ];
     }
 
     private function resolveMeasurementValue(

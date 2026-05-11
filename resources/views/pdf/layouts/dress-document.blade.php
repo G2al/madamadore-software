@@ -156,7 +156,6 @@
         .sample-image {
             width: 100%;
             height: 18mm;
-            border: 1px solid #d7ccc5;
             text-align: center;
             vertical-align: middle;
             background: #fbfaf8;
