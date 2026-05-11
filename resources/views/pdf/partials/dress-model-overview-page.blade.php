@@ -7,7 +7,7 @@
 @endphp
 
 <!-- Modellino Abito -->
-<div class="document-page" style="padding: 0; overflow: hidden;">
+<div class="document-page" style="padding: 0; overflow: hidden; border: none;">
     <div style="height: 188mm; display: table; width: 100%; position: relative;">
         <div style="display: table-cell; vertical-align: middle; text-align: center;">
             @if($coverImage)
