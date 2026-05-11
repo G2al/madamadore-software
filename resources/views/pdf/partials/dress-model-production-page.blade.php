@@ -8,6 +8,11 @@
         'riprese_vita' => ['davanti' => '', 'lato' => '', 'dietro' => ''],
         'riprese_fianchi' => ['davanti' => '', 'lato' => '', 'dietro' => ''],
     ];
+    $hasCorsetData = collect([
+        $corsetSummary['linea_sotto_seno'] ?? '',
+        ...array_values($corsetSummary['riprese_vita'] ?? []),
+        ...array_values($corsetSummary['riprese_fianchi'] ?? []),
+    ])->filter(fn ($value) => filled($value))->isNotEmpty();
 @endphp
 
 <!-- Scheda Produzione -->
@@ -80,52 +85,56 @@
                             @endforeach
                         </table>
                     @else
-                        <div class="writing-lines">
-                            @for($i = 0; $i < 5; $i++)
-                                <div></div>
-                            @endfor
+                        <div style="font-style: italic; color: #7b6f68; padding-top: 3mm;">
+                            Questo abito non presenta misure personalizzate, pertanto questo campo risulta vuoto e non compilabile.
                         </div>
                     @endif
                 </div>
 
                 <div class="section-title">Misure corsetto</div>
                 <div class="small-text" style="line-height: 1.3; min-height: 62mm; margin-bottom: 6mm;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 8.4px; margin-bottom: 3mm;">
-                        <tr>
-                            <td style="width: 58%; padding: 1.5mm 0; border-bottom: 1px solid #ece4df;">Linea sotto il seno</td>
-                            <td style="width: 42%; padding: 1.5mm 0; border-bottom: 1px solid #ece4df; text-align: right;">
-                                {{ $corsetSummary['linea_sotto_seno'] }}
-                            </td>
-                        </tr>
-                    </table>
+                    @if($hasCorsetData)
+                        <table style="width: 100%; border-collapse: collapse; font-size: 8.4px; margin-bottom: 3mm;">
+                            <tr>
+                                <td style="width: 58%; padding: 1.5mm 0; border-bottom: 1px solid #ece4df;">Linea sotto il seno</td>
+                                <td style="width: 42%; padding: 1.5mm 0; border-bottom: 1px solid #ece4df; text-align: right;">
+                                    {{ $corsetSummary['linea_sotto_seno'] }}
+                                </td>
+                            </tr>
+                        </table>
 
-                    <div style="font-weight: bold; margin-bottom: 1.2mm;">Riprese vita</div>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 8.2px; margin-bottom: 3mm;">
-                        <tr>
-                            <td style="width: 33.33%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df;">Davanti</td>
-                            <td style="width: 33.33%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df; text-align: center;">Lato</td>
-                            <td style="width: 33.34%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df; text-align: right;">Dietro</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df;">{{ $corsetSummary['riprese_vita']['davanti'] }}</td>
-                            <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df; text-align: center;">{{ $corsetSummary['riprese_vita']['lato'] }}</td>
-                            <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df; text-align: right;">{{ $corsetSummary['riprese_vita']['dietro'] }}</td>
-                        </tr>
-                    </table>
+                        <div style="font-weight: bold; margin-bottom: 1.2mm;">Riprese vita</div>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 8.2px; margin-bottom: 3mm;">
+                            <tr>
+                                <td style="width: 33.33%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df;">Davanti</td>
+                                <td style="width: 33.33%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df; text-align: center;">Lato</td>
+                                <td style="width: 33.34%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df; text-align: right;">Dietro</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df;">{{ $corsetSummary['riprese_vita']['davanti'] }}</td>
+                                <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df; text-align: center;">{{ $corsetSummary['riprese_vita']['lato'] }}</td>
+                                <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df; text-align: right;">{{ $corsetSummary['riprese_vita']['dietro'] }}</td>
+                            </tr>
+                        </table>
 
-                    <div style="font-weight: bold; margin-bottom: 1.2mm;">Riprese fianchi</div>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 8.2px;">
-                        <tr>
-                            <td style="width: 33.33%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df;">Davanti</td>
-                            <td style="width: 33.33%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df; text-align: center;">Lato</td>
-                            <td style="width: 33.34%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df; text-align: right;">Dietro</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df;">{{ $corsetSummary['riprese_fianchi']['davanti'] }}</td>
-                            <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df; text-align: center;">{{ $corsetSummary['riprese_fianchi']['lato'] }}</td>
-                            <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df; text-align: right;">{{ $corsetSummary['riprese_fianchi']['dietro'] }}</td>
-                        </tr>
-                    </table>
+                        <div style="font-weight: bold; margin-bottom: 1.2mm;">Riprese fianchi</div>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 8.2px;">
+                            <tr>
+                                <td style="width: 33.33%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df;">Davanti</td>
+                                <td style="width: 33.33%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df; text-align: center;">Lato</td>
+                                <td style="width: 33.34%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df; text-align: right;">Dietro</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df;">{{ $corsetSummary['riprese_fianchi']['davanti'] }}</td>
+                                <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df; text-align: center;">{{ $corsetSummary['riprese_fianchi']['lato'] }}</td>
+                                <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df; text-align: right;">{{ $corsetSummary['riprese_fianchi']['dietro'] }}</td>
+                            </tr>
+                        </table>
+                    @else
+                        <div style="font-style: italic; color: #7b6f68; padding-top: 3mm;">
+                            Questo abito non presenta misure corsetto calcolate, pertanto questo campo risulta vuoto e non compilabile.
+                        </div>
+                    @endif
                 </div>
 
                 <div class="section-title">Accessori</div>
