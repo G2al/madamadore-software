@@ -330,30 +330,17 @@ private static function imagesSection(): Forms\Components\Section
                             ->maxLength(255),
                     ]),
 
+                Forms\Components\Textarea::make('client_notes')
+                    ->label('Note Cliente')
+                    ->rows(5)
+                    ->helperText('Usa un paragrafo per riga o lascia righe vuote per separare i blocchi.'),
+
                 Forms\Components\Grid::make(2)
-                    ->schema([
-                        Forms\Components\Textarea::make('client_notes')
-                            ->label('Note Cliente')
-                            ->rows(5)
-                            ->helperText('Usa un paragrafo per riga o lascia righe vuote per separare i blocchi.'),
-
-                        Forms\Components\Textarea::make('technical_description')
-                            ->label('Descrizione Tecnica del Capo')
-                            ->rows(5)
-                            ->helperText('Testo principale da stampare nella scheda produzione.'),
-                    ]),
-
-                Forms\Components\Grid::make(3)
                     ->schema([
                         Forms\Components\Textarea::make('production_notes')
                             ->label('Note Produzione')
                             ->rows(6)
                             ->helperText('Una nota per riga.'),
-
-                        Forms\Components\Textarea::make('materials_notes')
-                            ->label('Materiali')
-                            ->rows(6)
-                            ->helperText('Un materiale per riga.'),
 
                         Forms\Components\Textarea::make('accessories_notes')
                             ->label('Accessori')
@@ -1475,4 +1462,3 @@ private static function imagesSection(): Forms\Components\Section
     }
 
 }
-
