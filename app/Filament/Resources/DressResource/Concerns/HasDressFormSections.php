@@ -17,7 +17,6 @@ use Filament\Forms\Components\Actions;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Support\HtmlString;
-use Saade\FilamentAutograph\Forms\Components\SignaturePad;
 
 
 
@@ -274,22 +273,7 @@ private static function imagesSection(): Forms\Components\Section
             ])
             ->columnSpanFull(),
 
-            // Row 2: SignaturePad GRANDE (full width - 12 colonne)
-            SignaturePad::make('drawing_pad')
-                ->label('Disegna abito (schizzo monocolore)')
-                ->penColor('#ffffff')
-                ->exportPenColor('#000000')
-                ->backgroundColor('#805D93')
-                ->exportBackgroundColor('#ffffff')
-                ->lineMinWidth(0.9)
-                ->lineMaxWidth(2.8)
-                ->undoable()
-                ->clearable()
-                ->confirmable()
-                ->helperText('Disegna e premi "Done" per fissare lo schizzo. Verrà salvato come immagine.')
-                ->columnSpan('full'),
 
-            // Row 3: Preview salvato (full width)
             Forms\Components\FileUpload::make('drawing_image')
                 ->label('Disegno salvato')
                 ->image()

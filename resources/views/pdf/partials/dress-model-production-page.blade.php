@@ -183,23 +183,23 @@
                 <div class="section-title" style="margin-top: 0;">Campioni tessuto</div>
                 @for($i = 0; $i < 3; $i++)
                     @php($sample = $document['fabric_samples'][$i] ?? null)
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: {{ $i < 2 ? '7mm' : '0' }};">
-                        <tr>
-                            <td style="width: 34%; vertical-align: top; padding-right: 3mm;">
-                                <div class="sample-image" style="height: 20mm;">
-                                    @if($sample && $sample['photo_absolute_path'])
-                                        <img src="{{ $sample['photo_absolute_path'] }}" alt="Campione {{ $sample['name'] }}">
-                                    @endif
-                                </div>
-                            </td>
-                            <td style="width: 66%; vertical-align: top;" class="small-text">
-                                <strong>Tessuto {{ $i + 1 }}:</strong><br>
-                                <div style="margin-top: 1.2mm; line-height: 1.38;">
-                                    {{ $sample['summary'] ?? '' }}
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
+                    <div style="margin-bottom: {{ $i < 2 ? '7mm' : '0' }};">
+                        <div class="sample-image" style="height: 20mm; margin-bottom: 2mm;">
+                            @if($sample && $sample['photo_absolute_path'])
+                                <img src="{{ $sample['photo_absolute_path'] }}" alt="Campione {{ $sample['name'] }}">
+                            @endif
+                        </div>
+
+                        <div class="small-text" style="line-height: 1.35;">
+                            <strong>Tessuto {{ $i + 1 }}:</strong>
+                            <div style="margin-top: 1mm;">
+                                {{ $sample['summary'] ?? '' }}
+                            </div>
+                            <div class="writing-lines" style="margin-top: 1.8mm;">
+                                <div style="height: 3.6mm;"></div>
+                            </div>
+                        </div>
+                    </div>
                 @endfor
 
                 <div class="section-title" style="margin-top: 5mm;">Manica</div>
