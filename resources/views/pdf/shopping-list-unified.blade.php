@@ -30,6 +30,14 @@
             margin-bottom: 24px;
         }
 
+        .shopping-grid {
+            table-layout: fixed;
+        }
+
+        .shopping-grid tbody tr {
+            height: 18mm;
+        }
+
         th,
         td {
             border: 1px solid #ccc;
@@ -44,8 +52,8 @@
         }
 
         td img {
-            width: 60px;
-            height: 60px;
+            width: 16mm;
+            height: 16mm;
             object-fit: cover;
             border-radius: 4px;
         }
@@ -92,7 +100,12 @@
                 <div>{{ $subtitle }}</div>
             </div>
 
-            <table>
+            @php
+                $minimumPrintableRows = 10;
+                $emptyRows = max(0, $minimumPrintableRows - count($supplierGroup['rows']));
+            @endphp
+
+            <table class="shopping-grid">
                 <thead>
                     <tr>
                         <th style="width: 9%;">Foto</th>
@@ -142,6 +155,19 @@
                             <td>{{ $row['purchase_label'] }}</td>
                         </tr>
                     @endforeach
+
+                    @for($i = 0; $i < $emptyRows; $i++)
+                        <tr>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                        </tr>
+                    @endfor
                 </tbody>
             </table>
 
