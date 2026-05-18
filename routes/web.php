@@ -18,6 +18,10 @@ Route::get('/suppliers/{supplier}/shopping-list/shared', [SupplierShoppingListCo
     ->middleware('signed')
     ->name('suppliers.shopping-list.shared');
 
+// Link condivisibile via WhatsApp: deve aprirsi anche fuori dal gestionale.
+Route::get('/shopping-items/print/selected', [ShoppingItemPrintController::class, 'printSelected'])
+    ->name('shopping-items.print.selected');
+
 // ===============================================
 // 🧾 RICEVUTE AGGIUSTI
 // ===============================================
@@ -99,9 +103,6 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/shopping-items/print/all', [ShoppingItemPrintController::class, 'printAll'])
         ->name('shopping-items.print.all');
-
-    Route::get('/shopping-items/print/selected', [ShoppingItemPrintController::class, 'printSelected'])
-        ->name('shopping-items.print.selected');
 
     Route::get('/suppliers/{supplier}/shopping-list/print', [SupplierShoppingListController::class, 'print'])
         ->name('suppliers.shopping-list.print');
