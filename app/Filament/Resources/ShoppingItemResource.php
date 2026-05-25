@@ -134,6 +134,11 @@ class ShoppingItemResource extends Resource
                     ->label('Quantità')
                     ->formatStateUsing(fn($state, $record) => $state . ' ' . ($record->unit_type === 'metri' ? 'mt' : 'pz')),
 
+                Tables\Columns\TextColumn::make('unit_type')
+                    ->label('Misure')
+                    ->formatStateUsing(fn($state) => $state === 'metri' ? 'mt' : 'pz')
+                    ->toggleable(),
+
                 Tables\Columns\TextColumn::make('supplier_name')
                     ->label('Fornitore')
                     ->state(fn (ShoppingItem $record): string => $record->supplierRecord?->name ?? $record->supplier ?? '-')

@@ -2,8 +2,11 @@
 
 namespace App\Filament\Widgets;
 
+use App\Models\Dress;
 use App\Models\DressFabric;
+use App\Models\Supplier;
 use Carbon\Carbon;
+use Filament\Forms;
 use Filament\Tables;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -14,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 
 class FabricSummaryWidget extends BaseWidget
 {
-    protected static ?string $heading = 'Tessuti da acquistare (raggruppati per nome tessuto)';
+    protected static ?string $heading = 'Tessuti automatici dai preventivi (raggruppati per cliente)';
 
     protected int|string|array $columnSpan = 'full';
 
@@ -31,23 +34,42 @@ class FabricSummaryWidget extends BaseWidget
             ->query(
                 DressFabric::query()
                     ->pendingPurchase()
-                    ->with(['dress:id,customer_name,delivery_date'])
+                    ->with(['dress:id,customer_name,delivery_date', 'supplierRecord:id,name'])
                     ->select([
                         'dress_fabrics.*',
+                        DB::raw('(SELECT customer_name FROM dresses WHERE dresses.id = dress_fabrics.dress_id LIMIT 1) as customer_group_name'),
                         DB::raw('(COALESCE(meters,0) * COALESCE(purchase_price,0)) as row_total'),
                     ])
+                    ->orderBy(
+                        Dress::query()
+                            ->select('customer_name')
+                            ->whereColumn('dresses.id', 'dress_fabrics.dress_id')
+                            ->limit(1)
+                    )
+                    ->orderBy(
+                        Dress::query()
+                            ->select('delivery_date')
+                            ->whereColumn('dresses.id', 'dress_fabrics.dress_id')
+                            ->limit(1)
+                    )
                     ->orderBy('name', 'asc')
                     ->orderBy('color_code', 'asc')
             )
-            ->defaultGroup('name')
+            ->defaultGroup('customer_group_name')
             ->groups([
-                Group::make('name')
-                    ->label('Nome Tessuto')
+                Group::make('customer_group_name')
+                    ->label('Cliente')
                     ->collapsible()
+                    ->getTitleFromRecordUsing(fn (DressFabric $record): string => $record->dress?->customer_name ?: 'Cliente non indicato')
+                    ->scopeQueryByKeyUsing(function ($query, string $key) {
+                        return $query->whereHas('dress', fn ($dressQuery) => $dressQuery->where('customer_name', $key));
+                    })
                     ->getDescriptionFromRecordUsing(function (DressFabric $record): string {
+                        $customerName = $record->dress?->customer_name;
+
                         $totals = DressFabric::query()
                             ->pendingPurchase()
-                            ->where('name', $record->name)
+                            ->whereHas('dress', fn ($dressQuery) => $dressQuery->where('customer_name', $customerName))
                             ->selectRaw('COALESCE(SUM(meters),0) as total_meters, COALESCE(SUM(meters * purchase_price),0) as total_cost')
                             ->first();
 
@@ -59,6 +81,12 @@ class FabricSummaryWidget extends BaseWidget
             ])
             ->groupingSettingsHidden()
             ->columns([
+                Tables\Columns\ImageColumn::make('photo_path')
+                    ->label('Foto')
+                    ->square()
+                    ->height(60)
+                    ->circular(false),
+
                 Tables\Columns\TextColumn::make('dress.customer_name')
                     ->label('Cliente')
                     ->badge()
@@ -131,10 +159,21 @@ class FabricSummaryWidget extends BaseWidget
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('meters')
-                    ->label('Metri')
+                    ->label('Quantita')
                     ->color('success')
                     ->formatStateUsing(fn ($state) => number_format((float) $state, 2, ',', '.') . ' mt')
                     ->alignRight(),
+
+                Tables\Columns\TextColumn::make('supplier_name')
+                    ->label('Fornitore')
+                    ->state(fn (DressFabric $record): string => $record->supplierRecord?->name ?? $record->supplier ?? '-')
+                    ->searchable(query: function ($query, string $search) {
+                        return $query->where(function ($query) use ($search) {
+                            $query->where('supplier', 'like', "%{$search}%")
+                                ->orWhereHas('supplierRecord', fn ($supplierQuery) => $supplierQuery->where('name', 'like', "%{$search}%"));
+                        });
+                    })
+                    ->toggleable(),
 
                 Tables\Columns\TextColumn::make('purchase_price')
                     ->label('€/m')
@@ -147,6 +186,11 @@ class FabricSummaryWidget extends BaseWidget
                     ->color('danger')
                     ->formatStateUsing(fn ($state) => '€ ' . number_format((float) $state, 2, ',', '.'))
                     ->alignRight(),
+                Tables\Columns\TextColumn::make('purchase_label')
+                    ->label('Data Acquisto')
+                    ->state('Non saldato')
+                    ->badge()
+                    ->color('gray'),
             ])
             ->filters([
                 SelectFilter::make('dress.customer_name')
@@ -267,6 +311,52 @@ class FabricSummaryWidget extends BaseWidget
                     }),
             ])
             ->actions([
+                Tables\Actions\EditAction::make()
+                    ->label('Modifica')
+                    ->modalHeading(fn (DressFabric $record): string => 'Modifica tessuto - ' . ($record->dress?->customer_name ?? 'Cliente non indicato'))
+                    ->form([
+                        Forms\Components\FileUpload::make('photo_path')
+                            ->label('Foto')
+                            ->disk('public')
+                            ->directory('dress-fabrics')
+                            ->visibility('public')
+                            ->image()
+                            ->imageEditor()
+                            ->previewable()
+                            ->downloadable(),
+
+                        Forms\Components\TextInput::make('name')
+                            ->label('Nome')
+                            ->maxLength(255),
+
+                        Forms\Components\TextInput::make('type')
+                            ->label('Tipo')
+                            ->maxLength(255),
+
+                        Forms\Components\TextInput::make('color_code')
+                            ->label('Codice Colore')
+                            ->maxLength(255),
+
+                        Forms\Components\TextInput::make('meters')
+                            ->label('Quantita')
+                            ->numeric()
+                            ->step(0.01)
+                            ->suffix('mt'),
+
+                        Forms\Components\TextInput::make('purchase_price')
+                            ->label('Prezzo acquisto')
+                            ->numeric()
+                            ->step(0.01)
+                            ->prefix('EUR'),
+
+                        Forms\Components\Select::make('supplier_id')
+                            ->label('Fornitore')
+                            ->relationship('supplierRecord', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->getOptionLabelFromRecordUsing(fn (Supplier $record): string => $record->name),
+                    ]),
+
                 Tables\Actions\Action::make('pdf_codice')
                     ->label('PDF Gruppo')
                     ->tooltip('Scarica PDF per questo codice colore')
