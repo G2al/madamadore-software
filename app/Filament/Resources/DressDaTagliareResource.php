@@ -66,6 +66,13 @@ class DressDaTagliareResource extends Resource
             
             // AZIONI SPECIFICHE PER QUESTO STATO
             ->actions([
+                Action::make('download_receipt')
+                    ->label('Modellino')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('info')
+                    ->url(fn (Dress $record) => route('pdf.modellino', $record))
+                    ->openUrlInNewTab(),
+
                 // Bottone principale per questo stato
                 Action::make('pronto_misure')
                     ->label('Pronto per le Misure')
