@@ -374,35 +374,6 @@ private static function imagesSection(): Forms\Components\Section
 
                 Forms\Components\Grid::make(2)
                     ->schema([
-                        Forms\Components\Fieldset::make('Tessuto Principale')
-                            ->schema([
-                                Forms\Components\TextInput::make('main_fabric_name')
-                                    ->label('Tessuto')
-                                    ->maxLength(255),
-                                Forms\Components\TextInput::make('main_fabric_composition')
-                                    ->label('Composizione')
-                                    ->maxLength(255),
-                                Forms\Components\TextInput::make('main_fabric_color')
-                                    ->label('Colore')
-                                    ->maxLength(255),
-                            ]),
-
-                        Forms\Components\Fieldset::make('Tessuto Manica / Secondario')
-                            ->schema([
-                                Forms\Components\TextInput::make('sleeve_fabric_name')
-                                    ->label('Tessuto')
-                                    ->maxLength(255),
-                                Forms\Components\TextInput::make('sleeve_fabric_composition')
-                                    ->label('Composizione')
-                                    ->maxLength(255),
-                                Forms\Components\TextInput::make('sleeve_fabric_color')
-                                    ->label('Colore')
-                                    ->maxLength(255),
-                            ]),
-                    ]),
-
-                Forms\Components\Grid::make(2)
-                    ->schema([
                         Forms\Components\Textarea::make('neckline_details')
                             ->label('Dettaglio Scollo')
                             ->rows(4),
