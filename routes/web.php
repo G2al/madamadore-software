@@ -8,6 +8,7 @@ use App\Http\Controllers\ShoppingItemPrintController;
 use App\Http\Controllers\SpecialDressPdfController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\SupplierShoppingListController;
+use App\Http\Controllers\AdjustmentPrintController;
 
 // Redirect alla dashboard admin
 Route::get('/', function () {
@@ -80,6 +81,18 @@ Route::middleware(['auth'])->group(function () {
         ->whereNumber('year')
         ->whereNumber('month')
         ->name('pdf.dresses.monthly');
+
+    Route::get('/pdf/adjustments/day/{date}', [AdjustmentPrintController::class, 'dailyAdjustments'])
+        ->name('pdf.adjustments.day');
+
+    Route::get('/pdf/adjustments/week/{startDate}/{endDate}', [AdjustmentPrintController::class, 'weeklyAdjustments'])
+        ->name('pdf.adjustments.week');
+
+    Route::get('/pdf/company-adjustments/day/{date}', [AdjustmentPrintController::class, 'dailyCompanyAdjustments'])
+        ->name('pdf.company-adjustments.day');
+
+    Route::get('/pdf/company-adjustments/week/{startDate}/{endDate}', [AdjustmentPrintController::class, 'weeklyCompanyAdjustments'])
+        ->name('pdf.company-adjustments.week');
 
     // 🌟 PDF Abiti Speciali
     Route::get('/pdf/special/modellino/{record}', [SpecialDressPdfController::class, 'modellino'])
