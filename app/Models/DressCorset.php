@@ -25,7 +25,7 @@ class DressCorset extends Model
     public const RIPRESA_GROUPS = [
         'vita' => [
             'label' => 'Riprese vita',
-            'formula' => '(Circ. sotto seno - Circ. vita) : 2',
+            'formula' => 'Circ. sotto seno - (Circ. vita : 2)',
             'fields' => [
                 'ripresa_vita_davanti' => 'Davanti',
                 'ripresa_vita_lato' => 'Lato',
@@ -34,7 +34,7 @@ class DressCorset extends Model
         ],
         'fianchi' => [
             'label' => 'Riprese fianchi',
-            'formula' => '(Circ. fianchi - Circ. sotto seno) : 2',
+            'formula' => 'Circ. fianchi - (Circ. sotto seno : 2)',
             'fields' => [
                 'ripresa_fianchi_davanti' => 'Davanti',
                 'ripresa_fianchi_lato' => 'Lato',
@@ -135,15 +135,13 @@ class DressCorset extends Model
             ];
         }
 
-        $base = ($circSottoSeno - $circVita) / 2;
-        $latoIniziale = $base / 2;
-        $estremiIniziali = $latoIniziale / 2;
+        $base = $circSottoSeno - ($circVita / 2);
 
         return [
             'base' => round($base, 3),
-            'davanti' => round($estremiIniziali / 4, 3),
-            'lato' => round($latoIniziale / 2, 3),
-            'dietro' => round($estremiIniziali / 4, 3),
+            'davanti' => round($base / 4, 3),
+            'lato' => round($base / 2, 3),
+            'dietro' => round($base / 4, 3),
         ];
     }
 
@@ -158,15 +156,13 @@ class DressCorset extends Model
             ];
         }
 
-        $base = ($circFianchi - $circSottoSeno) / 2;
-        $latoIniziale = $base / 2;
-        $dietroIniziale = $base / 2;
+        $base = $circFianchi - ($circSottoSeno / 2);
 
         return [
             'base' => round($base, 3),
-            'davanti' => 0.0,
-            'lato' => round($latoIniziale / 2, 3),
-            'dietro' => round($dietroIniziale / 4, 3),
+            'davanti' => round($base / 4, 3),
+            'lato' => round($base / 2, 3),
+            'dietro' => round($base / 4, 3),
         ];
     }
 }

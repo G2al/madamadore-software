@@ -43,19 +43,19 @@ class DressCorsetTest extends TestCase
     {
         $result = DressCorset::calculateRipreseVita(90.0, 70.0);
 
-        $this->assertSame(10.0, $result['base']);
-        $this->assertSame(0.625, $result['davanti']);
-        $this->assertSame(2.5, $result['lato']);
-        $this->assertSame(0.625, $result['dietro']);
+        $this->assertSame(55.0, $result['base']);
+        $this->assertSame(13.75, $result['davanti']);
+        $this->assertSame(27.5, $result['lato']);
+        $this->assertSame(13.75, $result['dietro']);
     }
 
     public function test_calculates_riprese_fianchi(): void
     {
         $result = DressCorset::calculateRipreseFianchi(110.0, 90.0);
 
-        $this->assertSame(10.0, $result['base']);
-        $this->assertSame(0.0, $result['davanti']);
-        $this->assertSame(2.5, $result['lato']);
-        $this->assertSame(1.25, $result['dietro']);
+        $this->assertSame(65.0, $result['base']);
+        $this->assertSame(16.25, $result['davanti']);
+        $this->assertSame(32.5, $result['lato']);
+        $this->assertSame(16.25, $result['dietro']);
     }
 }
