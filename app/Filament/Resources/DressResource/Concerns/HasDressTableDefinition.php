@@ -136,6 +136,8 @@ return [
     Tables\Actions\ActionGroup::make([
         self::getDownloadProductionSheetAction(),
         self::getDownloadTechnicalSheetAction(),
+        self::getDownloadFinalNotesAction(),
+        self::getDownloadSecondaryModelAction(),
     ])->label('Schede')
       ->icon('heroicon-o-document-duplicate')
       ->button(),
@@ -318,6 +320,28 @@ private static function getDownloadTechnicalSheetAction(): Tables\Actions\Action
         ->icon('heroicon-o-swatch')
         ->color('gray')
         ->url(fn($record) => route('pdf.modellino.technical', $record))
+        ->openUrlInNewTab();
+}
+
+private static function getDownloadFinalNotesAction(): Tables\Actions\Action
+{
+    return Tables\Actions\Action::make('download_final_notes')
+        ->label('Note Finali')
+        ->icon('heroicon-o-document-check')
+        ->color('gray')
+        ->visible(fn ($record): bool => filled($record->pronta_misura_notes) || filled($record->final_notes_photo))
+        ->url(fn ($record) => route('pdf.dress.final-notes', $record))
+        ->openUrlInNewTab();
+}
+
+private static function getDownloadSecondaryModelAction(): Tables\Actions\Action
+{
+    return Tables\Actions\Action::make('download_secondary_model')
+        ->label('Modellino Aggiuntivo')
+        ->icon('heroicon-o-photo')
+        ->color('gray')
+        ->visible(fn ($record): bool => filled($record->secondary_model_image))
+        ->url(fn ($record) => route('pdf.dress.secondary-model', $record))
         ->openUrlInNewTab();
 }
 

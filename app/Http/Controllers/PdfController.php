@@ -42,6 +42,20 @@ class PdfController extends Controller
         return PdfResponseService::streamPdf($pdf, "scheda-tecnica-abito-{$dress->id}.pdf");
     }
 
+    public function finalNotes(Dress $dress)
+    {
+        $pdf = app(\App\Services\DressReceiptService::class)->generateFinalNotes($dress);
+
+        return PdfResponseService::streamPdf($pdf, "note-finali-abito-{$dress->id}.pdf");
+    }
+
+    public function secondaryModel(Dress $dress)
+    {
+        $pdf = app(\App\Services\DressReceiptService::class)->generateSecondaryModel($dress);
+
+        return PdfResponseService::streamPdf($pdf, "modellino-aggiuntivo-abito-{$dress->id}.pdf");
+    }
+
     /**
      * PDF con tutti gli abiti da consegnare in un determinato mese.
      *

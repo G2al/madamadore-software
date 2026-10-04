@@ -99,6 +99,13 @@ class CompanyAdjustment extends Model
      */
     protected static function booted()
     {
+        static::deleting(function ($companyAdjustment) {
+            ShoppingItem::query()
+                ->where('source_type', CompanyAdjustmentExpense::class)
+                ->whereIn('source_id', $companyAdjustment->expenses()->pluck('id'))
+                ->delete();
+        });
+
         static::saved(function ($companyAdjustment) {
             if (
                 in_array($companyAdjustment->status, ['confermato', 'consegnato'], true)

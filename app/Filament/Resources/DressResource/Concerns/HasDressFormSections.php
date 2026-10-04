@@ -2,23 +2,21 @@
 
 namespace App\Filament\Resources\DressResource\Concerns;
 
-use App\Models\Fabric;
-use App\Models\Supplier;
-use Filament\Forms;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
 use App\Models\DressCorset;
 use App\Models\DressMeasurement;
+use App\Models\Fabric;
+use App\Models\Supplier;
 use App\Services\DressFabricPhotoService;
 use App\Services\DressTechnicalImageCropService;
 use App\Services\MeasurementRecallService;
 use App\Support\SingleFileUploadState;
+use Filament\Forms;
 use Filament\Forms\Components\Actions;
 use Filament\Forms\Components\Actions\Action;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Notifications\Notification;
 use Illuminate\Support\HtmlString;
-
-
 
 trait HasDressFormSections
 {
@@ -47,12 +45,12 @@ trait HasDressFormSections
                     ->placeholder('es: Matrimonio, Battesimo, Comunione...')
                     ->datalist([
                         'Matrimonio',
-                        'Battesimo', 
+                        'Battesimo',
                         'Comunione',
                         'Cresima',
                         'Festa 18 Anni',
                         'Laurea',
-                        'Altro'
+                        'Altro',
                     ])
                     ->maxLength(255),
 
@@ -71,7 +69,7 @@ trait HasDressFormSections
                         Forms\Components\TextInput::make('ceremony_holder')
                             ->label('Nome intestatario')
                             ->required()
-                            ->maxLength(255)
+                            ->maxLength(255),
                     ])
                     ->createOptionUsing(function (array $data): string {
                         return $data['ceremony_holder'];
@@ -79,44 +77,44 @@ trait HasDressFormSections
                     ->allowHtml(false)
                     ->preload()
                     ->helperText('Seleziona un intestatario esistente o creane uno nuovo'),
- // SOSTITUISCI tutto il blocco DatePicker::make('delivery_date') con questo:
+                // SOSTITUISCI tutto il blocco DatePicker::make('delivery_date') con questo:
 
-Forms\Components\DatePicker::make('delivery_date')
-    ->label('Data di Consegna Prevista')
-    ->native(false)
-    ->displayFormat('d/m/Y')
-    ->closeOnDateSelection()
-    ->live(debounce: 300)
-    ->afterStateUpdated(function ($state, Set $set, Get $get, $livewire) {
-        if ($state) {
-            $currentDressId = $livewire->record?->id ?? null;
+                Forms\Components\DatePicker::make('delivery_date')
+                    ->label('Data di Consegna Prevista')
+                    ->native(false)
+                    ->displayFormat('d/m/Y')
+                    ->closeOnDateSelection()
+                    ->live(debounce: 300)
+                    ->afterStateUpdated(function ($state, Set $set, Get $get, $livewire) {
+                        if ($state) {
+                            $currentDressId = $livewire->record?->id ?? null;
 
-            $dressesOnDate = \App\Models\Dress::where('delivery_date', $state)
-                ->when($currentDressId, fn($q) => $q->where('id', '!=', $currentDressId))
-                ->get(['id', 'customer_name', 'ceremony_type']);
+                            $dressesOnDate = \App\Models\Dress::where('delivery_date', $state)
+                                ->when($currentDressId, fn ($q) => $q->where('id', '!=', $currentDressId))
+                                ->get(['id', 'customer_name', 'ceremony_type']);
 
-            $count = $dressesOnDate->count();
+                            $count = $dressesOnDate->count();
 
-            if ($count === 0) {
-                $helper = 'Giornata libera - Perfetto per la consegna!';
-            } elseif ($count <= 2) {
-                $customers = $dressesOnDate->pluck('customer_name')->take(2)->join(', ');
-                $helper = "{$count} abiti già previsti: {$customers}" . ($count > 2 ? ' e altri...' : '');
-            } elseif ($count <= 4) {
-                $customers = $dressesOnDate->pluck('customer_name')->take(2)->join(', ');
-                $helper = "GIORNATA IMPEGNATIVA - {$count} abiti: {$customers}" . ($count > 2 ? ' e altri...' : '');
-            } else {
-                $customers = $dressesOnDate->pluck('customer_name')->take(2)->join(', ');
-                $helper = "ATTENZIONE: GIORNATA SOVRACCARICA! {$count} abiti: {$customers} e altri...";
-            }
+                            if ($count === 0) {
+                                $helper = 'Giornata libera - Perfetto per la consegna!';
+                            } elseif ($count <= 2) {
+                                $customers = $dressesOnDate->pluck('customer_name')->take(2)->join(', ');
+                                $helper = "{$count} abiti già previsti: {$customers}".($count > 2 ? ' e altri...' : '');
+                            } elseif ($count <= 4) {
+                                $customers = $dressesOnDate->pluck('customer_name')->take(2)->join(', ');
+                                $helper = "GIORNATA IMPEGNATIVA - {$count} abiti: {$customers}".($count > 2 ? ' e altri...' : '');
+                            } else {
+                                $customers = $dressesOnDate->pluck('customer_name')->take(2)->join(', ');
+                                $helper = "ATTENZIONE: GIORNATA SOVRACCARICA! {$count} abiti: {$customers} e altri...";
+                            }
 
-            $set('delivery_date_helper', $helper);
-        } else {
-            $set('delivery_date_helper', '');
-        }
-    })
-    ->extraAttributes([
-    'x-data' => '{
+                            $set('delivery_date_helper', $helper);
+                        } else {
+                            $set('delivery_date_helper', '');
+                        }
+                    })
+                    ->extraAttributes([
+                        'x-data' => '{
         init() {
             this.$nextTick(() => {
                 const panel = this.$el.closest(".fi-fo-field-wrp").querySelector(".fi-fo-date-time-picker-panel");
@@ -190,106 +188,120 @@ Forms\Components\DatePicker::make('delivery_date')
                 }
             });
         }
-    }'
-])
-    ->helperText('Verde = libera, Arancione = 1 abito, Rosso = 2+ abiti'),
+    }',
+                    ])
+                    ->helperText('Verde = libera, Arancione = 1 abito, Rosso = 2+ abiti'),
 
-// Aggiungi il Placeholder helper dinamico subito dopo
-Forms\Components\Placeholder::make('delivery_date_helper')
-    ->label('')
-    ->content(fn ($get) => $get('delivery_date_helper') ?: '')
-    ->visible(fn ($get) => !empty($get('delivery_date_helper')))
-    ->extraAttributes([
-        'class' => 'delivery-date-info',
-        'style' => 'background-color:#21242b !important;'
-    ])
-    ->dehydrated(false),
-        ])
-        ->columns(2);
-    }
-private static function imagesSection(): Forms\Components\Section
-{
-    return Forms\Components\Section::make('Immagini Abito')
-        ->schema([
-            // Row 1: Bozza e Definitivo (2 colonne)
-            Forms\Components\Grid::make(2)
-                ->schema([
-                    Forms\Components\FileUpload::make('sketch_image')
-                        ->label('Bozza')
-                        ->image()
-                        ->disk('public')
-                        ->directory('dress-sketches')
-                        ->visibility('public')
-                        ->acceptedFileTypes(['image/*'])
-                        ->downloadable(),
-
-                    Forms\Components\FileUpload::make('final_image')
-                        ->label('Definitivo')
-                        ->image()
-                        ->disk('public')
-                        ->directory('dress-finals')
-                        ->visibility('public')
-                        ->acceptedFileTypes(['image/*'])
-                        ->downloadable(),
-                ]),
-
-            // Row 2: Bottoni di visualizzazione
-            Forms\Components\Actions::make([
-                Forms\Components\Actions\Action::make('view_sketch')
-                    ->label('Visualizza Bozza')
-                    ->icon('heroicon-o-eye')
-                    ->color('info')
-                    ->modalHeading('Visualizza Bozza')
-                    ->modalContent(fn($record) => $record?->sketch_image
-                        ? view('filament.modals.image-viewer', ['imagePath' => $record->sketch_image, 'title' => 'Bozza'])
-                        : view('filament.modals.image-viewer', ['imagePath' => null, 'title' => 'Bozza'])
-                    )
-                    ->modal()
-                    ->visible(fn($record) => $record?->sketch_image),
-
-                Forms\Components\Actions\Action::make('view_final')
-                    ->label('Visualizza Definitivo')
-                    ->icon('heroicon-o-eye')
-                    ->color('success')
-                    ->modalHeading('Visualizza Definitivo')
-                    ->modalContent(fn($record) => $record?->final_image
-                        ? view('filament.modals.image-viewer', ['imagePath' => $record->final_image, 'title' => 'Definitivo'])
-                        : view('filament.modals.image-viewer', ['imagePath' => null, 'title' => 'Definitivo'])
-                    )
-                    ->modal()
-                    ->visible(fn($record) => $record?->final_image),
-
-                Forms\Components\Actions\Action::make('view_drawing')
-                    ->label('Visualizza Disegno')
-                    ->icon('heroicon-o-eye')
-                    ->color('warning')
-                    ->modalHeading('Visualizza Disegno')
-                    ->modalContent(fn($record) => $record?->drawing_image
-                        ? view('filament.modals.image-viewer', ['imagePath' => $record->drawing_image, 'title' => 'Disegno Salvato'])
-                        : view('filament.modals.image-viewer', ['imagePath' => null, 'title' => 'Disegno Salvato'])
-                    )
-                    ->modal()
-                    ->visible(fn($record) => $record?->drawing_image),
+                // Aggiungi il Placeholder helper dinamico subito dopo
+                Forms\Components\Placeholder::make('delivery_date_helper')
+                    ->label('')
+                    ->content(fn ($get) => $get('delivery_date_helper') ?: '')
+                    ->visible(fn ($get) => ! empty($get('delivery_date_helper')))
+                    ->extraAttributes([
+                        'class' => 'delivery-date-info',
+                        'style' => 'background-color:#21242b !important;',
+                    ])
+                    ->dehydrated(false),
             ])
-            ->columnSpanFull(),
+            ->columns(2);
+    }
 
+    private static function imagesSection(): Forms\Components\Section
+    {
+        return Forms\Components\Section::make('Immagini Abito')
+            ->schema([
+                // Row 1: Bozza e Definitivo (2 colonne)
+                Forms\Components\Grid::make(2)
+                    ->schema([
+                        Forms\Components\FileUpload::make('sketch_image')
+                            ->label('Bozza')
+                            ->image()
+                            ->disk('public')
+                            ->directory('dress-sketches')
+                            ->visibility('public')
+                            ->acceptedFileTypes(['image/*'])
+                            ->downloadable(),
 
-            Forms\Components\FileUpload::make('drawing_image')
-                ->label('Disegno salvato')
-                ->image()
-                ->disk('public')
-                ->directory('dress-drawings')
-                ->visibility('public')
-                ->downloadable()
-                ->dehydrated(false)
-                ->disabled()
-                ->columnSpan('full'),
+                        Forms\Components\FileUpload::make('final_image')
+                            ->label('Definitivo')
+                            ->image()
+                            ->disk('public')
+                            ->directory('dress-finals')
+                            ->visibility('public')
+                            ->acceptedFileTypes(['image/*'])
+                            ->downloadable(),
 
-        ])
-        ->columns(2);
-}
+                        Forms\Components\FileUpload::make('secondary_model_image')
+                            ->label('Modellino aggiuntivo / Cambio abito')
+                            ->image()
+                            ->disk('public')
+                            ->directory('dress-secondary-models')
+                            ->visibility('public')
+                            ->acceptedFileTypes(['image/*'])
+                            ->imageEditor()
+                            ->downloadable()
+                            ->helperText('Facoltativo. Si stampa su un foglio A4 separato dal modellino principale.'),
 
+                        Forms\Components\Textarea::make('secondary_model_notes')
+                            ->label('Note modellino aggiuntivo')
+                            ->rows(4)
+                            ->maxLength(2000),
+                    ]),
 
+                // Row 2: Bottoni di visualizzazione
+                Forms\Components\Actions::make([
+                    Forms\Components\Actions\Action::make('view_sketch')
+                        ->label('Visualizza Bozza')
+                        ->icon('heroicon-o-eye')
+                        ->color('info')
+                        ->modalHeading('Visualizza Bozza')
+                        ->modalContent(fn ($record) => $record?->sketch_image
+                            ? view('filament.modals.image-viewer', ['imagePath' => $record->sketch_image, 'title' => 'Bozza'])
+                            : view('filament.modals.image-viewer', ['imagePath' => null, 'title' => 'Bozza'])
+                        )
+                        ->modal()
+                        ->visible(fn ($record) => $record?->sketch_image),
+
+                    Forms\Components\Actions\Action::make('view_final')
+                        ->label('Visualizza Definitivo')
+                        ->icon('heroicon-o-eye')
+                        ->color('success')
+                        ->modalHeading('Visualizza Definitivo')
+                        ->modalContent(fn ($record) => $record?->final_image
+                            ? view('filament.modals.image-viewer', ['imagePath' => $record->final_image, 'title' => 'Definitivo'])
+                            : view('filament.modals.image-viewer', ['imagePath' => null, 'title' => 'Definitivo'])
+                        )
+                        ->modal()
+                        ->visible(fn ($record) => $record?->final_image),
+
+                    Forms\Components\Actions\Action::make('view_drawing')
+                        ->label('Visualizza Disegno')
+                        ->icon('heroicon-o-eye')
+                        ->color('warning')
+                        ->modalHeading('Visualizza Disegno')
+                        ->modalContent(fn ($record) => $record?->drawing_image
+                            ? view('filament.modals.image-viewer', ['imagePath' => $record->drawing_image, 'title' => 'Disegno Salvato'])
+                            : view('filament.modals.image-viewer', ['imagePath' => null, 'title' => 'Disegno Salvato'])
+                        )
+                        ->modal()
+                        ->visible(fn ($record) => $record?->drawing_image),
+                ])
+                    ->columnSpanFull(),
+
+                Forms\Components\FileUpload::make('drawing_image')
+                    ->label('Disegno salvato')
+                    ->image()
+                    ->disk('public')
+                    ->directory('dress-drawings')
+                    ->visibility('public')
+                    ->downloadable()
+                    ->dehydrated(false)
+                    ->disabled()
+                    ->columnSpan('full'),
+
+            ])
+            ->columns(2);
+    }
 
     // --- SEZIONE 3: Note ---
     private static function notesSection(): Forms\Components\Section
@@ -305,6 +317,22 @@ private static function imagesSection(): Forms\Components\Section
                     ->label('Note')
                     ->rows(4)
                     ->helperText('Note generali di lavorazione o accordi interni.'),
+
+                Forms\Components\Textarea::make('pronta_misura_notes')
+                    ->label('Note Finali')
+                    ->rows(5)
+                    ->maxLength(2000)
+                    ->helperText('Annotazioni finali stampabili su un foglio separato.'),
+
+                Forms\Components\FileUpload::make('final_notes_photo')
+                    ->label('Foto Note Finali')
+                    ->image()
+                    ->disk('public')
+                    ->directory('dress-final-notes')
+                    ->visibility('public')
+                    ->acceptedFileTypes(['image/*'])
+                    ->imageEditor()
+                    ->downloadable(),
             ])
             ->columnSpanFull();
     }
@@ -584,39 +612,64 @@ private static function imagesSection(): Forms\Components\Section
 
     private static function expenseSection(): Forms\Components\Section
     {
-    return Forms\Components\Section::make('Lista della spesa')
-        ->description("Prodotti o materiali utilizzati per la realizzazione dell'abito (uso interno)")
-        ->schema([
-            Forms\Components\Repeater::make('expenses')
-                ->label('Articoli')
-                ->relationship('expenses')
-                ->schema([
-                    Forms\Components\TextInput::make('name')
-    ->label('Nome articolo')
-    ->default('Articolo generico')
-    ->placeholder('Es. Bottone, zip, decorazione...'),
-                    
-                    Forms\Components\FileUpload::make('photo_path')
-                        ->label('Foto')
-                        ->image()
-                        ->directory('dress-expenses')
-                        ->imageEditor(),
-                    
-                    Forms\Components\TextInput::make('price')
-                        ->label('Costo interno (€)')
-                        ->numeric()
-                        ->prefix('€')
-                        ->default(0)
-                        ->helperText('Non influisce sul prezzo cliente.'),
-                ])
-                ->columns(3)
-                ->addActionLabel('Aggiungi articolo')
-                ->collapsible()
-                ->cloneable(),
-        ])
-        ->columnSpanFull();
-}
+        return Forms\Components\Section::make('Lista della spesa')
+            ->description("Prodotti o materiali utilizzati per la realizzazione dell'abito (uso interno)")
+            ->schema([
+                Forms\Components\Repeater::make('expenses')
+                    ->label('Articoli')
+                    ->relationship('expenses')
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->label('Nome articolo')
+                            ->default('Articolo generico')
+                            ->placeholder('Es. Bottone, zip, decorazione...'),
 
+                        Forms\Components\TextInput::make('color_code')
+                            ->label('Codice colore')
+                            ->maxLength(255),
+
+                        Forms\Components\TextInput::make('quantity')
+                            ->label('Quantita')
+                            ->numeric()
+                            ->step(0.01)
+                            ->default(1),
+
+                        Forms\Components\Select::make('unit_type')
+                            ->label('Unita')
+                            ->options([
+                                'pezzi' => 'Pezzi',
+                                'metri' => 'Metri',
+                            ])
+                            ->default('pezzi')
+                            ->required(),
+
+                        Forms\Components\Select::make('supplier_id')
+                            ->label('Fornitore')
+                            ->relationship('supplierRecord', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->getOptionLabelFromRecordUsing(fn (Supplier $record): string => $record->name),
+
+                        Forms\Components\FileUpload::make('photo_path')
+                            ->label('Foto')
+                            ->image()
+                            ->directory('dress-expenses')
+                            ->imageEditor(),
+
+                        Forms\Components\TextInput::make('price')
+                            ->label('Costo interno (€)')
+                            ->numeric()
+                            ->prefix('€')
+                            ->default(0)
+                            ->helperText('Non influisce sul prezzo cliente.'),
+                    ])
+                    ->columns(3)
+                    ->addActionLabel('Aggiungi articolo')
+                    ->collapsible()
+                    ->cloneable(),
+            ])
+            ->columnSpanFull();
+    }
 
     // --- SEZIONE 4: Preventivo (Tessuti + Extra) ---
     private static function quoteSection(): Forms\Components\Section
@@ -719,7 +772,6 @@ private static function imagesSection(): Forms\Components\Section
                     ->cloneable()
                     ->reorderableWithButtons()
                     ->addActionLabel('Aggiungi Tessuto'),
-
 
                 // Extra
                 Forms\Components\Repeater::make('extras')
@@ -830,88 +882,88 @@ private static function imagesSection(): Forms\Components\Section
                     ->addActionLabel('Aggiungi Misura Personalizzata')
                     ->defaultItems(0),
 
-                    Actions::make([
-    Action::make('recall_measurements')
-        ->label('Ricorda misure')
-        ->icon('heroicon-o-clipboard-document-list')
-        ->modalHeading('Ricorda misure da cliente')
-        ->modalSubmitActionLabel('Importa misure')
-        ->form([
-            Forms\Components\Select::make('customer_key')
-                ->label('Cliente')
-                ->options(fn () => MeasurementRecallService::distinctCustomersWithLastEvent())
-                ->searchable()
-                ->preload()
-                ->required()
-                ->helperText('Seleziona il cliente da cui importare le ultime misure.'),
+                Actions::make([
+                    Action::make('recall_measurements')
+                        ->label('Ricorda misure')
+                        ->icon('heroicon-o-clipboard-document-list')
+                        ->modalHeading('Ricorda misure da cliente')
+                        ->modalSubmitActionLabel('Importa misure')
+                        ->form([
+                            Forms\Components\Select::make('customer_key')
+                                ->label('Cliente')
+                                ->options(fn () => MeasurementRecallService::distinctCustomersWithLastEvent())
+                                ->searchable()
+                                ->preload()
+                                ->required()
+                                ->helperText('Seleziona il cliente da cui importare le ultime misure.'),
 
-            Forms\Components\Radio::make('mode')
-                ->label('Modalità di import')
-                ->options([
-                    'replace' => 'Sostituisci tutto',
-                    'fill'    => 'Completa solo i campi vuoti',
-                ])
-                ->default('replace')
-                ->inline(),
+                            Forms\Components\Radio::make('mode')
+                                ->label('Modalità di import')
+                                ->options([
+                                    'replace' => 'Sostituisci tutto',
+                                    'fill' => 'Completa solo i campi vuoti',
+                                ])
+                                ->default('replace')
+                                ->inline(),
 
-            Forms\Components\Toggle::make('include_custom')
-                ->label('Includi misure personalizzate')
-                ->default(true),
+                            Forms\Components\Toggle::make('include_custom')
+                                ->label('Includi misure personalizzate')
+                                ->default(true),
 
-            Forms\Components\Toggle::make('merge_custom_by_label')
-                ->label('Evita duplicati per etichetta (solo in "Completa")')
-                ->default(true)
-                ->visible(fn (Get $get) => $get('mode') === 'fill'),
+                            Forms\Components\Toggle::make('merge_custom_by_label')
+                                ->label('Evita duplicati per etichetta (solo in "Completa")')
+                                ->default(true)
+                                ->visible(fn (Get $get) => $get('mode') === 'fill'),
 
-            Forms\Components\Toggle::make('include_corsets')
-                ->label('Includi misure corsetto')
-                ->default(true),
-        ])
-        ->action(function (array $data, Set $set, Get $get, $livewire) {
+                            Forms\Components\Toggle::make('include_corsets')
+                                ->label('Includi misure corsetto')
+                                ->default(true),
+                        ])
+                        ->action(function (array $data, Set $set, Get $get, $livewire) {
 
-        $currentMeasurements = $get('measurements') ?? [];
-        $currentCustoms      = $get('customMeasurements') ?? [];
-        $currentCorsets      = $get('corsets') ?? [];
-        $excludeId           = $livewire->record->id ?? null;
+                            $currentMeasurements = $get('measurements') ?? [];
+                            $currentCustoms = $get('customMeasurements') ?? [];
+                            $currentCorsets = $get('corsets') ?? [];
+                            $excludeId = $livewire->record->id ?? null;
 
-        $result = MeasurementRecallService::recallForCustomerKey(
-            $data['customer_key'],
-            $excludeId,
-            $currentMeasurements,
-            $currentCustoms,
-            $data['mode'] ?? 'replace',
-            (bool) ($data['include_custom'] ?? true),
-            (bool) ($data['merge_custom_by_label'] ?? true),
-            (bool) ($data['include_corsets'] ?? true),
-            $currentCorsets,
-        );
+                            $result = MeasurementRecallService::recallForCustomerKey(
+                                $data['customer_key'],
+                                $excludeId,
+                                $currentMeasurements,
+                                $currentCustoms,
+                                $data['mode'] ?? 'replace',
+                                (bool) ($data['include_custom'] ?? true),
+                                (bool) ($data['merge_custom_by_label'] ?? true),
+                                (bool) ($data['include_corsets'] ?? true),
+                                $currentCorsets,
+                            );
 
-        // Importa misure
-        $set('measurements', $result['measurements']);
-        $set('customMeasurements', $result['customMeasurements']);
-        $set('corsets', $result['corsets']);
+                            // Importa misure
+                            $set('measurements', $result['measurements']);
+                            $set('customMeasurements', $result['customMeasurements']);
+                            $set('corsets', $result['corsets']);
 
-        // Importa anche NOME e TELEFONO
-        if ($result['sourceCustomerName']) {
-            $set('customer_name', $result['sourceCustomerName']);
-            $set('phone_number', $result['sourcePhoneNumber']);
-        }
+                            // Importa anche NOME e TELEFONO
+                            if ($result['sourceCustomerName']) {
+                                $set('customer_name', $result['sourceCustomerName']);
+                                $set('phone_number', $result['sourcePhoneNumber']);
+                            }
 
-        // Notifiche
-        if (!empty($result['sourceDressId'])) {
-            Notification::make()
-                ->title('Misure importate')
-                ->body('Prese da Abito #'.$result['sourceDressId'])
-                ->success()
-                ->send();
-        } else {
-            Notification::make()
-                ->title('Nessuna misura trovata per il cliente selezionato')
-                ->warning()
-                ->send();
-        }
-    }),
-]),
+                            // Notifiche
+                            if (! empty($result['sourceDressId'])) {
+                                Notification::make()
+                                    ->title('Misure importate')
+                                    ->body('Prese da Abito #'.$result['sourceDressId'])
+                                    ->success()
+                                    ->send();
+                            } else {
+                                Notification::make()
+                                    ->title('Nessuna misura trovata per il cliente selezionato')
+                                    ->warning()
+                                    ->send();
+                            }
+                        }),
+                ]),
 
             ])
             ->columnSpanFull();
@@ -931,24 +983,24 @@ private static function imagesSection(): Forms\Components\Section
         // i campi vengono presi nell'ordine esatto definito in ORDERED_MEASURES.
         $groups = [
             '1) Collo & Busto' => [
-                'circonferenza_collo','torace','seno','sotto_seno','vita','bacino',
-                'lunghezza_bacino','lunghezza_seno','distanza_seni','precisapince',
-                'scollo','scollo_dietro','lunghezza_vita','lunghezza_vita_dietro',
+                'circonferenza_collo', 'torace', 'seno', 'sotto_seno', 'vita', 'bacino',
+                'lunghezza_bacino', 'lunghezza_seno', 'distanza_seni', 'precisapince',
+                'scollo', 'scollo_dietro', 'lunghezza_vita', 'lunghezza_vita_dietro',
             ],
             '2) Spalle & Torace' => [
-                'larghezza_schiena','inclinazione_spalle','larghezza_torace_interno','lunghezza_taglio',
+                'larghezza_schiena', 'inclinazione_spalle', 'larghezza_torace_interno', 'lunghezza_taglio',
             ],
             '3) Capo & Gonna' => [
-                'lunghezza_abito','lunghezza_gonna_avanti','lunghezza_gonna_dietro',
+                'lunghezza_abito', 'lunghezza_gonna_avanti', 'lunghezza_gonna_dietro',
             ],
             '4) Maniche & Braccia' => [
-                'lunghezza_gomito','lunghezza_manica','circonferenza_braccio','circonferenza_polso','livello_ascellare',
+                'lunghezza_gomito', 'lunghezza_manica', 'circonferenza_braccio', 'circonferenza_polso', 'livello_ascellare',
             ],
             '5) Pantalone' => [
-                'lunghezza_pantalone_interno','lunghezza_pantalone_esterno','lunghezza_ginocchio','lunghezza_cavallo',
+                'lunghezza_pantalone_interno', 'lunghezza_pantalone_esterno', 'lunghezza_ginocchio', 'lunghezza_cavallo',
             ],
             '6) Circonferenze Gambe' => [
-                'circonferenza_coscia','circonferenza_ginocchio','circonferenza_caviglia','circonferenza_taglio',
+                'circonferenza_coscia', 'circonferenza_ginocchio', 'circonferenza_caviglia', 'circonferenza_taglio',
             ],
         ];
 
@@ -972,7 +1024,7 @@ private static function imagesSection(): Forms\Components\Section
         foreach ($legacy as $name => $label) {
             $legacyFields[] = self::buildMeasureInput($name, $label, 'cm');
         }
-        if (!empty($legacyFields)) {
+        if (! empty($legacyFields)) {
             $tabs[] = Forms\Components\Tabs\Tab::make('Legacy (opz.)')
                 ->schema($legacyFields)
                 ->columns(4);
@@ -1013,7 +1065,6 @@ private static function imagesSection(): Forms\Components\Section
             ->step(0.1)
             ->suffix($suffix);
     }
-
 
     // --- SEZIONE 6: Totali e Stato ---
     private static function totalsSection(): Forms\Components\Section
@@ -1218,7 +1269,7 @@ private static function imagesSection(): Forms\Components\Section
                 ->columnSpanFull(),
             Forms\Components\Placeholder::make("riprese_{$group}_formula")
                 ->label('')
-                ->content(new HtmlString('<span class="text-sm text-gray-700 dark:text-gray-200">' . e($groupDefinition['formula']) . '</span>'))
+                ->content(new HtmlString('<span class="text-sm text-gray-700 dark:text-gray-200">'.e($groupDefinition['formula']).'</span>'))
                 ->columnSpanFull(),
         );
 
@@ -1231,7 +1282,7 @@ private static function imagesSection(): Forms\Components\Section
     {
         return Forms\Components\Placeholder::make($name)
             ->label('')
-            ->content(new HtmlString('<span class="font-semibold">' . e($label) . '</span>'));
+            ->content(new HtmlString('<span class="font-semibold">'.e($label).'</span>'));
     }
 
     private static function corsetLabelPlaceholder(string $name, string $label): Forms\Components\Placeholder
@@ -1260,6 +1311,7 @@ private static function imagesSection(): Forms\Components\Section
             'circonferenza_seno',
             'circonferenza_sotto_seno',
             'circonferenza_vita',
+            'circonferenza_addome',
             'circonferenza_fianchi_15_cm',
         ], true)) {
             $input = $input
@@ -1335,17 +1387,17 @@ private static function imagesSection(): Forms\Components\Section
 
         return new HtmlString(
             '<table style="width:100%; border-collapse:collapse; font-size:11px;">'
-            . '<tr>'
-            . '<th style="border:1px solid #d1d5db; padding:6px; text-align:left;">Circ. seno</th>'
-            . '<th style="border:1px solid #d1d5db; padding:6px; text-align:left;">Formula</th>'
-            . '<th style="border:1px solid #d1d5db; padding:6px; text-align:left;">Larghezza seno</th>'
-            . '</tr>'
-            . '<tr>'
-            . '<td style="border:1px solid #d1d5db; padding:6px;">' . e($range) . '</td>'
-            . '<td style="border:1px solid #d1d5db; padding:6px;">' . e($formula ?? '—') . '</td>'
-            . '<td style="border:1px solid #d1d5db; padding:6px;">' . e(self::formatCorsetValue($larghezzaSeno)) . '</td>'
-            . '</tr>'
-            . '</table>'
+            .'<tr>'
+            .'<th style="border:1px solid #d1d5db; padding:6px; text-align:left;">Circ. seno</th>'
+            .'<th style="border:1px solid #d1d5db; padding:6px; text-align:left;">Formula</th>'
+            .'<th style="border:1px solid #d1d5db; padding:6px; text-align:left;">Larghezza seno</th>'
+            .'</tr>'
+            .'<tr>'
+            .'<td style="border:1px solid #d1d5db; padding:6px;">'.e($range).'</td>'
+            .'<td style="border:1px solid #d1d5db; padding:6px;">'.e($formula ?? '—').'</td>'
+            .'<td style="border:1px solid #d1d5db; padding:6px;">'.e(self::formatCorsetValue($larghezzaSeno)).'</td>'
+            .'</tr>'
+            .'</table>'
         );
     }
 
@@ -1357,7 +1409,7 @@ private static function imagesSection(): Forms\Components\Section
             return 'Inserisci la circonferenza seno per ottenere un valore suggerito.';
         }
 
-        return 'Valore suggerito: ' . self::formatCorsetValue($suggestedValue);
+        return 'Valore suggerito: '.self::formatCorsetValue($suggestedValue);
     }
 
     private static function syncCorsetCalculatedFields(Set $set, Get $get): void
@@ -1365,7 +1417,8 @@ private static function imagesSection(): Forms\Components\Section
         $circSeno = self::nullableFloat($get('circonferenza_seno'));
         $circSottoSeno = self::nullableFloat($get('circonferenza_sotto_seno'));
         $circVita = self::nullableFloat($get('circonferenza_vita'));
-        $circFianchi = self::nullableFloat($get('circonferenza_fianchi_15_cm'));
+        $circFianchi = self::nullableFloat($get('circonferenza_addome'))
+            ?? self::nullableFloat($get('circonferenza_fianchi_15_cm'));
 
         $set('linea_sotto_seno', DressCorset::calculateLineaSottoSenoSuggerita($circSeno));
 
@@ -1388,7 +1441,8 @@ private static function imagesSection(): Forms\Components\Section
                 self::nullableFloat($get('circonferenza_vita')),
             ),
             'fianchi' => DressCorset::calculateRipreseFianchi(
-                self::nullableFloat($get('circonferenza_fianchi_15_cm')),
+                self::nullableFloat($get('circonferenza_addome'))
+                    ?? self::nullableFloat($get('circonferenza_fianchi_15_cm')),
                 self::nullableFloat($get('circonferenza_sotto_seno')),
             ),
             default => ['base' => null, 'davanti' => null, 'lato' => null, 'dietro' => null],
@@ -1401,7 +1455,7 @@ private static function imagesSection(): Forms\Components\Section
             return '—';
         }
 
-        return rtrim(rtrim(number_format($value, 3, ',', '.'), '0'), ',') . ' cm';
+        return rtrim(rtrim(number_format($value, 3, ',', '.'), '0'), ',').' cm';
     }
 
     private static function nullableFloat(mixed $value): ?float
@@ -1431,5 +1485,4 @@ private static function imagesSection(): Forms\Components\Section
                 self::updateCalculations($set, $get);
             });
     }
-
 }

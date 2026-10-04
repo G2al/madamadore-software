@@ -83,7 +83,6 @@
             <h1>LISTA ACQUISTI TESSUTI</h1>
         @endif
         <p><strong>Generata il:</strong> {{ $generatedAt }}</p>
-        <p class="price"><strong>TOTALE COMPLESSIVO: EUR {{ number_format($totalCost, 2, ',', '.') }}</strong></p>
     </div>
 
     @php
@@ -93,7 +92,6 @@
     @foreach($fabricsBySupplier as $supplier => $supplierItems)
         @php
             $supplierTotalMeters = $supplierItems->sum('meters');
-            $supplierTotalCost = $supplierItems->sum(fn ($item) => (float) $item->meters * (float) $item->purchase_price);
             $fabricsByName = $supplierItems->groupBy(fn ($item) => $item->name ?: 'Tessuto senza nome');
         @endphp
 
@@ -101,14 +99,13 @@
             <div class="supplier-header">
                 FORNITORE: {{ strtoupper($supplier) }}
                 <span style="float: right;">
-                    Totale: {{ number_format((float) $supplierTotalMeters, 2, ',', '.') }} mt - EUR {{ number_format((float) $supplierTotalCost, 2, ',', '.') }}
+                    Totale: {{ number_format((float) $supplierTotalMeters, 2, ',', '.') }} mt
                 </span>
             </div>
 
             @foreach($fabricsByName as $fabricName => $fabricItems)
                 @php
                     $fabricTotalMeters = $fabricItems->sum('meters');
-                    $fabricTotalCost = $fabricItems->sum(fn ($item) => (float) $item->meters * (float) $item->purchase_price);
                     $fabricTypes = $fabricItems->pluck('type')->filter()->unique()->values();
                     $fabricColors = $fabricItems->groupBy(fn ($item) => $item->color_code ?: 'Senza codice');
                 @endphp
@@ -120,47 +117,30 @@
                             <span class="fabric-type">({{ $fabricTypes->join(', ') }})</span>
                         @endif
                         <span style="float: right;">
-                            Totale: {{ number_format((float) $fabricTotalMeters, 2, ',', '.') }} mt - EUR {{ number_format((float) $fabricTotalCost, 2, ',', '.') }}
+                            Totale: {{ number_format((float) $fabricTotalMeters, 2, ',', '.') }} mt
                         </span>
                     </div>
 
                     <table>
                         <thead>
                             <tr>
-                                <th style="width: 34%;">CODICE COLORE</th>
-                                <th style="width: 22%;">METRI</th>
-                                <th style="width: 22%;">PREZZO/MT</th>
-                                <th style="width: 22%;">SUBTOTALE</th>
+                                <th style="width: 60%;">CODICE COLORE</th>
+                                <th style="width: 40%;">METRI</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($fabricColors as $groupColorCode => $colorItems)
                                 @php
                                     $colorTotalMeters = $colorItems->sum('meters');
-                                    $colorTotalCost = $colorItems->sum(fn ($item) => (float) $item->meters * (float) $item->purchase_price);
-                                    $uniquePrices = $colorItems
-                                        ->pluck('purchase_price')
-                                        ->filter(fn ($price) => $price !== null)
-                                        ->map(fn ($price) => (float) $price)
-                                        ->unique()
-                                        ->values();
-
-                                    $priceLabel = $uniquePrices->count() === 1
-                                        ? 'EUR ' . number_format($uniquePrices->first(), 2, ',', '.')
-                                        : 'Variabile';
                                 @endphp
                                 <tr>
                                     <td><strong>{{ strtoupper($groupColorCode) }}</strong></td>
                                     <td class="text-right meters">{{ number_format((float) $colorTotalMeters, 2, ',', '.') }} mt</td>
-                                    <td class="text-right {{ $uniquePrices->count() === 1 ? '' : 'muted' }}">{{ $priceLabel }}</td>
-                                    <td class="text-right price">EUR {{ number_format((float) $colorTotalCost, 2, ',', '.') }}</td>
                                 </tr>
                             @endforeach
                             <tr class="total-row">
                                 <td><strong>TOTALE {{ strtoupper($fabricName) }}:</strong></td>
                                 <td class="text-right"><strong>{{ number_format((float) $fabricTotalMeters, 2, ',', '.') }} mt</strong></td>
-                                <td></td>
-                                <td class="text-right"><strong>EUR {{ number_format((float) $fabricTotalCost, 2, ',', '.') }}</strong></td>
                             </tr>
                         </tbody>
                     </table>

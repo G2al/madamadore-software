@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class CalendarController extends Controller
@@ -25,7 +25,7 @@ class CalendarController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -38,10 +38,10 @@ class CalendarController extends Controller
 
             // Valida che tutti i modelli esistano
             foreach ($models as $model) {
-                if (!class_exists($model)) {
+                if (! class_exists($model)) {
                     return response()->json([
                         'success' => false,
-                        'message' => "Modello non valido: {$model}"
+                        'message' => "Modello non valido: {$model}",
                     ], 400);
                 }
             }
@@ -56,22 +56,22 @@ class CalendarController extends Controller
                     'year' => $year,
                     'models' => $models,
                     'date_column' => $dateColumn,
-                    'cached_at' => now()->toISOString()
-                ]
+                    'cached_at' => now()->toISOString(),
+                ],
             ]);
 
         } catch (\Exception $e) {
             \Log::error('Errore query disponibilità calendario', [
                 'models' => $request->input('models') ?? $request->input('model'),
-                'date_column' => $request->input('date_column'), 
+                'date_column' => $request->input('date_column'),
                 'month' => $request->input('month'),
                 'year' => $request->input('year'),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Errore nel caricamento dati disponibilità'
+                'message' => 'Errore nel caricamento dati disponibilità',
             ], 500);
         }
     }
@@ -82,9 +82,9 @@ class CalendarController extends Controller
      */
     protected function queryMultipleModelsAvailability(array $models, string $dateColumn, int $month, int $year, ?int $excludeId = null): array
     {
-        $modelsKey = implode('_', array_map(fn($m) => class_basename($m), $models));
-        $cacheKey = "calendar_availability:{$modelsKey}:{$dateColumn}:{$year}:{$month}:" . ($excludeId ?? 'all');
-        
+        $modelsKey = implode('_', array_map(fn ($m) => class_basename($m), $models));
+        $cacheKey = "calendar_availability:active:{$modelsKey}:{$dateColumn}:{$year}:{$month}:".($excludeId ?? 'all');
+
         return Cache::remember($cacheKey, 3600, function () use ($models, $dateColumn, $month, $year, $excludeId) {
             $startDate = Carbon::createFromDate($year, $month, 1)->startOfDay();
             $endDate = $startDate->copy()->endOfMonth()->endOfDay();
@@ -94,7 +94,7 @@ class CalendarController extends Controller
             // Itera su ogni modello e combina i risultati
             foreach ($models as $model) {
                 $table = (new $model)->getTable();
-                
+
                 $query = DB::table($table)
                     ->select(
                         DB::raw("DATE({$table}.{$dateColumn}) as date"),
@@ -106,8 +106,9 @@ class CalendarController extends Controller
                 // Se il model è Adjustment o CompanyAdjustment, aggiungi la JOIN per i nomi clienti
                 if ($model === 'App\Models\Adjustment' || $model === 'App\Models\CompanyAdjustment') {
                     $query->leftJoin('customers', "{$table}.customer_id", '=', 'customers.id')
-                          ->addSelect(DB::raw('GROUP_CONCAT(customers.name SEPARATOR ", ") as customer_names'));
-                } 
+                        ->where("{$table}.status", 'in_lavorazione')
+                        ->addSelect(DB::raw('GROUP_CONCAT(customers.name SEPARATOR ", ") as customer_names'));
+                }
                 // Se il model è Dress, usa customer_name diretto
                 elseif ($model === 'App\Models\Dress') {
                     $query->addSelect(DB::raw("GROUP_CONCAT({$table}.customer_name SEPARATOR ', ') as customer_names"));
@@ -122,12 +123,12 @@ class CalendarController extends Controller
                 // Combina i risultati nel array $availability
                 foreach ($results as $result) {
                     $date = $result->date;
-                    
-                    if (!isset($availability[$date])) {
+
+                    if (! isset($availability[$date])) {
                         $availability[$date] = [
                             'count' => 0,
                             'date' => $date,
-                            'customers' => []
+                            'customers' => [],
                         ];
                     }
 
@@ -164,7 +165,7 @@ class CalendarController extends Controller
         $month = $date->month;
         $year = $date->year;
         $cacheKey = "calendar_availability:{$model}:{$dateColumn}:{$year}:{$month}";
-        
+
         Cache::forget($cacheKey);
     }
 }

@@ -22,7 +22,7 @@ class AdjustmentPrintController extends Controller
             'giorno',
             $day,
             $day,
-            'aggiusti-giorno-' . $day->format('Y-m-d') . '.pdf'
+            'aggiusti-giorno-'.$day->format('Y-m-d').'.pdf'
         );
     }
 
@@ -37,7 +37,7 @@ class AdjustmentPrintController extends Controller
             'settimana',
             $start,
             $end,
-            'aggiusti-settimana-' . $start->format('Y-m-d') . '-' . $end->format('Y-m-d') . '.pdf'
+            'aggiusti-settimana-'.$start->format('Y-m-d').'-'.$end->format('Y-m-d').'.pdf'
         );
     }
 
@@ -51,7 +51,7 @@ class AdjustmentPrintController extends Controller
             'giorno',
             $day,
             $day,
-            'aggiusti-aziende-giorno-' . $day->format('Y-m-d') . '.pdf'
+            'aggiusti-aziende-giorno-'.$day->format('Y-m-d').'.pdf'
         );
     }
 
@@ -66,7 +66,7 @@ class AdjustmentPrintController extends Controller
             'settimana',
             $start,
             $end,
-            'aggiusti-aziende-settimana-' . $start->format('Y-m-d') . '-' . $end->format('Y-m-d') . '.pdf'
+            'aggiusti-aziende-settimana-'.$start->format('Y-m-d').'-'.$end->format('Y-m-d').'.pdf'
         );
     }
 
@@ -86,6 +86,7 @@ class AdjustmentPrintController extends Controller
 
         $records = $query
             ->with(['customer', 'items.worker', 'primaryWorker'])
+            ->where('status', 'in_lavorazione')
             ->whereBetween('delivery_date', [$start->toDateString(), $end->toDateString()])
             ->orderBy('delivery_date')
             ->orderBy('id')

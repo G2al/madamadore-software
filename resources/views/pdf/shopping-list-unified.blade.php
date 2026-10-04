@@ -109,12 +109,11 @@
                 <thead>
                     <tr>
                         <th style="width: 9%;">Foto</th>
-                        <th style="width: 29%;">Nome</th>
+                        <th style="width: 35%;">Nome</th>
                         <th style="width: 11%;">Codice Colore</th>
                         <th style="width: 10%;">Quantità</th>
                         <th style="width: 8%;">Misure</th>
-                        <th style="width: 13%;">Fornitore</th>
-                        <th style="width: 10%;">Prezzo (€)</th>
+                        <th style="width: 17%;">Fornitore</th>
                         <th style="width: 10%;">Data Acquisto</th>
                     </tr>
                 </thead>
@@ -145,20 +144,12 @@
                             </td>
                             <td>{{ $row['unit'] ?? '-' }}</td>
                             <td>{{ $supplierGroup['name'] }}</td>
-                            <td class="right">
-                                @if($row['price'] !== null)
-                                    € {{ number_format((float) $row['price'], 2, ',', '.') }}
-                                @else
-                                    € 0,00
-                                @endif
-                            </td>
                             <td>{{ $row['purchase_label'] }}</td>
                         </tr>
                     @endforeach
 
                     @for($i = 0; $i < $emptyRows; $i++)
                         <tr>
-                            <td>&nbsp;</td>
                             <td>&nbsp;</td>
                             <td>&nbsp;</td>
                             <td>&nbsp;</td>

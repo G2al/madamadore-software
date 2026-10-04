@@ -13,6 +13,7 @@ class DressCorsetTest extends TestCase
 
         $this->assertContains('circonferenza_seno', $fields);
         $this->assertContains('linea_sotto_seno', $fields);
+        $this->assertContains('circonferenza_addome', $fields);
         $this->assertContains('ripresa_vita_davanti', $fields);
         $this->assertContains('ripresa_fianchi_dietro', $fields);
         $this->assertNotContains('pinza_vita_davanti', $fields);

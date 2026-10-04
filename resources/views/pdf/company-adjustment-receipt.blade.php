@@ -61,6 +61,10 @@
             <td>{{ $adjustment->created_at->format('d/m/Y') }}</td>
         </tr>
         <tr>
+            <td>Data consegna</td>
+            <td>{{ $adjustment->delivery_date?->format('d/m/Y') ?? 'Da definire' }}</td>
+        </tr>
+        <tr>
             <td>Cliente</td>
             <td>{{ $adjustment->customer->name ?? '-' }}</td>
         </tr>

@@ -2,171 +2,176 @@
 
 namespace App\Filament\Resources\AdjustmentResource\Concerns;
 
-use Filament\Forms;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
 use App\Filament\Resources\AdjustmentResource;
 use App\Models\Customer;
-
-// alias utili per i bottoni nel form
-use Filament\Forms\Components\Actions as FormActions;
+use App\Models\Supplier;
+use Filament\Forms;
 use Filament\Forms\Components\Actions\Action as FormAction;
+use Filament\Forms\Get;
+// alias utili per i bottoni nel form
+use Filament\Forms\Set;
 
 trait HasAdjustmentFormSections
 {
     /**
      * Sezione: Dati cliente
      */
-  protected static function clientSection(): Forms\Components\Section
-{
-    return Forms\Components\Section::make('Dati cliente')
-        ->schema([
-            Forms\Components\Select::make('customer_id')
-                ->label('Cliente')
-                ->relationship('customer', 'name')
-                ->searchable()
-                ->preload()
-                ->reactive()
-                ->afterStateUpdated(function ($state, Set $set) {
-                    // Quando cambio cliente, aggiorno il telefono visualizzato
-                    $set('customer_phone', \App\Models\Customer::find($state)?->phone_number);
-                })
-                ->createOptionForm([
-                    Forms\Components\TextInput::make('name')
-                        ->label('Nome cliente')
-                        ->default(''),
-                    Forms\Components\TextInput::make('phone_number')
-                        ->label('Numero di Cellulare')
-                        ->tel()
-                        ->maxLength(255)
-                        ->unique(table: Customer::class, column: 'phone_number', ignoreRecord: true)
-                        ->validationMessages([
-                            'unique' => 'Questo numero di telefono è già stato registrato per un altro cliente.',
-                        ])
-                ])
-                ->editOptionForm([
-                    Forms\Components\TextInput::make('name')
-                        ->label('Nome cliente')
-                        ->required(),
-                    Forms\Components\TextInput::make('phone_number')
-                        ->label('Numero di Cellulare')
-                        ->tel()
-                        ->maxLength(255)
-                        ->unique(table: Customer::class, column: 'phone_number', ignoreRecord: true)
-                        ->required(),
-                ])
-                ->editOptionAction(
-                    fn (FormAction $action) => $action
-                        ->tooltip('Modifica cliente')
-                        ->after(fn ($state, $set) => $set('customer_phone', \App\Models\Customer::find($state)?->phone_number))
-                ),
+    protected static function clientSection(): Forms\Components\Section
+    {
+        return Forms\Components\Section::make('Dati cliente')
+            ->schema([
+                Forms\Components\Select::make('customer_id')
+                    ->label('Cliente')
+                    ->relationship('customer', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->reactive()
+                    ->afterStateUpdated(function ($state, Set $set) {
+                        // Quando cambio cliente, aggiorno il telefono visualizzato
+                        $set('customer_phone', \App\Models\Customer::find($state)?->phone_number);
+                    })
+                    ->createOptionForm([
+                        Forms\Components\TextInput::make('name')
+                            ->label('Nome cliente')
+                            ->default(''),
+                        Forms\Components\TextInput::make('phone_number')
+                            ->label('Numero di Cellulare')
+                            ->tel()
+                            ->maxLength(255)
+                            ->unique(table: Customer::class, column: 'phone_number', ignoreRecord: true)
+                            ->validationMessages([
+                                'unique' => 'Questo numero di telefono è già stato registrato per un altro cliente.',
+                            ]),
+                    ])
+                    ->editOptionForm([
+                        Forms\Components\TextInput::make('name')
+                            ->label('Nome cliente')
+                            ->required(),
+                        Forms\Components\TextInput::make('phone_number')
+                            ->label('Numero di Cellulare')
+                            ->tel()
+                            ->maxLength(255)
+                            ->unique(table: Customer::class, column: 'phone_number', ignoreRecord: true)
+                            ->required(),
+                    ])
+                    ->editOptionAction(
+                        fn (FormAction $action) => $action
+                            ->tooltip('Modifica cliente')
+                            ->after(fn ($state, $set) => $set('customer_phone', \App\Models\Customer::find($state)?->phone_number))
+                    ),
 
                 Forms\Components\TextInput::make('referente')
-    ->label('Preso da / Referente')
-    ->placeholder('Es. Dora, Marco, Negozio Centro...')
-    ->maxLength(255),
+                    ->label('Preso da / Referente')
+                    ->placeholder('Es. Dora, Marco, Negozio Centro...')
+                    ->maxLength(255),
 
-            self::primaryWorkerSelect(),
+                self::primaryWorkerSelect(),
 
-            // Campo status con logica corretta
-            Forms\Components\Select::make('status')
-                ->label('Stato Lavoro')
-                ->options(\App\Models\Adjustment::getStatusLabels())
-                ->default('in_lavorazione')
-                ->required()
-                ->live()
-                ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                    // Logica: quando passa da 'in_lavorazione' a 'confermato' (bottone completato)
-                    // Questa logica viene gestita dal bottone, non qui
-                }),
+                // Campo status con logica corretta
+                Forms\Components\Select::make('status')
+                    ->label('Stato Lavoro')
+                    ->options(\App\Models\Adjustment::getStatusLabels())
+                    ->default('in_lavorazione')
+                    ->required()
+                    ->live()
+                    ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                        // Logica: quando passa da 'in_lavorazione' a 'confermato' (bottone completato)
+                        // Questa logica viene gestita dal bottone, non qui
+                    }),
 
-            // Spunta ritirato (logica spostata nella table)
-            Forms\Components\Toggle::make('ritirato')
-                ->label('Ritirato dal Cliente')
-                ->default(false)
-                ->helperText('Attivare quando il cliente ha ritirato l\'aggiusto')
-                ->onColor('success')
-                ->offColor('info'),
+                // Spunta ritirato (logica spostata nella table)
+                Forms\Components\Toggle::make('ritirato')
+                    ->label('Ritirato dal Cliente')
+                    ->default(false)
+                    ->helperText('Attivare quando il cliente ha ritirato l\'aggiusto')
+                    ->onColor('success')
+                    ->offColor('info'),
 
-            // Telefono di sola lettura con icona WhatsApp nel suffix
-            Forms\Components\TextInput::make('customer_phone')
-                ->label('Telefono cliente')
-                ->readOnly()
-                ->dehydrated(false)
-                ->afterStateHydrated(function (
-                    \Filament\Forms\Components\TextInput $component,
-                    $state,
-                    $record
-                ) {
-                    $component->state($record?->customer?->phone_number);
-                })
-                ->suffixIcon('heroicon-o-chat-bubble-left-right')
-                ->suffixIconColor('success')
-                ->extraAttributes(function (Get $get) {
-                    $phone = \App\Models\Customer::find($get('customer_id'))?->phone_number;
-                    if (! $phone) {
-                        return ['class' => 'cursor-not-allowed opacity-60'];
-                    }
-                    $digits = preg_replace('/\D+/', '', $phone);
-                    return [
-                        'class'   => 'cursor-pointer',
-                        'onclick' => "window.open('https://wa.me/{$digits}', '_blank');",
-                    ];
-                }),
-Forms\Components\DatePicker::make('delivery_date')
-    ->label('Data di consegna')
-    ->native(false)
-    ->displayFormat('d/m/Y')
-    ->closeOnDateSelection()
-    ->live(debounce: 300)
-    ->afterStateUpdated(function ($state, Set $set, Get $get, $livewire) {
-        if ($state) {
-            $currentAdjustmentId = $livewire->record?->id ?? null;
+                // Telefono di sola lettura con icona WhatsApp nel suffix
+                Forms\Components\TextInput::make('customer_phone')
+                    ->label('Telefono cliente')
+                    ->readOnly()
+                    ->dehydrated(false)
+                    ->afterStateHydrated(function (
+                        \Filament\Forms\Components\TextInput $component,
+                        $state,
+                        $record
+                    ) {
+                        $component->state($record?->customer?->phone_number);
+                    })
+                    ->suffixIcon('heroicon-o-chat-bubble-left-right')
+                    ->suffixIconColor('success')
+                    ->extraAttributes(function (Get $get) {
+                        $phone = \App\Models\Customer::find($get('customer_id'))?->phone_number;
+                        if (! $phone) {
+                            return ['class' => 'cursor-not-allowed opacity-60'];
+                        }
+                        $digits = preg_replace('/\D+/', '', $phone);
 
-            // Conta TUTTI gli aggiusti (normali + aziendali) per quella data
-            $normalAdjustments = \App\Models\Adjustment::where('delivery_date', $state)
-                ->when($currentAdjustmentId, fn($q) => $q->where('id', '!=', $currentAdjustmentId))
-                ->count();
-            $companyAdjustments = \App\Models\CompanyAdjustment::where('delivery_date', $state)->count();
+                        return [
+                            'class' => 'cursor-pointer',
+                            'onclick' => "window.open('https://wa.me/{$digits}', '_blank');",
+                        ];
+                    }),
+                Forms\Components\DatePicker::make('delivery_date')
+                    ->label('Data di consegna')
+                    ->native(false)
+                    ->displayFormat('d/m/Y')
+                    ->closeOnDateSelection()
+                    ->live(debounce: 300)
+                    ->afterStateUpdated(function ($state, Set $set, Get $get, $livewire) {
+                        if ($state) {
+                            $currentAdjustmentId = $livewire->record?->id ?? null;
 
-            $count = $normalAdjustments + $companyAdjustments;
+                            // Conta solo il carico ancora in lavorazione per quella data.
+                            $normalAdjustments = \App\Models\Adjustment::where('delivery_date', $state)
+                                ->where('status', 'in_lavorazione')
+                                ->when($currentAdjustmentId, fn ($q) => $q->where('id', '!=', $currentAdjustmentId))
+                                ->count();
+                            $companyAdjustments = \App\Models\CompanyAdjustment::where('delivery_date', $state)
+                                ->where('status', 'in_lavorazione')
+                                ->count();
 
-            // Recupera nomi clienti (sia da adjustments normali che aziendali)
-            $normalCustomers = \App\Models\Adjustment::where('delivery_date', $state)
-                ->when($currentAdjustmentId, fn($q) => $q->where('id', '!=', $currentAdjustmentId))
-                ->with('customer')
-                ->get()
-                ->pluck('customer.name')
-                ->filter();
+                            $count = $normalAdjustments + $companyAdjustments;
 
-            $companyCustomers = \App\Models\CompanyAdjustment::where('delivery_date', $state)
-                ->with('customer')
-                ->get()
-                ->pluck('customer.name')
-                ->filter();
+                            // Recupera nomi clienti (sia da adjustments normali che aziendali)
+                            $normalCustomers = \App\Models\Adjustment::where('delivery_date', $state)
+                                ->where('status', 'in_lavorazione')
+                                ->when($currentAdjustmentId, fn ($q) => $q->where('id', '!=', $currentAdjustmentId))
+                                ->with('customer')
+                                ->get()
+                                ->pluck('customer.name')
+                                ->filter();
 
-            $allCustomers = $normalCustomers->concat($companyCustomers);
+                            $companyCustomers = \App\Models\CompanyAdjustment::where('delivery_date', $state)
+                                ->where('status', 'in_lavorazione')
+                                ->with('customer')
+                                ->get()
+                                ->pluck('customer.name')
+                                ->filter();
 
-            if ($count === 0 || $count <= 2) {
-                $customers = $allCustomers->take(2)->join(', ');
-                $helper = $count === 0 
-                    ? '🟢 Giornata libera - Perfetto per la consegna!' 
-                    : "🟢 {$count} aggiusti già previsti: {$customers}";
-            } elseif ($count <= 4) {
-                $customers = $allCustomers->take(2)->join(', ');
-                $helper = "🟡 GIORNATA IMPEGNATIVA - {$count} aggiusti: {$customers}" . ($count > 2 ? ' e altri...' : '');
-            } else {
-                $customers = $allCustomers->take(2)->join(', ');
-                $helper = "🔴 ATTENZIONE: GIORNATA SOVRACCARICA! {$count} aggiusti: {$customers} e altri...";
-            }
+                            $allCustomers = $normalCustomers->concat($companyCustomers);
 
-            $set('delivery_date_helper', $helper);
-        } else {
-            $set('delivery_date_helper', '');
-        }
-    })
-    ->extraAttributes([
-        'x-data' => '{
+                            if ($count === 0 || $count <= 2) {
+                                $customers = $allCustomers->take(2)->join(', ');
+                                $helper = $count === 0
+                                    ? '🟢 Giornata libera - Perfetto per la consegna!'
+                                    : "🟢 {$count} aggiusti già previsti: {$customers}";
+                            } elseif ($count <= 4) {
+                                $customers = $allCustomers->take(2)->join(', ');
+                                $helper = "🟡 GIORNATA IMPEGNATIVA - {$count} aggiusti: {$customers}".($count > 2 ? ' e altri...' : '');
+                            } else {
+                                $customers = $allCustomers->take(2)->join(', ');
+                                $helper = "🔴 ATTENZIONE: GIORNATA SOVRACCARICA! {$count} aggiusti: {$customers} e altri...";
+                            }
+
+                            $set('delivery_date_helper', $helper);
+                        } else {
+                            $set('delivery_date_helper', '');
+                        }
+                    })
+                    ->extraAttributes([
+                        'x-data' => '{
             init() {
                 this.$nextTick(() => {
                     const panel = this.$el.closest(".fi-fo-field-wrp").querySelector(".fi-fo-date-time-picker-panel");
@@ -240,68 +245,66 @@ Forms\Components\DatePicker::make('delivery_date')
                     }
                 });
             }
-        }'
-    ])
-    ->helperText('🟢 Verde = libera, 🟡 Arancione = 1-2 aggiusti, 🔴 Rosso = 3+ aggiusti'),
+        }',
+                    ])
+                    ->helperText('🟢 Verde = libera, 🟡 Arancione = 1-2 aggiusti, 🔴 Rosso = 3+ aggiusti'),
 
-// Placeholder helper dinamico
-Forms\Components\Placeholder::make('delivery_date_helper')
-    ->label('')
-    ->content(fn ($get) => $get('delivery_date_helper') ?: '')
-    ->visible(fn ($get) => !empty($get('delivery_date_helper')))
-    ->extraAttributes([
-        'class' => 'delivery-date-info',
-        'style' => 'background-color:#21242b !important;'
-    ])
-    ->dehydrated(false),
+                // Placeholder helper dinamico
+                Forms\Components\Placeholder::make('delivery_date_helper')
+                    ->label('')
+                    ->content(fn ($get) => $get('delivery_date_helper') ?: '')
+                    ->visible(fn ($get) => ! empty($get('delivery_date_helper')))
+                    ->extraAttributes([
+                        'class' => 'delivery-date-info',
+                        'style' => 'background-color:#21242b !important;',
+                    ])
+                    ->dehydrated(false),
 
-            // Repeater per gli aggiusti
-Forms\Components\Repeater::make('items')
-    ->label('Aggiusti')
-    ->relationship()
-    ->schema([
-        Forms\Components\TextInput::make('name')
-            ->label('Nome aggiusto')
-            ->placeholder('es. Pantalone nero, Camicia bianca...')
-            ->required()
-            ->validationMessages([
-                'required' => 'Il nome dell\'aggiusto è obbligatorio. Inserisci cosa deve essere aggiustato.',
-            ])
-            ->columnSpan(1),
-        
-        Forms\Components\Textarea::make('description')
-            ->label('Descrizione lavoro')
-            ->placeholder('Descrivi cosa è stato fatto...')
-            ->rows(3)
-            ->columnSpan(1),  // ← CAMBIATO da 2 a 1
+                // Repeater per gli aggiusti
+                Forms\Components\Repeater::make('items')
+                    ->label('Aggiusti')
+                    ->relationship()
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->label('Nome aggiusto')
+                            ->placeholder('es. Pantalone nero, Camicia bianca...')
+                            ->required()
+                            ->validationMessages([
+                                'required' => 'Il nome dell\'aggiusto è obbligatorio. Inserisci cosa deve essere aggiustato.',
+                            ])
+                            ->columnSpan(1),
 
-        self::workerSelect(),
+                        Forms\Components\Textarea::make('description')
+                            ->label('Descrizione lavoro')
+                            ->placeholder('Descrivi cosa è stato fatto...')
+                            ->rows(3)
+                            ->columnSpan(1),  // ← CAMBIATO da 2 a 1
 
-        // NUOVO CAMPO PREZZO
-        Forms\Components\TextInput::make('price')
-            ->label('Prezzo')
-            ->numeric()
-            ->prefix('€')
-            ->default(0)
-            ->placeholder('0.00')
-            ->step(0.01)
-            ->columnSpan(1)
-            ->live(debounce: 300)
-            ->afterStateUpdated(fn (Set $set, Get $get) => 
-                AdjustmentResource::updateCalculations($set, $get)
-            ),
-    ])
-    ->columns(4)
-    ->addActionLabel('Aggiungi aggiusto')
-    ->defaultItems(1)
-    ->collapsible()
-    ->cloneable()
-    ->live() // ← AGGIUNGI per aggiornare i calcoli in tempo reale
-    ->afterStateUpdated(fn (Set $set, Get $get) => 
-        AdjustmentResource::updateCalculations($set, $get)
-    ),
-        ]);
-}
+                        self::workerSelect(),
+
+                        // NUOVO CAMPO PREZZO
+                        Forms\Components\TextInput::make('price')
+                            ->label('Prezzo')
+                            ->numeric()
+                            ->prefix('€')
+                            ->default(0)
+                            ->placeholder('0.00')
+                            ->step(0.01)
+                            ->columnSpan(1)
+                            ->live(debounce: 300)
+                            ->afterStateUpdated(fn (Set $set, Get $get) => AdjustmentResource::updateCalculations($set, $get)
+                            ),
+                    ])
+                    ->columns(4)
+                    ->addActionLabel('Aggiungi aggiusto')
+                    ->defaultItems(1)
+                    ->collapsible()
+                    ->cloneable()
+                    ->live() // ← AGGIUNGI per aggiornare i calcoli in tempo reale
+                    ->afterStateUpdated(fn (Set $set, Get $get) => AdjustmentResource::updateCalculations($set, $get)
+                    ),
+            ]);
+    }
 
     protected static function primaryWorkerSelect(): Forms\Components\Select
     {
@@ -376,54 +379,52 @@ Forms\Components\Repeater::make('items')
      * Sezione: Pagamento
      */
     protected static function paymentSection(): Forms\Components\Section
-{
-    return Forms\Components\Section::make('Pagamento')
-        ->schema([
-            Forms\Components\TextInput::make('client_price')
-                ->label('Prezzo totale cliente')
-                ->numeric()
-                ->default(0)
-                ->prefix('€')
-                ->helperText('Calcolato automaticamente dalla somma degli aggiusti. Puoi sovrascrivere manualmente.')
-                ->rules(['gte:0'])
-                ->live()
-                ->afterStateUpdated(fn (Set $set, Get $get) => 
-                    AdjustmentResource::updateCalculations($set, $get)),
+    {
+        return Forms\Components\Section::make('Pagamento')
+            ->schema([
+                Forms\Components\TextInput::make('client_price')
+                    ->label('Prezzo totale cliente')
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('€')
+                    ->helperText('Calcolato automaticamente dalla somma degli aggiusti. Puoi sovrascrivere manualmente.')
+                    ->rules(['gte:0'])
+                    ->live()
+                    ->afterStateUpdated(fn (Set $set, Get $get) => AdjustmentResource::updateCalculations($set, $get)),
 
-            Forms\Components\TextInput::make('deposit')
-                ->label('Acconto')
-                ->numeric()
-                ->default(0)
-                ->prefix('€')
-                ->rules(['nullable', 'gte:0'])
-                ->live()
-                ->afterStateUpdated(fn (Set $set, Get $get) => 
-                    AdjustmentResource::updateCalculations($set, $get)),
+                Forms\Components\TextInput::make('deposit')
+                    ->label('Acconto')
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('€')
+                    ->rules(['nullable', 'gte:0'])
+                    ->live()
+                    ->afterStateUpdated(fn (Set $set, Get $get) => AdjustmentResource::updateCalculations($set, $get)),
 
-            Forms\Components\TextInput::make('total')
-                ->label('Totale')
-                ->numeric()
-                ->prefix('€')
-                ->default(0)
-                ->readOnly(),
+                Forms\Components\TextInput::make('total')
+                    ->label('Totale')
+                    ->numeric()
+                    ->prefix('€')
+                    ->default(0)
+                    ->readOnly(),
 
-            Forms\Components\TextInput::make('remaining')
-                ->label('Rimanente')
-                ->numeric()
-                ->prefix('€')
-                ->default(0)
-                ->readOnly(),
+                Forms\Components\TextInput::make('remaining')
+                    ->label('Rimanente')
+                    ->numeric()
+                    ->prefix('€')
+                    ->default(0)
+                    ->readOnly(),
 
-            Forms\Components\TextInput::make('profit')
-                ->label('Guadagno')
-                ->numeric()
-                ->prefix('€')
-                ->default(0)
-                ->readOnly(),
-        ]);
-}
+                Forms\Components\TextInput::make('profit')
+                    ->label('Guadagno')
+                    ->numeric()
+                    ->prefix('€')
+                    ->default(0)
+                    ->readOnly(),
+            ]);
+    }
 
-        /**
+    /**
      * Sezione: Lista della spesa
      */
     protected static function expenseSection(): Forms\Components\Section
@@ -439,6 +440,32 @@ Forms\Components\Repeater::make('items')
                             ->label('Nome articolo')
                             ->default('Articolo generico')
                             ->placeholder('Es. Bottone, filo, cerniera...'),
+
+                        Forms\Components\TextInput::make('color_code')
+                            ->label('Codice colore')
+                            ->maxLength(255),
+
+                        Forms\Components\TextInput::make('quantity')
+                            ->label('Quantita')
+                            ->numeric()
+                            ->step(0.01)
+                            ->default(1),
+
+                        Forms\Components\Select::make('unit_type')
+                            ->label('Unita')
+                            ->options([
+                                'pezzi' => 'Pezzi',
+                                'metri' => 'Metri',
+                            ])
+                            ->default('pezzi')
+                            ->required(),
+
+                        Forms\Components\Select::make('supplier_id')
+                            ->label('Fornitore')
+                            ->relationship('supplierRecord', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->getOptionLabelFromRecordUsing(fn (Supplier $record): string => $record->name),
 
                         Forms\Components\FileUpload::make('photo_path')
                             ->label('Foto')
@@ -459,5 +486,4 @@ Forms\Components\Repeater::make('items')
                     ->cloneable(),
             ]);
     }
-
 }

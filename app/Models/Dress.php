@@ -34,6 +34,9 @@ class Dress extends Model
         'final_measurements_notes',
         'manual_client_price',
         'pronta_misura_notes',
+        'final_notes_photo',
+        'secondary_model_image',
+        'secondary_model_notes',
         'use_manual_price',
         'archived_at',
         'ritirato',
@@ -199,6 +202,13 @@ class Dress extends Model
                 $cacheKey = 'calendar_availability:' . self::class . ':delivery_date:' . $date->year . ':' . $date->month;
                 \Cache::forget($cacheKey);
             }
+        });
+
+        static::deleting(function (self $dress): void {
+            ShoppingItem::query()
+                ->where('source_type', DressExpense::class)
+                ->whereIn('source_id', $dress->expenses()->pluck('id'))
+                ->delete();
         });
     }
 

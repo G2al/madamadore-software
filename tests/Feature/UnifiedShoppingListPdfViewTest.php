@@ -99,6 +99,8 @@ class UnifiedShoppingListPdfViewTest extends TestCase
         $this->assertStringContainsString('5,00 mt', $html);
         $this->assertStringContainsString('3,00 pz', $html);
         $this->assertStringNotContainsString('Gia comprato', $html);
+        $this->assertStringNotContainsString('Prezzo (€)', $html);
+        $this->assertStringNotContainsString('€ 60,00', $html);
         $this->assertStringContainsString('Generato automaticamente dal gestionale', $html);
     }
 

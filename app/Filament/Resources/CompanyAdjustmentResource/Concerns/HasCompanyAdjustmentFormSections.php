@@ -2,15 +2,14 @@
 
 namespace App\Filament\Resources\CompanyAdjustmentResource\Concerns;
 
-use Filament\Forms;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
 use App\Filament\Resources\CompanyAdjustmentResource;
 use App\Models\Customer;
-
-// alias utili per i bottoni nel form
-use Filament\Forms\Components\Actions as FormActions;
+use App\Models\Supplier;
+use Filament\Forms;
 use Filament\Forms\Components\Actions\Action as FormAction;
+use Filament\Forms\Get;
+// alias utili per i bottoni nel form
+use Filament\Forms\Set;
 
 trait HasCompanyAdjustmentFormSections
 {
@@ -42,7 +41,7 @@ trait HasCompanyAdjustmentFormSections
                             ->unique(table: Customer::class, column: 'phone_number', ignoreRecord: true)
                             ->validationMessages([
                                 'unique' => 'Questo numero di telefono è già stato registrato per un altro cliente.',
-                            ])
+                            ]),
                     ])
                     ->editOptionForm([
                         Forms\Components\TextInput::make('name')
@@ -108,8 +107,9 @@ trait HasCompanyAdjustmentFormSections
                             return ['class' => 'cursor-not-allowed opacity-60'];
                         }
                         $digits = preg_replace('/\D+/', '', $phone);
+
                         return [
-                            'class'   => 'cursor-pointer',
+                            'class' => 'cursor-pointer',
                             'onclick' => "window.open('https://wa.me/{$digits}', '_blank');",
                         ];
                     }),
@@ -124,23 +124,28 @@ trait HasCompanyAdjustmentFormSections
                         if ($state) {
                             $currentAdjustmentId = $livewire->record?->id ?? null;
 
-                            // Conta TUTTI gli aggiusti (normali + aziendali) per quella data
-                            $normalAdjustments = \App\Models\Adjustment::where('delivery_date', $state)->count();
+                            // Conta solo il carico ancora in lavorazione per quella data.
+                            $normalAdjustments = \App\Models\Adjustment::where('delivery_date', $state)
+                                ->where('status', 'in_lavorazione')
+                                ->count();
                             $companyAdjustments = \App\Models\CompanyAdjustment::where('delivery_date', $state)
-                                ->when($currentAdjustmentId, fn($q) => $q->where('id', '!=', $currentAdjustmentId))
+                                ->where('status', 'in_lavorazione')
+                                ->when($currentAdjustmentId, fn ($q) => $q->where('id', '!=', $currentAdjustmentId))
                                 ->count();
 
                             $count = $normalAdjustments + $companyAdjustments;
 
                             // Recupera nomi clienti (sia da adjustments normali che aziendali)
                             $normalCustomers = \App\Models\Adjustment::where('delivery_date', $state)
+                                ->where('status', 'in_lavorazione')
                                 ->with('customer')
                                 ->get()
                                 ->pluck('customer.name')
                                 ->filter();
 
                             $companyCustomers = \App\Models\CompanyAdjustment::where('delivery_date', $state)
-                                ->when($currentAdjustmentId, fn($q) => $q->where('id', '!=', $currentAdjustmentId))
+                                ->where('status', 'in_lavorazione')
+                                ->when($currentAdjustmentId, fn ($q) => $q->where('id', '!=', $currentAdjustmentId))
                                 ->with('customer')
                                 ->get()
                                 ->pluck('customer.name')
@@ -150,12 +155,12 @@ trait HasCompanyAdjustmentFormSections
 
                             if ($count === 0 || $count <= 2) {
                                 $customers = $allCustomers->take(2)->join(', ');
-                                $helper = $count === 0 
-                                    ? '🟢 Giornata libera - Perfetto per la consegna!' 
+                                $helper = $count === 0
+                                    ? '🟢 Giornata libera - Perfetto per la consegna!'
                                     : "🟢 {$count} aggiusti già previsti: {$customers}";
                             } elseif ($count <= 4) {
                                 $customers = $allCustomers->take(2)->join(', ');
-                                $helper = "🟡 GIORNATA IMPEGNATIVA - {$count} aggiusti: {$customers}" . ($count > 2 ? ' e altri...' : '');
+                                $helper = "🟡 GIORNATA IMPEGNATIVA - {$count} aggiusti: {$customers}".($count > 2 ? ' e altri...' : '');
                             } else {
                                 $customers = $allCustomers->take(2)->join(', ');
                                 $helper = "🔴 ATTENZIONE: GIORNATA SOVRACCARICA! {$count} aggiusti: {$customers} e altri...";
@@ -241,7 +246,7 @@ trait HasCompanyAdjustmentFormSections
                                     }
                                 });
                             }
-                        }'
+                        }',
                     ])
                     ->helperText('🟢 Verde = libera, 🟡 Arancione = 1-2 aggiusti, 🔴 Rosso = 3+ aggiusti'),
 
@@ -249,58 +254,56 @@ trait HasCompanyAdjustmentFormSections
                 Forms\Components\Placeholder::make('delivery_date_helper')
                     ->label('')
                     ->content(fn ($get) => $get('delivery_date_helper') ?: '')
-                    ->visible(fn ($get) => !empty($get('delivery_date_helper')))
+                    ->visible(fn ($get) => ! empty($get('delivery_date_helper')))
                     ->extraAttributes([
                         'class' => 'delivery-date-info',
-                        'style' => 'background-color:#21242b !important;'
+                        'style' => 'background-color:#21242b !important;',
                     ])
                     ->dehydrated(false),
 
-// Repeater per gli aggiusti
-Forms\Components\Repeater::make('items')
-    ->label('Aggiusti')
-    ->relationship()
-    ->schema([
-        Forms\Components\TextInput::make('name')
-            ->label('Nome aggiusto')
-            ->placeholder('es. Pantalone nero, Camicia bianca...')
-            ->required()
-            ->validationMessages([
-                'required' => 'Il nome dell\'aggiusto è obbligatorio.',
-            ])
-            ->columnSpan(1),
-        
-        Forms\Components\Textarea::make('description')
-            ->label('Descrizione lavoro')
-            ->placeholder('Descrivi cosa è stato fatto...')
-            ->rows(3)
-            ->columnSpan(1), // ← CAMBIATO da 2 a 1
+                // Repeater per gli aggiusti
+                Forms\Components\Repeater::make('items')
+                    ->label('Aggiusti')
+                    ->relationship()
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->label('Nome aggiusto')
+                            ->placeholder('es. Pantalone nero, Camicia bianca...')
+                            ->required()
+                            ->validationMessages([
+                                'required' => 'Il nome dell\'aggiusto è obbligatorio.',
+                            ])
+                            ->columnSpan(1),
 
-        self::workerSelect(),
+                        Forms\Components\Textarea::make('description')
+                            ->label('Descrizione lavoro')
+                            ->placeholder('Descrivi cosa è stato fatto...')
+                            ->rows(3)
+                            ->columnSpan(1), // ← CAMBIATO da 2 a 1
 
-        // NUOVO CAMPO PREZZO
-        Forms\Components\TextInput::make('price')
-            ->label('Prezzo')
-            ->numeric()
-            ->prefix('€')
-            ->default(0)
-            ->placeholder('0.00')
-            ->step(0.01)
-            ->columnSpan(1)
-            ->live(debounce: 300)
-            ->afterStateUpdated(fn (Set $set, Get $get) => 
-                CompanyAdjustmentResource::updateCalculations($set, $get)
-            ),
-    ])
-    ->columns(4)
-    ->addActionLabel('Aggiungi aggiusto')
-    ->defaultItems(1)
-    ->collapsible()
-    ->cloneable()
-    ->live() // ← AGGIUNGI
-    ->afterStateUpdated(fn (Set $set, Get $get) => 
-        CompanyAdjustmentResource::updateCalculations($set, $get)
-    ),
+                        self::workerSelect(),
+
+                        // NUOVO CAMPO PREZZO
+                        Forms\Components\TextInput::make('price')
+                            ->label('Prezzo')
+                            ->numeric()
+                            ->prefix('€')
+                            ->default(0)
+                            ->placeholder('0.00')
+                            ->step(0.01)
+                            ->columnSpan(1)
+                            ->live(debounce: 300)
+                            ->afterStateUpdated(fn (Set $set, Get $get) => CompanyAdjustmentResource::updateCalculations($set, $get)
+                            ),
+                    ])
+                    ->columns(4)
+                    ->addActionLabel('Aggiungi aggiusto')
+                    ->defaultItems(1)
+                    ->collapsible()
+                    ->cloneable()
+                    ->live() // ← AGGIUNGI
+                    ->afterStateUpdated(fn (Set $set, Get $get) => CompanyAdjustmentResource::updateCalculations($set, $get)
+                    ),
             ]);
     }
 
@@ -432,6 +435,32 @@ Forms\Components\Repeater::make('items')
                             ->label('Nome articolo')
                             ->default('Articolo generico')
                             ->placeholder('Es. Bottone, filo, cerniera...'),
+
+                        Forms\Components\TextInput::make('color_code')
+                            ->label('Codice colore')
+                            ->maxLength(255),
+
+                        Forms\Components\TextInput::make('quantity')
+                            ->label('Quantita')
+                            ->numeric()
+                            ->step(0.01)
+                            ->default(1),
+
+                        Forms\Components\Select::make('unit_type')
+                            ->label('Unita')
+                            ->options([
+                                'pezzi' => 'Pezzi',
+                                'metri' => 'Metri',
+                            ])
+                            ->default('pezzi')
+                            ->required(),
+
+                        Forms\Components\Select::make('supplier_id')
+                            ->label('Fornitore')
+                            ->relationship('supplierRecord', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->getOptionLabelFromRecordUsing(fn (Supplier $record): string => $record->name),
 
                         Forms\Components\FileUpload::make('photo_path')
                             ->label('Foto')

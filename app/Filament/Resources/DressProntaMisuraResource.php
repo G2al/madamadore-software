@@ -9,6 +9,7 @@ use Filament\Resources\Resource;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use App\Filament\Resources\DressProntaMisuraResource\Pages;
+use App\Support\SingleFileUploadState;
 
 class DressProntaMisuraResource extends Resource
 {
@@ -117,15 +118,25 @@ class DressProntaMisuraResource extends Resource
                             ->label('Note Pronta Misura')
                             ->rows(4)
                             ->placeholder('Inserisci note specifiche per questa fase: aggiustamenti finali, particolarità, istruzioni per la consegna...')
-                            ->maxLength(1000)
-                            ->helperText('Queste note sono visibili solo quando l\'abito è in fase "Pronta Misura"'),
+                            ->maxLength(2000),
+
+                        \Filament\Forms\Components\FileUpload::make('final_notes_photo')
+                            ->label('Foto Note Finali')
+                            ->image()
+                            ->disk('public')
+                            ->directory('dress-final-notes')
+                            ->visibility('public')
+                            ->imageEditor()
+                            ->downloadable(),
                     ])
                     ->fillForm(fn($record) => [
-                        'pronta_misura_notes' => $record->pronta_misura_notes
+                        'pronta_misura_notes' => $record->pronta_misura_notes,
+                        'final_notes_photo' => SingleFileUploadState::fromPath($record->final_notes_photo),
                     ])
                     ->action(function($record, $data) {
                         $record->update([
-                            'pronta_misura_notes' => $data['pronta_misura_notes']
+                            'pronta_misura_notes' => $data['pronta_misura_notes'],
+                            'final_notes_photo' => SingleFileUploadState::toPath($data['final_notes_photo'] ?? null),
                         ]);
                         
                         \Filament\Notifications\Notification::make()
@@ -135,6 +146,22 @@ class DressProntaMisuraResource extends Resource
                     })
                     ->modalSubmitActionLabel('Salva Note')
                     ->slideOver(),
+
+                Action::make('stampa_note_finali')
+                    ->label('Stampa Note Finali')
+                    ->icon('heroicon-o-printer')
+                    ->color('warning')
+                    ->visible(fn (Dress $record): bool => filled($record->pronta_misura_notes) || filled($record->final_notes_photo))
+                    ->url(fn (Dress $record): string => route('pdf.dress.final-notes', $record))
+                    ->openUrlInNewTab(),
+
+                Action::make('stampa_modellino_aggiuntivo')
+                    ->label('Modellino Aggiuntivo')
+                    ->icon('heroicon-o-photo')
+                    ->color('info')
+                    ->visible(fn (Dress $record): bool => filled($record->secondary_model_image))
+                    ->url(fn (Dress $record): string => route('pdf.dress.secondary-model', $record))
+                    ->openUrlInNewTab(),
                 
                 // Bottone per visualizzare le misure
                 Action::make('visualizza_misure')

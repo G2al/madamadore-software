@@ -100,6 +100,13 @@ class Adjustment extends Model
      */
     protected static function booted()
     {
+        static::deleting(function ($adjustment) {
+            ShoppingItem::query()
+                ->where('source_type', AdjustmentExpense::class)
+                ->whereIn('source_id', $adjustment->expenses()->pluck('id'))
+                ->delete();
+        });
+
         static::saved(function ($adjustment) {
             if (
                 in_array($adjustment->status, ['confermato', 'consegnato'], true)

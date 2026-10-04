@@ -11,6 +11,7 @@ class DressCorset extends Model
         'circonferenza_seno' => 'Circonferenza seno',
         'circonferenza_sotto_seno' => 'Circonferenza sotto seno',
         'circonferenza_vita' => 'Circonferenza vita',
+        'circonferenza_addome' => 'Circonferenza addome',
         'circonferenza_fianchi_15_cm' => 'Circonferenza fianchi 15 cm',
     ];
 
@@ -33,8 +34,8 @@ class DressCorset extends Model
             ],
         ],
         'fianchi' => [
-            'label' => 'Riprese fianchi',
-            'formula' => 'Circ. fianchi - (Circ. sotto seno : 2)',
+            'label' => 'Riprese fianchi / addome',
+            'formula' => 'Circ. addome - (Circ. sotto seno : 2)',
             'fields' => [
                 'ripresa_fianchi_davanti' => 'Davanti',
                 'ripresa_fianchi_lato' => 'Lato',
@@ -48,6 +49,7 @@ class DressCorset extends Model
         'circonferenza_seno',
         'circonferenza_sotto_seno',
         'circonferenza_vita',
+        'circonferenza_addome',
         'circonferenza_fianchi_15_cm',
         'altezza_laterale',
         'arco_orizzontale',

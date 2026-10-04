@@ -4,11 +4,15 @@
     $constructionNotes = $document['construction_notes'] ?? [];
     $customMeasurements = $document['custom_measurements'] ?? [];
     $corsetSummary = $document['corset_summary'] ?? [
+        'circonferenza_addome' => '',
+        'circonferenza_fianchi_15_cm' => '',
         'linea_sotto_seno' => '',
         'riprese_vita' => ['davanti' => '', 'lato' => '', 'dietro' => ''],
         'riprese_fianchi' => ['davanti' => '', 'lato' => '', 'dietro' => ''],
     ];
     $hasCorsetData = collect([
+        $corsetSummary['circonferenza_addome'] ?? '',
+        $corsetSummary['circonferenza_fianchi_15_cm'] ?? '',
         $corsetSummary['linea_sotto_seno'] ?? '',
         ...array_values($corsetSummary['riprese_vita'] ?? []),
         ...array_values($corsetSummary['riprese_fianchi'] ?? []),
@@ -96,6 +100,18 @@
                     @if($hasCorsetData)
                         <table style="width: 100%; border-collapse: collapse; font-size: 8.4px; margin-bottom: 3mm;">
                             <tr>
+                                <td style="width: 58%; padding: 1.5mm 0; border-bottom: 1px solid #ece4df;">Circonferenza addome</td>
+                                <td style="width: 42%; padding: 1.5mm 0; border-bottom: 1px solid #ece4df; text-align: right;">
+                                    {{ $corsetSummary['circonferenza_addome'] }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="width: 58%; padding: 1.5mm 0; border-bottom: 1px solid #ece4df;">Circonferenza fianchi 15 cm</td>
+                                <td style="width: 42%; padding: 1.5mm 0; border-bottom: 1px solid #ece4df; text-align: right;">
+                                    {{ $corsetSummary['circonferenza_fianchi_15_cm'] }}
+                                </td>
+                            </tr>
+                            <tr>
                                 <td style="width: 58%; padding: 1.5mm 0; border-bottom: 1px solid #ece4df;">Linea sotto il seno</td>
                                 <td style="width: 42%; padding: 1.5mm 0; border-bottom: 1px solid #ece4df; text-align: right;">
                                     {{ $corsetSummary['linea_sotto_seno'] }}
@@ -117,7 +133,7 @@
                             </tr>
                         </table>
 
-                        <div style="font-weight: bold; margin-bottom: 1.2mm;">Riprese fianchi</div>
+                        <div style="font-weight: bold; margin-bottom: 1.2mm;">Riprese fianchi / addome</div>
                         <table style="width: 100%; border-collapse: collapse; font-size: 8.2px;">
                             <tr>
                                 <td style="width: 33.33%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df;">Davanti</td>

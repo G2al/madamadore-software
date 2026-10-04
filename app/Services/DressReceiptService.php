@@ -44,4 +44,20 @@ class DressReceiptService
             'document' => $this->dressPdfDataService->build($dress),
         ])->setPaper('a4', 'portrait');
     }
+
+    public function generateFinalNotes(Dress $dress)
+    {
+        return Pdf::loadView('pdf.dress-final-notes', [
+            'dress' => $dress,
+            'document' => $this->dressPdfDataService->build($dress),
+        ])->setPaper('a4', 'portrait');
+    }
+
+    public function generateSecondaryModel(Dress $dress)
+    {
+        return Pdf::loadView('pdf.dress-secondary-model', [
+            'dress' => $dress,
+            'document' => $this->dressPdfDataService->build($dress),
+        ])->setPaper('a4', 'portrait');
+    }
 }

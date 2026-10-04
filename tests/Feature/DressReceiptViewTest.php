@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Dress;
+use App\Models\DressCorset;
 use App\Models\DressExpense;
 use App\Models\DressExtra;
 use App\Models\DressFabric;
@@ -49,6 +50,41 @@ class DressReceiptViewTest extends TestCase
         $this->assertStringContainsString('Campioni tessuto', $productionHtml);
         $this->assertStringContainsString('Dettaglio scollo', $technicalHtml);
         $this->assertStringContainsString('Resp.', $technicalHtml);
+    }
+
+    public function test_abdomen_remains_separate_from_bacino_in_pdf_data(): void
+    {
+        $dress = $this->makeDress();
+        $dress->setRelation('measurements', new DressMeasurement());
+        $dress->setRelation('corsets', collect([
+            new DressCorset([
+                'circonferenza_addome' => 96,
+                'circonferenza_fianchi_15_cm' => 100,
+            ]),
+        ]));
+
+        $document = app(\App\Services\DressPdfDataService::class)->build($dress);
+        $bacino = collect($document['measurements'])->firstWhere('label', 'Bacino');
+
+        $this->assertSame('', $bacino['value']);
+        $this->assertSame('96 cm', $document['corset_summary']['circonferenza_addome']);
+        $this->assertSame('100 cm', $document['corset_summary']['circonferenza_fianchi_15_cm']);
+    }
+
+    public function test_final_notes_and_secondary_model_render_as_separate_documents(): void
+    {
+        $dress = $this->makeDress();
+        $dress->pronta_misura_notes = 'Controllare la lunghezza con la scarpa definitiva.';
+        $dress->secondary_model_notes = 'Seconda proposta per il cambio abito.';
+        $document = app(\App\Services\DressPdfDataService::class)->build($dress);
+
+        $finalNotesHtml = view('pdf.dress-final-notes', compact('dress', 'document'))->render();
+        $secondaryModelHtml = view('pdf.dress-secondary-model', compact('dress', 'document'))->render();
+
+        $this->assertStringContainsString('Note finali', $finalNotesHtml);
+        $this->assertStringContainsString('Controllare la lunghezza', $finalNotesHtml);
+        $this->assertStringContainsString('Modellino aggiuntivo', $secondaryModelHtml);
+        $this->assertStringContainsString('Seconda proposta', $secondaryModelHtml);
     }
 
     private function makeDress(): Dress

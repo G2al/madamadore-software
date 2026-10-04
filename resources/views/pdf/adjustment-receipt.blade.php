@@ -97,6 +97,9 @@
                 <td><strong>Cliente:</strong> {{ $adjustment->customer->name ?? '-' }}</td>
                 <td><strong>Telefono:</strong> {{ $adjustment->customer->phone_number ?? '-' }}</td>
             </tr>
+            <tr>
+                <td colspan="2"><strong>Data di consegna:</strong> {{ $adjustment->delivery_date?->format('d/m/Y') ?? 'Da definire' }}</td>
+            </tr>
         </table>
 
         @if($adjustment->items && $adjustment->items->count() > 0)

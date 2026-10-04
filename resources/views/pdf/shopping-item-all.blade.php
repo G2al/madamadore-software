@@ -26,7 +26,6 @@
                 <th>Quantita</th>
                 <th>Misure</th>
                 <th>Fornitore</th>
-                <th>Prezzo (€)</th>
                 <th>Data Acquisto</th>
             </tr>
         </thead>
@@ -57,7 +56,6 @@
                     </td>
                     <td>{{ $unitLabel ?? '-' }}</td>
                     <td>{{ $item->supplier ?? '-' }}</td>
-                    <td class="right">€ {{ number_format($item->price, 2, ',', '.') }}</td>
                     <td>
                         {{ $item->purchase_date 
                             ? \Carbon\Carbon::parse($item->purchase_date)->format('d/m/Y') 

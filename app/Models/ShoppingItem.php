@@ -21,6 +21,8 @@ class ShoppingItem extends Model
         'supplier',
         'photo_path',
         'purchase_date',
+        'source_type',
+        'source_id',
     ];
 
     protected $casts = [
@@ -48,7 +50,7 @@ class ShoppingItem extends Model
 
     public function isPaid(): bool
     {
-        return !is_null($this->purchase_date);
+        return ! is_null($this->purchase_date);
     }
 
     public function fabric(): BelongsTo

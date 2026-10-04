@@ -49,6 +49,9 @@ class DressPdfDataService
             'design_image_path' => $this->resolvePrimaryDesignImagePath($dress, $technicalSheet),
             'technical_drawing_image_path' => $this->resolveStoredImagePath($technicalSheet?->technical_drawing_image),
             'model_cover_image_path' => $this->resolveModelCoverImagePath($dress, $technicalSheet),
+            'final_notes_photo_path' => $this->resolveStoredImagePath($dress->final_notes_photo),
+            'secondary_model_image_path' => $this->resolveStoredImagePath($dress->secondary_model_image),
+            'secondary_model_notes' => trim((string) ($dress->secondary_model_notes ?? '')),
             'approved_front_image_path' => $this->resolveApprovedFrontImagePath($dress, $technicalSheet),
             'approved_back_image_path' => $this->resolveApprovedBackImagePath($dress, $technicalSheet),
             'overview_front_image_path' => $this->resolveStoredImagePath($technicalSheet?->front_view_image)
@@ -582,6 +585,12 @@ class DressPdfDataService
     private function buildCorsetSummary(?DressCorset $corset): array
     {
         return [
+            'circonferenza_addome' => blank($corset?->circonferenza_addome)
+                ? ''
+                : $this->formatMeasurementValue($corset->circonferenza_addome) . ' cm',
+            'circonferenza_fianchi_15_cm' => blank($corset?->circonferenza_fianchi_15_cm)
+                ? ''
+                : $this->formatMeasurementValue($corset->circonferenza_fianchi_15_cm) . ' cm',
             'linea_sotto_seno' => blank($corset?->linea_sotto_seno)
                 ? ''
                 : $this->formatMeasurementValue($corset->linea_sotto_seno) . ' cm',
@@ -635,7 +644,7 @@ class DressPdfDataService
             'seno' => $corset->circonferenza_seno,
             'sotto_seno' => $corset->circonferenza_sotto_seno,
             'vita' => $corset->circonferenza_vita,
-            'bacino' => $measurements?->fianchi ?? $corset->circonferenza_fianchi_15_cm,
+            'bacino' => $measurements?->fianchi,
             'lunghezza_seno' => $corset->altezza_seno,
             default => $value,
         };

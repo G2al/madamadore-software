@@ -36,6 +36,8 @@ class AdjustmentReceiptViewTest extends TestCase
         $this->assertStringContainsString('Prezzo', $html);
         $this->assertStringContainsString('18,50', $html);
         $this->assertStringContainsString('0,00', $html);
+        $this->assertStringContainsString('Data consegna', $html);
+        $this->assertStringContainsString('20/04/2026', $html);
     }
 
     public function test_company_adjustment_receipt_shows_each_item_price(): void
@@ -61,6 +63,8 @@ class AdjustmentReceiptViewTest extends TestCase
         $this->assertStringContainsString('Prezzo', $html);
         $this->assertStringContainsString('25,00', $html);
         $this->assertStringContainsString('12,30', $html);
+        $this->assertStringContainsString('Data consegna', $html);
+        $this->assertStringContainsString('20/04/2026', $html);
     }
 
     private function makeAdjustment(): Adjustment
@@ -70,12 +74,13 @@ class AdjustmentReceiptViewTest extends TestCase
             'deposit' => 10,
             'total' => 30,
             'remaining' => 20,
+            'delivery_date' => '2026-04-20',
         ]);
 
         $adjustment->id = 101;
         $adjustment->created_at = Carbon::parse('2026-04-14');
         $adjustment->setRelation('customer', $this->makeCustomer());
-        $adjustment->setRelation('items', new Collection());
+        $adjustment->setRelation('items', new Collection);
 
         return $adjustment;
     }
@@ -87,12 +92,13 @@ class AdjustmentReceiptViewTest extends TestCase
             'deposit' => 15,
             'total' => 37.30,
             'remaining' => 22.30,
+            'delivery_date' => '2026-04-20',
         ]);
 
         $adjustment->id = 202;
         $adjustment->created_at = Carbon::parse('2026-04-14');
         $adjustment->setRelation('customer', $this->makeCustomer());
-        $adjustment->setRelation('items', new Collection());
+        $adjustment->setRelation('items', new Collection);
 
         return $adjustment;
     }
