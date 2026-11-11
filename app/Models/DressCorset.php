@@ -26,7 +26,7 @@ class DressCorset extends Model
     public const RIPRESA_GROUPS = [
         'vita' => [
             'label' => 'Riprese vita',
-            'formula' => 'Circ. sotto seno - (Circ. vita : 2)',
+            'formula' => '(Circ. sotto seno - Circ. vita) : 2',
             'fields' => [
                 'ripresa_vita_davanti' => 'Davanti',
                 'ripresa_vita_lato' => 'Lato',
@@ -35,7 +35,7 @@ class DressCorset extends Model
         ],
         'fianchi' => [
             'label' => 'Riprese fianchi / addome',
-            'formula' => 'Circ. addome - (Circ. sotto seno : 2)',
+            'formula' => '(Circ. addome - Circ. sotto seno) : 2',
             'fields' => [
                 'ripresa_fianchi_davanti' => 'Davanti',
                 'ripresa_fianchi_lato' => 'Lato',
@@ -137,7 +137,7 @@ class DressCorset extends Model
             ];
         }
 
-        $base = $circSottoSeno - ($circVita / 2);
+        $base = ($circSottoSeno - $circVita) / 2;
 
         return [
             'base' => round($base, 3),
@@ -158,7 +158,7 @@ class DressCorset extends Model
             ];
         }
 
-        $base = $circFianchi - ($circSottoSeno / 2);
+        $base = ($circFianchi - $circSottoSeno) / 2;
 
         return [
             'base' => round($base, 3),

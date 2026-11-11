@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CompanyAdjustment extends Model
 {
@@ -92,6 +93,16 @@ class CompanyAdjustment extends Model
     public function expenses()
     {
         return $this->hasMany(CompanyAdjustmentExpense::class);
+    }
+
+    public function availableExpenses(): HasMany
+    {
+        return $this->hasMany(CompanyAdjustmentExpense::class)->where('is_to_purchase', false);
+    }
+
+    public function purchaseExpenses(): HasMany
+    {
+        return $this->hasMany(CompanyAdjustmentExpense::class)->where('is_to_purchase', true);
     }
 
     /**

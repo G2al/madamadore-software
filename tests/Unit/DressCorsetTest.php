@@ -44,19 +44,35 @@ class DressCorsetTest extends TestCase
     {
         $result = DressCorset::calculateRipreseVita(90.0, 70.0);
 
-        $this->assertSame(55.0, $result['base']);
-        $this->assertSame(13.75, $result['davanti']);
-        $this->assertSame(27.5, $result['lato']);
-        $this->assertSame(13.75, $result['dietro']);
+        $this->assertSame(10.0, $result['base']);
+        $this->assertSame(2.5, $result['davanti']);
+        $this->assertSame(5.0, $result['lato']);
+        $this->assertSame(2.5, $result['dietro']);
     }
 
     public function test_calculates_riprese_fianchi(): void
     {
         $result = DressCorset::calculateRipreseFianchi(110.0, 90.0);
 
-        $this->assertSame(65.0, $result['base']);
-        $this->assertSame(16.25, $result['davanti']);
-        $this->assertSame(32.5, $result['lato']);
-        $this->assertSame(16.25, $result['dietro']);
+        $this->assertSame(10.0, $result['base']);
+        $this->assertSame(2.5, $result['davanti']);
+        $this->assertSame(5.0, $result['lato']);
+        $this->assertSame(2.5, $result['dietro']);
+    }
+
+    public function test_calculates_the_values_from_doras_example(): void
+    {
+        $vita = DressCorset::calculateRipreseVita(67.0, 66.0);
+        $addome = DressCorset::calculateRipreseFianchi(74.0, 67.0);
+
+        $this->assertSame(0.5, $vita['base']);
+        $this->assertSame(0.125, $vita['davanti']);
+        $this->assertSame(0.25, $vita['lato']);
+        $this->assertSame(0.125, $vita['dietro']);
+
+        $this->assertSame(3.5, $addome['base']);
+        $this->assertSame(0.875, $addome['davanti']);
+        $this->assertSame(1.75, $addome['lato']);
+        $this->assertSame(0.875, $addome['dietro']);
     }
 }

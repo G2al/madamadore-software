@@ -23,16 +23,20 @@ class AdjustmentExpense extends Model
         'quantity',
         'unit_type',
         'supplier_id',
+        'is_to_purchase',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'quantity' => 'decimal:2',
+        'is_to_purchase' => 'boolean',
     ];
 
     protected static function booted(): void
     {
-        static::saved(fn (self $expense) => app(ShoppingItemSourceSyncService::class)->sync($expense));
+        static::saved(function (self $expense): void {
+            app(ShoppingItemSourceSyncService::class)->sync($expense);
+        });
         static::deleted(fn (self $expense) => app(ShoppingItemSourceSyncService::class)->delete($expense));
     }
 

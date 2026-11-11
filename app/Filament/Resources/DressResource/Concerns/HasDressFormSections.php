@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\DressResource\Concerns;
 
+use App\Filament\Forms\ExpenseSections;
 use App\Models\DressCorset;
 use App\Models\DressMeasurement;
 use App\Models\Fabric;
@@ -610,65 +611,9 @@ trait HasDressFormSections
         return $updated;
     }
 
-    private static function expenseSection(): Forms\Components\Section
+    private static function expenseSection(): Forms\Components\Group
     {
-        return Forms\Components\Section::make('Lista della spesa')
-            ->description("Prodotti o materiali utilizzati per la realizzazione dell'abito (uso interno)")
-            ->schema([
-                Forms\Components\Repeater::make('expenses')
-                    ->label('Articoli')
-                    ->relationship('expenses')
-                    ->schema([
-                        Forms\Components\TextInput::make('name')
-                            ->label('Nome articolo')
-                            ->default('Articolo generico')
-                            ->placeholder('Es. Bottone, zip, decorazione...'),
-
-                        Forms\Components\TextInput::make('color_code')
-                            ->label('Codice colore')
-                            ->maxLength(255),
-
-                        Forms\Components\TextInput::make('quantity')
-                            ->label('Quantita')
-                            ->numeric()
-                            ->step(0.01)
-                            ->default(1),
-
-                        Forms\Components\Select::make('unit_type')
-                            ->label('Unita')
-                            ->options([
-                                'pezzi' => 'Pezzi',
-                                'metri' => 'Metri',
-                            ])
-                            ->default('pezzi')
-                            ->required(),
-
-                        Forms\Components\Select::make('supplier_id')
-                            ->label('Fornitore')
-                            ->relationship('supplierRecord', 'name')
-                            ->searchable()
-                            ->preload()
-                            ->getOptionLabelFromRecordUsing(fn (Supplier $record): string => $record->name),
-
-                        Forms\Components\FileUpload::make('photo_path')
-                            ->label('Foto')
-                            ->image()
-                            ->directory('dress-expenses')
-                            ->imageEditor(),
-
-                        Forms\Components\TextInput::make('price')
-                            ->label('Costo interno (€)')
-                            ->numeric()
-                            ->prefix('€')
-                            ->default(0)
-                            ->helperText('Non influisce sul prezzo cliente.'),
-                    ])
-                    ->columns(3)
-                    ->addActionLabel('Aggiungi articolo')
-                    ->collapsible()
-                    ->cloneable(),
-            ])
-            ->columnSpanFull();
+        return ExpenseSections::make('dress-expenses');
     }
 
     // --- SEZIONE 4: Preventivo (Tessuti + Extra) ---

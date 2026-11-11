@@ -254,7 +254,9 @@ class DressPdfDataService
             ->merge(
                 collect($dress->expenses)
                     ->map(fn ($expense): string => trim((string) $expense->name))
-                    ->filter(fn (string $name): bool => $this->classifyExpenseAsMaterial($name) === null)
+                    ->filter(fn (string $name): bool => $name !== ''
+                        && strcasecmp($name, 'Articolo generico') !== 0
+                        && $this->classifyExpenseAsMaterial($name) === null)
             )
             ->values()
             ->all();
@@ -584,27 +586,42 @@ class DressPdfDataService
      */
     private function buildCorsetSummary(?DressCorset $corset): array
     {
+        $measurements = collect(DressCorset::scalarMeasurementFields())
+            ->map(fn (string $label, string $field): array => [
+                'label' => $label,
+                'value' => $this->formatNullableCorsetValue($corset?->{$field}),
+            ])
+            ->values()
+            ->all();
+
         return [
-            'circonferenza_addome' => blank($corset?->circonferenza_addome)
-                ? ''
-                : $this->formatMeasurementValue($corset->circonferenza_addome) . ' cm',
-            'circonferenza_fianchi_15_cm' => blank($corset?->circonferenza_fianchi_15_cm)
-                ? ''
-                : $this->formatMeasurementValue($corset->circonferenza_fianchi_15_cm) . ' cm',
-            'linea_sotto_seno' => blank($corset?->linea_sotto_seno)
-                ? ''
-                : $this->formatMeasurementValue($corset->linea_sotto_seno) . ' cm',
+            'measurements' => $measurements,
+            'circonferenza_addome' => $this->formatNullableCorsetValue($corset?->circonferenza_addome),
+            'circonferenza_fianchi_15_cm' => $this->formatNullableCorsetValue($corset?->circonferenza_fianchi_15_cm),
+            'linea_sotto_seno' => $this->formatNullableCorsetValue($corset?->linea_sotto_seno),
             'riprese_vita' => [
-                'davanti' => blank($corset?->ripresa_vita_davanti) ? '' : $this->formatMeasurementValue($corset->ripresa_vita_davanti) . ' cm',
-                'lato' => blank($corset?->ripresa_vita_lato) ? '' : $this->formatMeasurementValue($corset->ripresa_vita_lato) . ' cm',
-                'dietro' => blank($corset?->ripresa_vita_dietro) ? '' : $this->formatMeasurementValue($corset->ripresa_vita_dietro) . ' cm',
+                'davanti' => $this->formatNullableCorsetValue($corset?->ripresa_vita_davanti, 3),
+                'lato' => $this->formatNullableCorsetValue($corset?->ripresa_vita_lato, 3),
+                'dietro' => $this->formatNullableCorsetValue($corset?->ripresa_vita_dietro, 3),
             ],
             'riprese_fianchi' => [
-                'davanti' => blank($corset?->ripresa_fianchi_davanti) ? '' : $this->formatMeasurementValue($corset->ripresa_fianchi_davanti) . ' cm',
-                'lato' => blank($corset?->ripresa_fianchi_lato) ? '' : $this->formatMeasurementValue($corset->ripresa_fianchi_lato) . ' cm',
-                'dietro' => blank($corset?->ripresa_fianchi_dietro) ? '' : $this->formatMeasurementValue($corset->ripresa_fianchi_dietro) . ' cm',
+                'davanti' => $this->formatNullableCorsetValue($corset?->ripresa_fianchi_davanti, 3),
+                'lato' => $this->formatNullableCorsetValue($corset?->ripresa_fianchi_lato, 3),
+                'dietro' => $this->formatNullableCorsetValue($corset?->ripresa_fianchi_dietro, 3),
             ],
         ];
+    }
+
+    private function formatNullableCorsetValue(mixed $value, int $precision = 1): string
+    {
+        if ($value === null || $value === '') {
+            return '';
+        }
+
+        $formatted = number_format((float) $value, $precision, ',', '.');
+        $formatted = rtrim(rtrim($formatted, '0'), ',');
+
+        return $formatted.' cm';
     }
 
     /**

@@ -10,6 +10,12 @@ class ShoppingItemSourceSyncService
 {
     public function sync(Model $source): void
     {
+        if (! $source->is_to_purchase || blank($source->name)) {
+            $this->delete($source);
+
+            return;
+        }
+
         $supplier = $source->supplier_id
             ? Supplier::query()->find($source->supplier_id)
             : null;
@@ -21,7 +27,7 @@ class ShoppingItemSourceSyncService
             ],
             [
                 'supplier_id' => $source->supplier_id,
-                'name' => $source->name ?: 'Articolo generico',
+                'name' => trim((string) $source->name),
                 'color_code' => $source->color_code,
                 'price' => $source->price ?? 0,
                 'quantity' => $source->quantity ?? 1,

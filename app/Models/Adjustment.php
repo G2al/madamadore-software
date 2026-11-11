@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Adjustment extends Model
 {
@@ -93,6 +94,16 @@ class Adjustment extends Model
     public function expenses()
     {
         return $this->hasMany(AdjustmentExpense::class);
+    }
+
+    public function availableExpenses(): HasMany
+    {
+        return $this->hasMany(AdjustmentExpense::class)->where('is_to_purchase', false);
+    }
+
+    public function purchaseExpenses(): HasMany
+    {
+        return $this->hasMany(AdjustmentExpense::class)->where('is_to_purchase', true);
     }
 
     /**

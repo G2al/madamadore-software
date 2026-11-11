@@ -91,6 +91,16 @@ class Dress extends Model
         return $this->hasMany(DressExpense::class);
     }
 
+    public function availableExpenses(): HasMany
+    {
+        return $this->hasMany(DressExpense::class)->where('is_to_purchase', false);
+    }
+
+    public function purchaseExpenses(): HasMany
+    {
+        return $this->hasMany(DressExpense::class)->where('is_to_purchase', true);
+    }
+
     public function corsets(): HasMany
     {
         return $this->hasMany(DressCorset::class);
@@ -217,6 +227,7 @@ class Dress extends Model
     {
         return $query->whereNotNull('archived_at');
     }
+
     
 public function archive(): void
 {

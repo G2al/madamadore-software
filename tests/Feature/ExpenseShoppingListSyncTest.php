@@ -37,6 +37,7 @@ class ExpenseShoppingListSyncTest extends TestCase
             'quantity' => 6,
             'unit_type' => 'pezzi',
             'price' => 1.50,
+            'is_to_purchase' => true,
         ]);
 
         $item = ShoppingItem::query()->where([
@@ -72,6 +73,7 @@ class ExpenseShoppingListSyncTest extends TestCase
         $expense = DressExpense::query()->create([
             'dress_id' => $dress->id,
             'name' => 'Articolo collegato',
+            'is_to_purchase' => true,
         ]);
 
         $this->assertDatabaseHas('shopping_items', [
@@ -109,12 +111,58 @@ class ExpenseShoppingListSyncTest extends TestCase
             'name' => 'Cerniera invisibile',
             'quantity' => 1,
             'unit_type' => 'pezzi',
+            'is_to_purchase' => true,
         ]);
 
         $this->assertDatabaseHas('shopping_items', [
             'source_type' => AdjustmentExpense::class,
             'source_id' => $expense->id,
             'name' => 'Cerniera invisibile',
+        ]);
+    }
+
+    public function test_available_item_or_sample_is_not_added_to_the_shopping_list(): void
+    {
+        $dress = Dress::query()->create([
+            'customer_name' => 'Cliente Campione',
+            'phone_number' => '3330000000',
+            'status' => 'confermato',
+        ]);
+
+        $sample = DressExpense::query()->create([
+            'dress_id' => $dress->id,
+            'name' => null,
+            'photo_path' => 'dress-expenses/campione.jpg',
+            'is_to_purchase' => false,
+        ]);
+
+        $this->assertDatabaseMissing('shopping_items', [
+            'source_type' => DressExpense::class,
+            'source_id' => $sample->id,
+        ]);
+    }
+
+    public function test_only_named_purchase_item_is_added_to_the_shopping_list(): void
+    {
+        $dress = Dress::query()->create([
+            'customer_name' => 'Cliente Gross Grain',
+            'phone_number' => '3330000001',
+            'status' => 'confermato',
+        ]);
+
+        $purchase = DressExpense::query()->create([
+            'dress_id' => $dress->id,
+            'name' => 'Gross grain',
+            'quantity' => 2,
+            'unit_type' => 'metri',
+            'is_to_purchase' => true,
+        ]);
+
+        $this->assertDatabaseHas('shopping_items', [
+            'source_type' => DressExpense::class,
+            'source_id' => $purchase->id,
+            'name' => 'Gross grain',
+            'unit_type' => 'metri',
         ]);
     }
 }

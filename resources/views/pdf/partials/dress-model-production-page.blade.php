@@ -4,6 +4,7 @@
     $constructionNotes = $document['construction_notes'] ?? [];
     $customMeasurements = $document['custom_measurements'] ?? [];
     $corsetSummary = $document['corset_summary'] ?? [
+        'measurements' => [],
         'circonferenza_addome' => '',
         'circonferenza_fianchi_15_cm' => '',
         'linea_sotto_seno' => '',
@@ -11,9 +12,7 @@
         'riprese_fianchi' => ['davanti' => '', 'lato' => '', 'dietro' => ''],
     ];
     $hasCorsetData = collect([
-        $corsetSummary['circonferenza_addome'] ?? '',
-        $corsetSummary['circonferenza_fianchi_15_cm'] ?? '',
-        $corsetSummary['linea_sotto_seno'] ?? '',
+        ...collect($corsetSummary['measurements'] ?? [])->pluck('value')->all(),
         ...array_values($corsetSummary['riprese_vita'] ?? []),
         ...array_values($corsetSummary['riprese_fianchi'] ?? []),
     ])->filter(fn ($value) => filled($value))->isNotEmpty();
@@ -74,7 +73,7 @@
 
             <td style="width: 33.33%; vertical-align: top; padding: 0 4mm; border-right: 1px solid #e0d7d1;">
                 <div class="section-title">Misure personalizzate</div>
-                <div class="small-text" style="line-height: 1.36; min-height: 66mm; margin-bottom: 6mm;">
+                <div class="small-text" style="line-height: 1.36; min-height: {{ $hasCorsetData ? '46mm' : '66mm' }}; margin-bottom: {{ $hasCorsetData ? '4mm' : '6mm' }};">
                     @if(! empty($customMeasurements))
                         <table style="width: 100%; border-collapse: collapse; font-size: 8.6px;">
                             @foreach($customMeasurements as $measurement)
@@ -96,54 +95,49 @@
                 </div>
 
                 <div class="section-title">Misure corsetto</div>
-                <div class="small-text" style="line-height: 1.3; min-height: 62mm; margin-bottom: 6mm;">
+                <div class="small-text" style="line-height: 1.25; min-height: 62mm; margin-bottom: 4mm;">
                     @if($hasCorsetData)
-                        <table style="width: 100%; border-collapse: collapse; font-size: 8.4px; margin-bottom: 3mm;">
-                            <tr>
-                                <td style="width: 58%; padding: 1.5mm 0; border-bottom: 1px solid #ece4df;">Circonferenza addome</td>
-                                <td style="width: 42%; padding: 1.5mm 0; border-bottom: 1px solid #ece4df; text-align: right;">
-                                    {{ $corsetSummary['circonferenza_addome'] }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="width: 58%; padding: 1.5mm 0; border-bottom: 1px solid #ece4df;">Circonferenza fianchi 15 cm</td>
-                                <td style="width: 42%; padding: 1.5mm 0; border-bottom: 1px solid #ece4df; text-align: right;">
-                                    {{ $corsetSummary['circonferenza_fianchi_15_cm'] }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="width: 58%; padding: 1.5mm 0; border-bottom: 1px solid #ece4df;">Linea sotto il seno</td>
-                                <td style="width: 42%; padding: 1.5mm 0; border-bottom: 1px solid #ece4df; text-align: right;">
-                                    {{ $corsetSummary['linea_sotto_seno'] }}
-                                </td>
-                            </tr>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 7.5px; margin-bottom: 2.5mm; table-layout: fixed;">
+                            @foreach(array_chunk($corsetSummary['measurements'] ?? [], 2) as $measurementPair)
+                                <tr>
+                                    @foreach($measurementPair as $measurement)
+                                        <td style="width: 50%; padding: 1mm 1.2mm 1mm 0; border-bottom: 1px solid #ece4df; vertical-align: top;">
+                                            <div>{{ $measurement['label'] }}</div>
+                                            <div style="font-weight: bold; margin-top: 0.5mm;">{{ $measurement['value'] ?: '—' }}</div>
+                                        </td>
+                                    @endforeach
+                                    @if(count($measurementPair) === 1)
+                                        <td style="width: 50%; border-bottom: 1px solid #ece4df;"></td>
+                                    @endif
+                                </tr>
+                            @endforeach
                         </table>
 
-                        <div style="font-weight: bold; margin-bottom: 1.2mm;">Riprese vita</div>
-                        <table style="width: 100%; border-collapse: collapse; font-size: 8.2px; margin-bottom: 3mm;">
+                        <div style="font-weight: bold; margin-bottom: 1mm;">Riprese vita</div>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 8px; margin-bottom: 2mm;">
                             <tr>
                                 <td style="width: 33.33%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df;">Davanti</td>
                                 <td style="width: 33.33%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df; text-align: center;">Lato</td>
                                 <td style="width: 33.34%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df; text-align: right;">Dietro</td>
                             </tr>
                             <tr>
-                                <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df;">{{ $corsetSummary['riprese_vita']['davanti'] }}</td>
-                                <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df; text-align: center;">{{ $corsetSummary['riprese_vita']['lato'] }}</td>
-                                <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df; text-align: right;">{{ $corsetSummary['riprese_vita']['dietro'] }}</td>
+                                <td style="padding: 1mm 0 1.4mm 0; border-bottom: 1px solid #ece4df;">{{ $corsetSummary['riprese_vita']['davanti'] }}</td>
+                                <td style="padding: 1mm 0 1.4mm 0; border-bottom: 1px solid #ece4df; text-align: center;">{{ $corsetSummary['riprese_vita']['lato'] }}</td>
+                                <td style="padding: 1mm 0 1.4mm 0; border-bottom: 1px solid #ece4df; text-align: right;">{{ $corsetSummary['riprese_vita']['dietro'] }}</td>
                             </tr>
                         </table>
 
-                        <div style="font-weight: bold; margin-bottom: 1.2mm;">Riprese fianchi / addome</div>
-                        <table style="width: 100%; border-collapse: collapse; font-size: 8.2px;">
+                        <div style="font-weight: bold; margin-bottom: 1mm;">Riprese fianchi / addome</div>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 8px;">
                             <tr>
                                 <td style="width: 33.33%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df;">Davanti</td>
                                 <td style="width: 33.33%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df; text-align: center;">Lato</td>
                                 <td style="width: 33.34%; padding: 1.2mm 0; border-bottom: 1px solid #ece4df; text-align: right;">Dietro</td>
                             </tr>
                             <tr>
-                                <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df;">{{ $corsetSummary['riprese_fianchi']['davanti'] }}</td>
-                                <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df; text-align: center;">{{ $corsetSummary['riprese_fianchi']['lato'] }}</td>
-                                <td style="padding: 1.4mm 0 2mm 0; border-bottom: 1px solid #ece4df; text-align: right;">{{ $corsetSummary['riprese_fianchi']['dietro'] }}</td>
+                                <td style="padding: 1mm 0 1.4mm 0; border-bottom: 1px solid #ece4df;">{{ $corsetSummary['riprese_fianchi']['davanti'] }}</td>
+                                <td style="padding: 1mm 0 1.4mm 0; border-bottom: 1px solid #ece4df; text-align: center;">{{ $corsetSummary['riprese_fianchi']['lato'] }}</td>
+                                <td style="padding: 1mm 0 1.4mm 0; border-bottom: 1px solid #ece4df; text-align: right;">{{ $corsetSummary['riprese_fianchi']['dietro'] }}</td>
                             </tr>
                         </table>
                     @else
@@ -154,7 +148,7 @@
                 </div>
 
                 <div class="section-title">Accessori</div>
-                <div class="small-text" style="line-height: 1.42; min-height: 76mm;">
+                <div class="small-text" style="line-height: 1.42; min-height: {{ $hasCorsetData ? '50mm' : '76mm' }};">
                     @if(! empty($document['accessories']))
                         <ul class="bullet-list" style="padding-left: 5mm;">
                             @foreach($document['accessories'] as $accessory)

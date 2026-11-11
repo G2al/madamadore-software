@@ -55,11 +55,22 @@ class DressReceiptViewTest extends TestCase
     public function test_abdomen_remains_separate_from_bacino_in_pdf_data(): void
     {
         $dress = $this->makeDress();
-        $dress->setRelation('measurements', new DressMeasurement());
+        $dress->setRelation('measurements', new DressMeasurement);
         $dress->setRelation('corsets', collect([
             new DressCorset([
+                'circonferenza_seno' => 82,
+                'circonferenza_sotto_seno' => 67,
+                'circonferenza_vita' => 66,
                 'circonferenza_addome' => 96,
                 'circonferenza_fianchi_15_cm' => 100,
+                'altezza_laterale' => 20,
+                'arco_orizzontale' => 20,
+                'altezza_seno' => 17,
+                'linea_sotto_seno' => 6.2,
+                'raggio_inferiore' => 8,
+                'ripresa_vita_davanti' => 0.125,
+                'ripresa_vita_lato' => 0.25,
+                'ripresa_vita_dietro' => 0.125,
             ]),
         ]));
 
@@ -69,6 +80,14 @@ class DressReceiptViewTest extends TestCase
         $this->assertSame('', $bacino['value']);
         $this->assertSame('96 cm', $document['corset_summary']['circonferenza_addome']);
         $this->assertSame('100 cm', $document['corset_summary']['circonferenza_fianchi_15_cm']);
+        $this->assertSame('0,125 cm', $document['corset_summary']['riprese_vita']['davanti']);
+        $this->assertCount(10, $document['corset_summary']['measurements']);
+
+        $productionHtml = view('pdf.dress-model-production', compact('dress', 'document'))->render();
+
+        $this->assertStringContainsString('Circonferenza seno', $productionHtml);
+        $this->assertStringContainsString('Altezza laterale', $productionHtml);
+        $this->assertStringContainsString('Raggio inferiore', $productionHtml);
     }
 
     public function test_final_notes_and_secondary_model_render_as_separate_documents(): void
@@ -85,6 +104,47 @@ class DressReceiptViewTest extends TestCase
         $this->assertStringContainsString('Controllare la lunghezza', $finalNotesHtml);
         $this->assertStringContainsString('Modellino aggiuntivo', $secondaryModelHtml);
         $this->assertStringContainsString('Seconda proposta', $secondaryModelHtml);
+    }
+
+    public function test_complete_corset_does_not_add_pages_to_the_main_model_pdf(): void
+    {
+        $dress = $this->makeDress();
+        $service = app(\App\Services\DressReceiptService::class);
+        $baselinePdf = $service->generateReceipt($dress);
+        $baselinePdf->render();
+
+        $baselinePageCount = $baselinePdf->getDomPDF()->getCanvas()->get_page_count();
+
+        $dress->setRelation('corsets', collect([
+            new DressCorset([
+                'circonferenza_seno' => 82,
+                'circonferenza_sotto_seno' => 67,
+                'circonferenza_vita' => 66,
+                'circonferenza_addome' => 74,
+                'circonferenza_fianchi_15_cm' => 79,
+                'altezza_laterale' => 20,
+                'arco_orizzontale' => 20,
+                'altezza_seno' => 17,
+                'linea_sotto_seno' => 6.2,
+                'raggio_inferiore' => 8,
+                'ripresa_vita_davanti' => 0.125,
+                'ripresa_vita_lato' => 0.25,
+                'ripresa_vita_dietro' => 0.125,
+                'ripresa_fianchi_davanti' => 0.875,
+                'ripresa_fianchi_lato' => 1.75,
+                'ripresa_fianchi_dietro' => 0.875,
+            ]),
+        ]));
+
+        $productionPdf = $service->generateProductionSheet($dress);
+        $productionPdf->render();
+
+        $this->assertSame(1, $productionPdf->getDomPDF()->getCanvas()->get_page_count());
+
+        $pdf = $service->generateReceipt($dress);
+        $pdf->render();
+
+        $this->assertSame($baselinePageCount, $pdf->getDomPDF()->getCanvas()->get_page_count());
     }
 
     private function makeDress(): Dress
@@ -114,8 +174,8 @@ class DressReceiptViewTest extends TestCase
             'lunghezza_abito' => 145,
             'lunghezza_manica' => 61,
         ]));
-        $dress->setRelation('customMeasurements', new Collection());
-        $dress->setRelation('corsets', new Collection());
+        $dress->setRelation('customMeasurements', new Collection);
+        $dress->setRelation('corsets', new Collection);
         $dress->setRelation('technicalSheet', new DressTechnicalSheet([
             'model_name' => 'Abito colonna demo',
             'line_name' => 'Cerimonia',
